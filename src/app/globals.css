@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for loading animation */
+.loadingContainer {
+  @apply flex items-center justify-center h-screen;
+}
+
+.loader {
+  @apply border-4 border-t-4 border-gray-200 rounded-full w-16 h-16 animate-spin;
+  border-top-color: #3498db;
+}
+
