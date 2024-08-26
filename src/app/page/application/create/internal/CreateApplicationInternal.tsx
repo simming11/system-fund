@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
-import ApiApplicationWithAttachmentService from '@/app/services/applicationwithAttachment/api';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
+import ApiServiceLocations from '@/app/services/location/apiLocations';
 
 interface FormData {
   StudentID: string;
@@ -17,6 +17,16 @@ interface FormData {
   Major: string;
   GPA: number | string;
   DOB: string;
+  CurrentVillage: string;
+  CurrentProvince: string;
+  CurrentDistrict: string;
+  CurrentSubdistrict: string;
+  CurrentPostalCode: string;
+  HometownVillage: string;
+  HometownProvince: string;
+  HometownDistrict: string;
+  HometownSubdistrict: string;
+  HometownPostalCode: string;
   CurrentAddress: string;
   HometownAddress: string;
   PhoneNumber: string;
@@ -57,6 +67,7 @@ interface FormData {
   FirstName: string;
   LastName: string;
   YearLevel: string;
+  PrefixName:string;
 }
 
 export default function CreateApplicationInternalPage() {
@@ -76,8 +87,19 @@ export default function CreateApplicationInternalPage() {
     Major: '',
     GPA: '',
     DOB: '',
+    PrefixName: '',
     CurrentAddress: '',
     HometownAddress: '',
+    CurrentVillage: '',
+    CurrentProvince: '',
+    CurrentDistrict: '',
+    CurrentSubdistrict: '',
+    CurrentPostalCode: '',
+    HometownVillage: '',
+    HometownProvince: '',
+    HometownDistrict: '',
+    HometownSubdistrict: '',
+    HometownPostalCode: '',
     PhoneNumber: '',
     Email: '',
     Religion: '',
@@ -121,6 +143,9 @@ export default function CreateApplicationInternalPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
   const [userData, setUserData] = useState<any>(null); // State to store fetched student data
+  const [provinces, setProvinces] = useState<string[]>([]);
+  const [districts, setDistricts] = useState<{ id: number, name: string }[]>([]);
+  const [Subdistricts, setSubdistricts] = useState<{ id: number, name: string }[]>([]);
 
   useEffect(() => {
     if (!token) {
@@ -154,18 +179,85 @@ export default function CreateApplicationInternalPage() {
     }
   }, [token, idStudent, router]);
 
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      try {
+        const response = await ApiServiceLocations.getSouthernLocations();
+        const provinceNames = response.data.map((province: any) => province.name);
+        setProvinces(provinceNames);
+      } catch (error) {
+        console.error('Error fetching provinces:', error);
+      }
+    };
+
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (formData.CurrentProvince) {
+      const fetchDistricts = async () => {
+        try {
+          const response = await ApiServiceLocations.getDistricts(formData.CurrentProvince);
+
+          // ตรวจสอบว่า response มีข้อมูลที่ถูกต้อง
+          if (response.data && Array.isArray(response.data)) {
+            const districtNames = response.data.map((district: { id: number, name: string }) => ({
+              id: district.id,
+              name: district.name
+            }));
+            setDistricts(districtNames);
+          } else {
+            setDistricts([]);  // หากไม่มีข้อมูลให้ตั้งค่า state ว่างเปล่า
+          }
+
+          console.log(response.data, "sd");
+        } catch (error) {
+          console.error('Error fetching districts:', error);
+          setDistricts([]);  // ในกรณีที่เกิดข้อผิดพลาด ให้ตั้งค่า state ว่างเปล่า
+        }
+      };
+
+      fetchDistricts();
+    } else {
+      setDistricts([]);  // หากไม่มี province ที่ถูกเลือก ให้ตั้งค่า state ว่างเปล่า
+    }
+  }, [formData.CurrentProvince]);
+  useEffect(() => {
+    if (formData.CurrentDistrict) {
+      const fetchSubdistricts = async () => {
+        try {
+          const response = await ApiServiceLocations.getSubdistricts(formData.CurrentDistrict);
+          const subdistrictNames = response.data.map((subdistrict: { id: number, name: string }) => ({
+            id: subdistrict.id,
+            name: subdistrict.name,
+          }));
+          setSubdistricts(subdistrictNames);
+          console.log(response.data, "subdistricts");
+        } catch (error) {
+          console.error('Error fetching subdistricts:', error);
+        }
+      };
+
+      fetchSubdistricts();
+    }
+  }, [formData.CurrentDistrict]);
+
+
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
+    console.log(value);
+
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await ApiApplicationWithAttachmentService.createApplication(formData);
+      // await ApiApplicationWithAttachmentService.createApplication(formData);
       router.push('/page/application');
     } catch (error) {
       setError('Error creating application. Please check the form fields and try again.');
@@ -286,44 +378,76 @@ export default function CreateApplicationInternalPage() {
                   className="w-full p-3 border border-gray-300 rounded"
                 />
               </div>
-              <div className="flex items-end mb-4">
-                <div className="w-full">
-                  <label htmlFor="CurrentAddress" className="block text-gray-700 mb-2">ที่อยู่ปัจจุบัน</label>
-                  <input
-                    type="text"
-                    id="CurrentAddress"
-                    name="CurrentAddress"
-                    value={formData.CurrentAddress}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => searchZipcode(formData.CurrentAddress)}
-                  className="bg-blue-500 text-white px-4 py-2 ml-4 rounded hover:bg-blue-600"
-                >
-                  ค้นหา
-                </button>
-              </div>
               <div>
-                <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">รายได้ของนิสิตต่อเดือน</label>
+                <label htmlFor="CurrentVillage" className="block text-gray-700 mb-2">หมู่บ้านปัจจุบัน</label>
                 <input
-                  type="number"
-                  id="MonthlyIncome"
-                  name="MonthlyIncome"
-                  value={formData.MonthlyIncome}
+                  type="text"
+                  id="CurrentVillage"
+                  name="CurrentVillage"
+                  value={formData.CurrentVillage}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded"
                 />
               </div>
               <div>
-                <label htmlFor="MonthlyExpenses" className="block text-gray-700 mb-2">รายจ่ายของนิสิตต่อเดือน</label>
+                <label htmlFor="CurrentProvince" className="block text-gray-700 mb-2">จังหวัดปัจจุบัน</label>
+                <select
+                  id="CurrentProvince"
+                  name="CurrentProvince"
+                  value={formData.CurrentProvince}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded"
+                >
+                  <option value="">เลือกจังหวัด</option>
+                  {provinces.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="CurrentDistrict" className="block text-gray-700 mb-2">อำเภอปัจจุบัน</label>
+                <select
+                  id="CurrentDistrict"
+                  name="CurrentDistrict"
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded"
+                >
+                  <option value="">เลือกอำเภอ</option>
+                  {districts.map((district) => (
+                    <option key={district.id} value={district.name}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+
+              </div>
+              <div>
+                <label htmlFor="CurrentSubdistrict" className="block text-gray-700 mb-2">ตำบลปัจจุบัน</label>
+                <select
+                  id="CurrentSubdistrict"
+                  name="CurrentSubdistrict"
+                  value={formData.CurrentSubdistrict}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded"
+                >
+                  <option value="">เลือกตำบล</option>
+                  {Subdistricts.map((subdistrict) => (
+                    <option key={subdistrict.id} value={subdistrict.name}>
+                      {subdistrict.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="CurrentPostalCode" className="block text-gray-700 mb-2">รหัสไปรษณีย์ปัจจุบัน</label>
                 <input
-                  type="number"
-                  id="MonthlyExpenses"
-                  name="MonthlyExpenses"
-                  value={formData.MonthlyExpenses}
+                  type="text"
+                  id="CurrentPostalCode"
+                  name="CurrentPostalCode"
+                  value={formData.CurrentPostalCode}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded"
                 />
@@ -497,14 +621,16 @@ export default function CreateApplicationInternalPage() {
               <button
                 type="button"
                 onClick={() => setStep(step > 1 ? step - 1 : step)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={step === 1}  // ปิดการใช้งานปุ่ม "Next" เมื่อถึงขั้นตอนที่ 5
               >
                 Previous
               </button>
               <button
                 type="button"
                 onClick={() => setStep(step < 5 ? step + 1 : step)}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={step === 5}  // ปิดการใช้งานปุ่ม "Next" เมื่อถึงขั้นตอนที่ 5
               >
                 Next
               </button>
@@ -520,6 +646,7 @@ export default function CreateApplicationInternalPage() {
               </div>
             )}
           </form>
+
         </div>
       </div>
       <Footer />

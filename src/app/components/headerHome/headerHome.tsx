@@ -6,7 +6,7 @@ const HeaderHome = () => {
     return (
         <header className={styles.header}>
             <div className={styles.container}>
-                <Image src="/path/to/logo.png" alt="Logo" className={styles.logo} width={100} height={60} />
+                <Image src="/images/TsuMove.png" alt="Logo" className={styles.logo} width={100} height={150} />
                 <div className={styles.headerText}>
                     <h1>ระบบจัดการทุนการศึกษาคณะวิทยาศาสตร์และนวัตกรรมดิจิทัล มหาวิทยาลัยทักษิณ</h1>
                     <p>Student Scholarship Management System Faculty of Science and Digital Innovation, Thaksin University</p>

@@ -5,27 +5,34 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import ApiAuthService from "@/app/services/auth/ApiAuth";
 import HeaderHome from "@/app/components/headerHome/headerHome";
-import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Header from "@/app/components/header/Header";
 
 export default function RegisterPage() {
-  const [StudentID, setStudentID] = useState("");
-  const [FirstName, setFirstName] = useState("");
-  const [LastName, setLastName] = useState("");
-  const [Email, setEmail] = useState("");
-  const [Password, setPassword] = useState("");
-  const [YearLevel, setYearLevel] = useState(""); // New field for YearLevel
-  const [Major, setMajor] = useState(""); // New field for Major
-  const [GPA, setGPA] = useState(""); // New field for GPA
+  const [StudentID, setStudentID] = useState<string>("");
+  const [FirstName, setFirstName] = useState<string>("");
+  const [LastName, setLastName] = useState<string>("");
+  const [Email, setEmail] = useState<string>("");
+  const [Password, setPassword] = useState<string>("");
+  const [Year_Entry, setYear_Entry] = useState<string>(""); // Store as string initially
+  const [Religion, setReligion] = useState<string>("");
+  const [PrefixName, setPrefixName] = useState<string>("");
+  const [Phone, setPhone] = useState<string>("");
+  const [DOB, setDOB] = useState<string>("");
+  const [Course, setCourse] = useState<string>("");
+  const [GPA, setGPA] = useState<string>("");
   const [errors, setErrors] = useState({
     StudentID: "",
+    Password: "",
     FirstName: "",
     LastName: "",
     Email: "",
-    Password: "",
-    YearLevel: "",
-    Major: "",
     GPA: "",
+    Year_Entry: "",
+    PrefixName: "",
+    Phone: "",
+    DOB: "",
+    Course: "",
+    Religion: "",
     form: ""
   });
 
@@ -40,6 +47,10 @@ export default function RegisterPage() {
       validationErrors.StudentID = "Student ID is required";
       hasErrors = true;
     }
+    if (!PrefixName) {
+      validationErrors.PrefixName = "PrefixName is required";
+      hasErrors = true;
+    }
     if (!FirstName) {
       validationErrors.FirstName = "First Name is required";
       hasErrors = true;
@@ -52,16 +63,21 @@ export default function RegisterPage() {
       validationErrors.Email = "Valid email address is required";
       hasErrors = true;
     }
+    if (!Phone || !/^\d{10}$/.test(Phone)) {
+      validationErrors.Phone = "Phone number must be a valid 10-digit number";
+      hasErrors = true;
+    }
+
     if (Password.length < 6) {
       validationErrors.Password = "Password must be at least 6 characters";
       hasErrors = true;
     }
-    if (!YearLevel) {
-      validationErrors.YearLevel = "Year Level is required";
+    if (!Year_Entry) {
+      validationErrors.Year_Entry = "Year Entry is required";
       hasErrors = true;
     }
-    if (!Major) {
-      validationErrors.Major = "Major is required";
+    if (!Course) {
+      validationErrors.Course = "Major is required";
       hasErrors = true;
     }
     if (!GPA || isNaN(Number(GPA)) || Number(GPA) < 1.00 || Number(GPA) > 4.00) {
@@ -76,6 +92,10 @@ export default function RegisterPage() {
       return;
     }
 
+    // Convert Year_Entry to a number before sending it to the API
+    const yearEntryNumber = parseInt(Year_Entry, 10);
+    const gpaNumber = parseFloat(GPA);
+
     try {
       const response = await ApiAuthService.registerStudent(
         StudentID,
@@ -83,9 +103,13 @@ export default function RegisterPage() {
         FirstName,
         LastName,
         Email,
-        YearLevel,
-        Major,
-        GPA
+        PrefixName,
+        Phone,
+        yearEntryNumber,
+        Course,
+        DOB,
+        gpaNumber,
+        Religion
       );
       console.log("Registration successful", response.data);
       const { token, user } = response.data;
@@ -119,13 +143,23 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGPAChange = (e: { target: { value: any; }; }) => {
+  const handleGPAChange = (e: { target: { value: any } }) => {
     const value = e.target.value;
-    if (value === "" || (value >= 1.00 && value <= 4.00)) {
+    if (value === "" || (!isNaN(value) && value >= 1.0 && value <= 4.0)) {
       setGPA(value);
       setErrors({ ...errors, GPA: "" });
     } else {
-      setErrors({ ...errors, GPA: "GPA must be between 1.00 and 4.00" });
+      setErrors({ ...errors, GPA: "GPA must be a valid number between 1.00 and 4.00" });
+    }
+  };
+
+  const handlePhoneChange = (e: { target: { value: any } }) => {
+    const value = e.target.value;
+    if (/^\d{0,15}$/.test(value)) { // Updated to allow up to 15 digits
+      setPhone(value);
+      setErrors({ ...errors, Phone: "" });
+    } else {
+      setErrors({ ...errors, Phone: "Phone number must be a valid number with no more than 15 digits" });
     }
   };
 
@@ -137,7 +171,7 @@ export default function RegisterPage() {
         <div className="w-full lg:w-1/2 p-4 flex justify-center">
           <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
         </div>
-        <div className="w-full lg:w-1/2 p-4 flex justify-center">
+        <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center">
           <div className="bg-white p-8 rounded shadow-md w-full max-w-md mt-10">
             <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
             {errors.form && <p className="text-red-500 mb-4">{errors.form}</p>}
@@ -154,17 +188,31 @@ export default function RegisterPage() {
               </div>
               <div className="w-full lg:w-1/3 lg:pl-2">
                 <select
-                  value={YearLevel}
-                  onChange={(e) => setYearLevel(e.target.value)}
+                  value={Year_Entry}
+                  onChange={(e) => setYear_Entry(e.target.value)} // Keep it as a string
                   className="w-full p-3 mb-2 border border-gray-300 rounded"
                 >
-                  <option value="" disabled>ชั้นปี</option>
-                  <option value="1">ปี 1</option>
-                  <option value="2">ปี 2</option>
-                  <option value="3">ปี 3</option>
-                  <option value="4">ปี 4</option>
+                  <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
+                  <option value="2019">2019</option>
+                  <option value="2020">2020</option>
+                  <option value="2023">2023</option>
+                  <option value="2024">2024</option>
                 </select>
-                {errors.YearLevel && <p className="text-red-500 mb-4">{errors.YearLevel}</p>}
+                {errors.Year_Entry && <p className="text-red-500 mb-4">{errors.Year_Entry}</p>}
+              </div>
+
+              <div className="w-full lg:w-1/3 lg:pl-2">
+                <select
+                  value={PrefixName}
+                  onChange={(e) => setPrefixName(e.target.value)}
+                  className="w-full p-3 mb-2 border border-gray-300 rounded"
+                >
+                  <option value="" disabled>คำนำหน้า</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
+                </select>
+                {errors.PrefixName && <p className="text-red-500 mb-4">{errors.PrefixName}</p>}
               </div>
             </div>
             <input
@@ -183,6 +231,19 @@ export default function RegisterPage() {
               className="w-full p-3 mb-2 border border-gray-300 rounded"
             />
             {errors.LastName && <p className="text-red-500 mb-4">{errors.LastName}</p>}
+
+            <select
+              value={Religion}
+              onChange={(e) => setReligion(e.target.value)}
+              className="w-full p-3 mb-2 border border-gray-300 rounded"
+            >
+              <option value="" disabled>ศาสนา</option>
+              <option value="พุทธ">พุทธ</option>
+              <option value="คริส">คริส</option>
+              <option value="ไทย">ไทย</option>
+              <option value="ไม่ระบุ">ไม่ระบุ</option>
+            </select>
+            {errors.Religion && <p className="text-red-500 mb-4">{errors.Religion}</p>}
             <input
               type="email"
               placeholder="อีเมล"
@@ -191,11 +252,38 @@ export default function RegisterPage() {
               className="w-full p-3 mb-2 border border-gray-300 rounded"
             />
             {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
+
+            <input
+              type="text"
+              placeholder="เบอร์โทรศัพท์"
+              value={Phone}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d{0,10}$/.test(value)) { // Allow only numbers with a maximum of 10 digits
+                  setPhone(value);
+                  setErrors({ ...errors, Phone: "" });
+                } else {
+                  setErrors({ ...errors, Phone: "Phone number must be a valid 10-digit number" });
+                }
+              }}
+              className="w-full p-3 mb-2 border border-gray-300 rounded"
+            />
+            {errors.Phone && <p className="text-red-500 mb-4">{errors.Phone}</p>}
+
+            <input
+              type="date"
+              placeholder="วันเกิด"
+              value={DOB}
+              onChange={(e) => setDOB(e.target.value)}
+              className="w-full p-3 mb-2 border border-gray-300 rounded"
+            />
+            {errors.DOB && <p className="text-red-500 mb-4">{errors.DOB}</p>}
+
             <div className="flex flex-col lg:flex-row justify-between mb-4">
               <div className="w-full lg:w-2/3 lg:pr-2">
                 <select
-                  value={Major}
-                  onChange={(e) => setMajor(e.target.value)}
+                  value={Course}
+                  onChange={(e) => setCourse(e.target.value)}
                   className="w-full p-3 mb-2 border border-gray-300 rounded"
                 >
                   <option value="" disabled>เลือกสาขา</option>
@@ -204,7 +292,7 @@ export default function RegisterPage() {
                   <option value="Software Engineering">วิศวกรรมซอฟต์แวร์</option>
                   {/* Add more options as needed */}
                 </select>
-                {errors.Major && <p className="text-red-500 mb-4">{errors.Major}</p>}
+                {errors.Course && <p className="text-red-500 mb-4">{errors.Course}</p>}
               </div>
               <div className="w-full lg:w-1/3 lg:pl-2">
                 <input

@@ -54,39 +54,6 @@ export default function LoginPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchScholarshipsData = async () => {
-      try {
-        const response = await ApiService.getAllScholarships();
-        const scholarshipsData = response.data;
-
-        const updatedScholarships = await Promise.all(
-          scholarshipsData.map(async (scholarship: Scholarship) => {
-            if (scholarship.ScholarshipID) {
-              try {
-                const imageResponse = await ApiService.getImage(scholarship.ScholarshipID);
-                if (imageResponse.status === 200) {
-                  scholarship.ImagePath = imageResponse.data.imageUrl;
-                }
-              } catch (error) {
-                console.error(`Error fetching image for scholarship ${scholarship.ScholarshipID}`, error);
-              }
-            }
-            return scholarship;
-          })
-        );
-
-        setScholarships(updatedScholarships);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching scholarships', error);
-        setLoading(false);
-      }
-    };
-
-    fetchScholarshipsData();
-  }, []);
-
   const handleLoginStudent = async () => {
     try {
       const response = await ApiAuthService.loginStudent(identifier, password);

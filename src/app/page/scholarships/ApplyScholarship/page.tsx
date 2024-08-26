@@ -1,11 +1,12 @@
-import CreateScholarshipPage from "./CreateScholarships";
+import ApplyScholarShipsPage from "./ApplyScholarship";
+
 
 
 
 const UsersPage = () => {
   return (
     <div>
-      <CreateScholarshipPage/>
+      <ApplyScholarShipsPage/>
     </div>
   );
 };

@@ -1,23 +1,14 @@
-"use client"
+"use client";
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ApiService from '@/app/services/auth/ApiAuth';
-import { BellIcon, UserIcon, MegaphoneIcon } from '@heroicons/react/16/solid';
+import { BellIcon, UserIcon } from '@heroicons/react/16/solid';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
-import ApiServiceAcademics from '@/app/services/academics/ApiAcademics';
+import liff from '@line/liff';
 
 interface User {
   StudentID?: string;
-  FirstName?: string;
-  LastName?: string;
-  Surname?: string;
-  Email?: string;
-  role?: string;
-}
-
-interface AcademicData {
-  AcademicID?: string;
   FirstName?: string;
   LastName?: string;
   Email?: string;
@@ -26,51 +17,85 @@ interface AcademicData {
 
 const Header = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [academicData, setAcademicData] = useState<AcademicData | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isApplyDropdownOpen, setIsApplyDropdownOpen] = useState(false); // State for application dropdown
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [hasToken, setHasToken] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const applyDropdownRef = useRef<HTMLDivElement>(null); // Ref for application dropdown
-  const mobileMenuRef = useRef<HTMLDivElement>(null); // Ref for mobile menu
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [userData, setUserData] = useState<string | null>(null);
-  const [AcademicID, setAcademicID] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+
+
+  // const loginLine = async () => {
+  //   try {
+  //     const liffId = process.env.NEXT_PUBLIC_LIFF_ID;
+  //     if (!liffId) {
+  //       throw new Error("LINE_LIFF_ID is not defined.");
+  //     }
+
+  //     console.log("Initializing LIFF...");
+  //     await liff.init({ liffId });
+  //     console.log("LIFF initialized.");
+
+  //     if (!liff.isLoggedIn()) {
+  //       console.log("Not logged in. Initiating login.");
+  //       liff.login();
+  //     } else {
+  //       console.log("Already logged in.");
+  //       const userProfile = await liff.getProfile();
+  //       if (userProfile) {
+  //         const User_ID = userProfile.userId;
+  //         const User_Name = userProfile.displayName;
+  //         const User_Picture = userProfile.pictureUrl;
+
+  //         console.log("User_ID: ", User_ID);
+  //         console.log("User_Name: ", User_Name);
+  //         console.log("User_Picture: ", User_Picture);
+
+  //         // Redirect with query parameters
+  //         window.location.href = `/page/scholarships?userId=${User_ID}&userName=${encodeURIComponent(User_Name)}`;
+  //       } else {
+  //         console.log("No user profile retrieved.");
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("LIFF initialization or profile retrieval failed:", error);
+  //   }
+  // };
+
+
+
+
+
+
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setUserData(localStorage.getItem('UserID'));
-      setAcademicID(localStorage.getItem('AcademicID'));
       setUserRole(localStorage.getItem('UserRole'));
     }
   }, []);
 
   useEffect(() => {
+
+
+
     const fetchUserData = async () => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
-
-        if (token && userRole) {
+        // console.log(token);
+        
+        if (token && userRole === 'student' && userData) {
           setHasToken(true);
-          if (userRole === 'student' && userData) {
-            try {
-              const response = await ApiStudentServices.getStudent(Number(userData));
-              setUser({ ...response.data, role: 'student' });
-              console.log('User data:', response.data);
-            } catch (error) {
-              console.error('Error fetching user data', error);
-            }
-          } else if (userRole === 'admin' && AcademicID) {
-            try {
-              const academicResponse = await ApiServiceAcademics.getAcademic(Number(AcademicID));
-              setAcademicData({ ...academicResponse.data, role: 'admin' });
-              console.log('Academic data:', academicResponse.data);
-            } catch (error) {
-              console.error('Error fetching academic data', error);
-            }
+          try {
+            const response = await ApiStudentServices.getStudent(Number(userData));
+            setUser({ ...response.data, role: 'student' });
+            console.log('User data:', response.data);
+          } catch (error) {
+            console.error('Error fetching user data', error);
           }
         }
       }
@@ -82,9 +107,6 @@ const Header = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
-      if (applyDropdownRef.current && !applyDropdownRef.current.contains(event.target as Node)) {
-        setIsApplyDropdownOpen(false);
-      }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false);
       }
@@ -94,14 +116,10 @@ const Header = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [userData, AcademicID, userRole]);
+  }, [userData, userRole]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const toggleApplyDropdown = () => {
-    setIsApplyDropdownOpen(!isApplyDropdownOpen);
   };
 
   const handleLogoutClick = () => {
@@ -125,59 +143,23 @@ const Header = () => {
     setShowLogoutModal(false);
   };
 
-  const handleLineNotifyAuth = () => {
-    const clientId = 'YOUR_LINE_NOTIFY_CLIENT_ID';
-    const redirectUri = 'http://localhost:3000/page/application/create';
-    const lineNotifyUrl = `https://notify-bot.line.me/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=notify&state=xyz`;
-    window.location.href = lineNotifyUrl;
-  };
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
-    <header className="bg-white shadow-md p-4 flex justify-between items-center relative">
+    <header className="bg-white shadow-md p-4  flex justify-between items-center relative">
       <div className="flex items-center">
-        <img src="/path-to-your-logo.png" alt="Logo" className="h-10 mr-4" />
+        <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
         <nav className="hidden md:flex space-x-4">
           <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-          <div className="relative" ref={applyDropdownRef}>
-            <button onClick={toggleApplyDropdown} className="text-gray-600 hover:text-gray-900">
-              ทุนการศึกษา
-              <svg className="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-            {isApplyDropdownOpen && (
-              <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-20">
-                <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">ทุนการศึกษา</Link>
-              </div>
-            )}
-          </div>
-          <div className="relative" ref={applyDropdownRef}>
-            <button onClick={toggleApplyDropdown} className="text-gray-600 hover:text-gray-900">
-              สมัครทุนการศึกษา
-              <svg className="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-            {isApplyDropdownOpen && (
-              <div className="absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-20">
-                <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">สมัครทุนการศึกษา</Link>
-              </div>
-            )}
-          </div>
-          <Link href="/page/scholarships" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
+          <Link href="/page/scholarships" className="text-gray-600 hover:text-gray-900">ทุนการศึกษา</Link>
           <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
         </nav>
       </div>
       <div className="flex items-center space-x-4 relative">
         {user ? (
           <>
-            {user.role === 'student' && (
-              <Link href="/page/scholarships" className="text-gray-600 hover:text-gray-900">เพิ่มใบสมัคร</Link>
-            )}
             <div className="flex items-center space-x-2 cursor-pointer relative" onClick={toggleDropdown}>
               <UserIcon className="h-8 text-gray-700" />
               <span className="text-gray-700">{user.FirstName} {user.LastName}</span>
@@ -191,28 +173,16 @@ const Header = () => {
                 <button onClick={handleLogoutClick} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">ออกจากระบบ</button>
               </div>
             )}
-          </>
-        ) : academicData ? (
-          <>
-            <div className="flex items-center space-x-2 cursor-pointer relative" onClick={toggleDropdown}>
-              <UserIcon className="h-8 text-gray-700" />
-              <span className="text-gray-700">{academicData.FirstName} {academicData.LastName}</span>
-              <svg className="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
-            {isDropdownOpen && (
-              <div ref={dropdownRef} className="absolute right-0 mt-2 w-56 bg-white border border-red-200 rounded-lg shadow-lg py-2 z-20">
-                <Link href="/page/info" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">แก้ไขข้อมูลส่วนตัว</Link>
-                <button onClick={handleLogoutClick} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">ออกจากระบบ</button>
-              </div>
-            )}
+            {/* <button onClick={loginLine}>
+              Login with Line
+            </button> */}
           </>
         ) : (
-          <div className="flex space-x-4">
-            <Link href="/page/login" className="text-gray-600 hover:text-gray-900">Login</Link>
-            <Link href="/page/register" className="text-gray-600 hover:text-gray-900">Register</Link>
-          </div>
+          <>
+
+            <Link href="/page/login" className="text-gray-600 hover:text-gray-900">เข้าสู่ระบบ</Link>
+            <Link href="/page/register" className="text-gray-600 hover:text-gray-900">ลงทะเบียน</Link>
+          </>
         )}
       </div>
       <div className="md:hidden">
@@ -225,21 +195,11 @@ const Header = () => {
           <div ref={mobileMenuRef} className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-20">
             <Link href="/" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">HOME</Link>
             <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">ทุนการศึกษา</Link>
-            <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">สมัครทุนการศึกษา</Link>
-            <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">ประกาศทุนการศึกษา</Link>
             <Link href="/page/contact" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">ติดต่อเรา</Link>
-            {user && (
-              <Link href="/page/scholarships" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">เพิ่มใบสมัคร</Link>
-            )}
-            {user || academicData ? (
+            {!user && (
               <>
-                <Link href="/page/info" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">แก้ไขข้อมูลส่วนตัว</Link>
-                <button onClick={handleLogoutClick} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">ออกจากระบบ</button>
-              </>
-            ) : (
-              <>
-                <Link href="/page/login" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Login</Link>
-                <Link href="/page/register" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Register</Link>
+                <Link href="/page/login" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">เข้าสู่ระบบ</Link>
+                <Link href="/page/register" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">ลงทะเบียน</Link>
               </>
             )}
           </div>

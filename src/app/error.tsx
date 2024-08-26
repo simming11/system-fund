@@ -8,18 +8,18 @@ export default function NotFound() {
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
+    // const interval = setInterval(() => {
+    //   setCountdown((prev) => prev - 1);
+    // }, 1000);
 
-    const timer = setTimeout(() => {
-      router.push("/page/scholarships");
-    }, 3000);
+    // const timer = setTimeout(() => {
+    //   router.push("/page/scholarships");
+    // }, 3000);
 
-    return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-    };
+    // return () => {
+    //   clearTimeout(timer);
+    //   clearInterval(interval);
+    // };
   }, [router]);
 
   return (

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/app/components/header/Header';
 import ApiService from '@/app/services/scholarships/ApiScholarShips';
 import Footer from '@/app/components/footer/footer';
 import HeaderHome from '@/app/components/headerHome/headerHome';
+import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
 
 interface User {
   id: number;
@@ -32,10 +33,15 @@ interface Scholarship {
 }
 
 export default function ScholarShipsPage() {
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
+  const userName = searchParams.get('userName');
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-  const [filteredScholarships, setFilteredScholarships] = useState<Scholarship[]>([]);
+  const [newScholarships, setNewScholarships] = useState<Scholarship[]>([]);
+  const [activeScholarships, setActiveScholarships] = useState<Scholarship[]>([]);
+  const [closedScholarships, setClosedScholarships] = useState<Scholarship[]>([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(true);
@@ -59,9 +65,10 @@ export default function ScholarShipsPage() {
           scholarshipsData.map(async (scholarship: Scholarship) => {
             if (scholarship.ScholarshipID) {
               try {
-                const imageResponse = await ApiService.getImage(scholarship.ScholarshipID);
-                if (imageResponse.status === 200) {
-                  scholarship.ImagePath = imageResponse.data.imageUrl;
+                const imageResponse = await ApiScholarshipsAllImage.getImageByScholarshipID(scholarship.ScholarshipID);
+                if (imageResponse.status === 200 && imageResponse.data.length > 0) {
+                  // Assuming imageResponse.data is an array of images, we take the first one
+                  scholarship.ImagePath = imageResponse.data[0].ImagePath;
                 }
               } catch (error) {
                 console.error(`Error fetching image for scholarship ${scholarship.ScholarshipID}`, error);
@@ -72,8 +79,24 @@ export default function ScholarShipsPage() {
         );
 
         setScholarships(updatedScholarships);
-        setFilteredScholarships(updatedScholarships); // Initialize filtered scholarships
-        console.log(updatedScholarships);
+
+        const now = new Date();
+        setNewScholarships(updatedScholarships.filter(scholarship => {
+          const start = new Date(scholarship.StartDate);
+          return start <= now && scholarship.StartDate === scholarship.updated_at;
+        }));
+
+        setActiveScholarships(updatedScholarships.filter(scholarship => {
+          const start = new Date(scholarship.StartDate);
+          const end = new Date(scholarship.EndDate);
+          return now >= start && now <= end;
+        }));
+
+        setClosedScholarships(updatedScholarships.filter(scholarship => {
+          const end = new Date(scholarship.EndDate);
+          return now > end;
+        }));
+
       } catch (error) {
         console.error('Error fetching scholarships', error);
       } finally {
@@ -132,37 +155,57 @@ export default function ScholarShipsPage() {
   }
 
   return (
-    
     <div className="min-h-screen flex flex-col">
-            <HeaderHome/>
-            <Header />
-      <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
+      <HeaderHome />
+      <Header />
+      <div className="container mx-auto px-4 py-8 flex flex-col space-y-8">
         <main className="flex-1">
+          {/* New Scholarships */}
           <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาใหม่</h2>
-          <div className="relative mb-4 group">
-            <button 
-              onClick={() => setIsScrolling(!isScrolling)}
-              className="absolute left-0 bg-gray-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              {isScrolling ? '⏸' : '▶️'}
-            </button>
-            <button 
-              onClick={() => setIsScrolling(!isScrolling)}
-              className="absolute right-0 bg-gray-200 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              {isScrolling ? '⏸' : '▶️'}
-            </button>
-            <div className="flex overflow-auto space-x-4" ref={scrollRef}>
-              {filteredScholarships.map((scholarship) => (
-                <div key={scholarship.ScholarshipID} className="w-1/4 bg-white p-4 shadow-lg rounded-lg flex-shrink-0 border border-gray-200">
-                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {newScholarships.map((scholarship) => (
+              <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                <a className="bg-white p-4 shadow-lg rounded-lg border border-gray-200">
+                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-50 object-cover rounded-lg" />
                   <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                  <p className="text-gray-600">{scholarship.Description}</p>
+                  <p className="text-gray-600 truncate">{scholarship.Description}</p>
                   <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
                   <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
-                </div>
-              ))}
-            </div>
+                </a>
+              </Link>
+            ))}
+          </div>
+
+          {/* Active Scholarships */}
+          <h2 className="text-2xl font-semibold mt-8 mb-6">ทุนการศึกษาที่กำลังเปิดรับ</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {activeScholarships.map((scholarship) => (
+              <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                <a className="bg-white p-4 shadow-lg rounded-lg border border-gray-200">
+                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-50 object-cover rounded-lg" />
+                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                  <p className="text-gray-600 truncate">{scholarship.Description}</p>
+                  <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+                </a>
+              </Link>
+            ))}
+          </div>
+
+          {/* Closed Scholarships */}
+          <h2 className="text-2xl font-semibold mt-8 mb-6">ทุนการศึกษาที่ปิดรับแล้ว</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {closedScholarships.map((scholarship) => (
+              <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                <a className="bg-white p-4 shadow-lg rounded-lg border border-gray-200">
+                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-50 object-cover rounded-lg" />
+                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                  <p className="text-gray-600 truncate">{scholarship.Description}</p>
+                  <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+                </a>
+              </Link>
+            ))}
           </div>
         </main>
       </div>

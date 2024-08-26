@@ -1,86 +1,103 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
+import HeaderHome from '@/app/components/headerHome/headerHome';
+import ApiGetALLfilesServiceScholarships from '@/app/services/scholarships/ApiServiceScholarshipsFiles';
+import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
+import Image from 'next/image'
 interface Scholarship {
-  ScholarshipID: number;
+  StartDate: Date;
+  EndDate: Date;
+  CreatedBy: string;
+  TypeID: number;
   ScholarshipName: string;
-  Description: string;
-  Type: string;
-  TypeID: number; // Add TypeID
-  StartDate: string;
-  EndDate: string;
-  Status: string;
-  CreatedBy: number;
-  UploadFile: string; // JSON string
-  created_at: string;
-  updated_at: string;
-  Scholarship_exID?: number; // Add Scholarship_exID for external scholarship
+  YearLevel: string;
+  updated_at: Date;
+  created_at: Date;
+  Minimum_GPA: string;
+  Year: number;
+  ScholarshipID: number;
+  courses: Course[];
+  documents: Document[];
+  qualifications: Qualification[];
+  type: { TypeID: number; TypeName: string };
+  creator: { AcademicID: string };
 }
 
-export default function ScholarshipDetail() {
-  const [user, setUser] = useState<User | null>(null);
-  const router = useRouter(); // Hook for navigation
-  const searchParams = useSearchParams(); // Get search params from the URL
-  const id = searchParams.get('id'); // Extract the ID from the query parameters
-  const [scholarship, setScholarship] = useState<Scholarship | null>(null); // State to store scholarship data
-  const [loading, setLoading] = useState(true); // State to manage loading state
+interface Course {
+  ScholarshipID: number;
+  CourseID: number;
+  CourseName: string;
+}
 
-  // Effect to fetch scholarship data
+interface Document {
+  ScholarshipID: number;
+  DocumentID: number;
+  DocumentText: string;
+}
+
+interface Qualification {
+  ScholarshipID: number;
+  QualificationID: number;
+  QualificationText: string;
+}
+
+interface ScholarshipFileData {
+  FileID: number;
+  ScholarshipID: number;
+  FileType: string;
+  FilePath: string; // Assuming FilePath is a string (URL)
+  Description?: string;
+}
+
+interface ScholarshipImageData {
+  ScholarshipID: number;
+  ImagePath: File;
+}
+
+export default function ScholarshipDetailPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+  const [scholarship, setScholarship] = useState<Scholarship | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [documents, setDocuments] = useState<ScholarshipFileData[]>([]);
+  const [image, setImage] = useState<string | null>(null); // Update to use a string instead of an array
+  const BASE_URL = process.env.NEXT_PUBLIC_API_Backend;
+
   useEffect(() => {
-    if (id) {
-      const fetchScholarship = async () => {
-        console.log("Fetching scholarship details for id:", id);
-        try {
-          // Fetch scholarship details
+    const fetchScholarshipData = async () => {
+      try {
+        if (id) {
           const response = await ApiServiceScholarships.getScholarship(Number(id));
-          const scholarshipData = response.data;
-          console.log("Scholarship data fetched:", scholarshipData);
-
-          setScholarship(scholarshipData); // Set scholarship data
-        } catch (error) {
-          console.error('Error fetching scholarship details', error);
-        } finally {
-          setLoading(false); // Set loading to false after data is fetched
+          setScholarship(response.data);
+          const getimages = response.data.images[0]?.ImagePath;
+          setImage(getimages || null);
+          const documentsResponse = await ApiGetALLfilesServiceScholarships.getScholarshipDocuments(Number(id));
+          setDocuments(documentsResponse.data);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching scholarship data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchScholarship();
-    }
+    fetchScholarshipData();
   }, [id]);
 
-  // Function to download the file
-  const downloadFile = async (fileName: string) => {
+  const handleDownloadFile = async (fileId: number, fileName: string) => {
     try {
-      const response = await ApiServiceScholarships.downloadFile(Number(id), fileName); // Fetch the file
-      const url = window.URL.createObjectURL(new Blob([response.data])); // Create a URL for the file
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', fileName); // Use the original filename
-      document.body.appendChild(link);
-      link.click(); // Programmatically click the link to trigger the download
-
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await ApiGetALLfilesServiceScholarships.downloadFile(fileId, fileName);
     } catch (error) {
-      console.error('Error downloading file', error);
+      console.error('Error downloading file:', error);
     }
   };
 
-  // Navigate to the application form
   const handleApplyNow = () => {
     if (scholarship) {
       if (scholarship.TypeID === 1) {
@@ -91,7 +108,6 @@ export default function ScholarshipDetail() {
     }
   };
 
-  // Display loading spinner if data is still being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -101,55 +117,92 @@ export default function ScholarshipDetail() {
     );
   }
 
-  // Display a message if no scholarship data is found
-  if (!scholarship) {
-    return <p>Scholarship not found</p>;
-  }
-
-  // Parse the UploadFile JSON string
-  const files = JSON.parse(scholarship.UploadFile);
+  const isApplyDisabled = scholarship ? new Date() > new Date(scholarship.EndDate) : true;
 
   return (
-    
     <div className="min-h-screen flex flex-col">
-
-      <Header /> {/* Header component */}
-      <div className="flex-1 container mx-auto px-4 py-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Scholarship Name: {scholarship.ScholarshipName}</h2>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Description:</span> {scholarship.Description}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Type:</span> {scholarship.Type}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Start Date:</span> {scholarship.StartDate}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">End Date:</span> {scholarship.EndDate}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Status:</span> {scholarship.Status}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Created By:</span> {scholarship.CreatedBy}</p>
-          {files.length > 0 && (
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">Files:</h3>
-              <ul>
-                {files.map((file: string, index: number) => (
-                  <li key={index} className="flex items-center justify-between mt-2">
-                    <span className="text-gray-700">{file.split('/').pop()}</span>
-                    <button
-                      onClick={() => downloadFile(file.split('/').pop()!)}
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-4"
-                    >
-                      Download
-                    </button>
-                  </li>
+      <HeaderHome />
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        {scholarship ? (
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <h2 className="text-4xl font-bold text-center break-words">{scholarship.ScholarshipName}</h2>
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
+              <ul className="list-disc list-inside text-gray-600">
+                {scholarship.qualifications.map((qualification, index) => (
+                  <li key={index}>{qualification.QualificationText}</li>
+                ))}
+              </ul>
+              <div className="mt-2">
+                <h3 className="text-lg font-semibold mb-1">สาขาที่ต้องการ:</h3>
+                <ul className="list-disc list-inside text-gray-600">
+                  {scholarship.courses.map((course, index) => (
+                    <li key={index}>{course.CourseName}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="mt-2">
+              <h3 className="text-lg font-semibold mb-1">เอกสารประกอบการสมัคร:</h3>
+              <ul className="list-disc list-inside text-gray-600">
+                {scholarship.documents.map((document, index) => (
+                  <li key={index}>{document.DocumentText}</li>
                 ))}
               </ul>
             </div>
-          )}
-          <button
-            onClick={handleApplyNow}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4"
-          >
-            Apply Now
-          </button>
-        </div>
+            {image && (
+              <div className="mt-4">
+                <div className="list-disc list-inside text-gray-600">
+                  <img
+                    src={`${BASE_URL}/storage/${image}`}
+                    alt="ไฟล์ประกอบการสมัคร"
+                    width={300}
+                    height={200}
+                  />
+                </div>
+              </div>
+            )}
+
+            {documents && documents.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold mb-1">เอกสารอื่นๆ:</h3>
+                <ul className=" list-inside text-gray-600">
+                  {documents.map((file, index) => (
+                    <li key={index}>
+                      <a
+                        onClick={() => handleDownloadFile(file.FileID, file.FilePath.split('/').pop()!)}
+                        className="text-blue-500 underline cursor-pointer"
+                      >
+                        {file.FilePath.split('/').pop()} {/* Display the filename */}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="mt-10">
+              <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
+              <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
+              <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
+            </div>
+
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleApplyNow}
+                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4 ${isApplyDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isApplyDisabled}
+              >
+                Apply Now
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-red-500">Scholarship not found</p>
+        )}
       </div>
-      <Footer /> {/* Footer component */}
+      <Footer />
     </div>
   );
 }

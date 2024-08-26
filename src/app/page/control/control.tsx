@@ -42,7 +42,7 @@ export default function LoginControlPage() {
         localStorage.removeItem('savedIdentifier');
         localStorage.removeItem('savedPassword');
       }
-      router.push('./admins');
+      router.push('./management');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('Login failed: ' + (error.response?.data.message || error.message));

@@ -10,18 +10,23 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.4",
+    "@line/liff": "^2.24.0",
     "@types/react-slick": "^0.23.13",
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
+    "dayjs": "^1.11.12",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
+    "line-helper": "^0.1.11",
+    "moment-timezone": "^0.5.45",
     "next": "^14.2.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-slick": "^0.30.2",
     "slick-carousel": "^1.8.1",
+    "sweetalert2": "^11.12.4",
     "swiper": "^11.1.9"
   },
   "devDependencies": {
