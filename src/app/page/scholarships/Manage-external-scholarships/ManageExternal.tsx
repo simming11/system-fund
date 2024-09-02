@@ -147,9 +147,9 @@ export default function ManageExternalScholarshipsPage() {
                 </div>
                 <div className="bg-white shadow-md flex-1 w-1/8">
                     <div className="bg-white rounded-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในมหาวิทยาลัย</h2>
+                        <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายนอกมหาวิทยาลัย</h2>
                         <button
-                            onClick={() => router.push('Manage-internal-scholarships/create')}
+                            onClick={() => router.push('Manage-external-scholarships/create')}
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mb-6"
                         >
                             + เพิ่ม

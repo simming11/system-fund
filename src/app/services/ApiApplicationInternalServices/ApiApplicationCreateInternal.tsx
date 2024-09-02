@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = `${process.env.NEXT_PUBLIC_API_Backend}/api`;
 
 interface ApplicationInternaldata {
     StudentID: string;
@@ -12,10 +12,16 @@ interface ApplicationInternaldata {
     NumberOfSiblings: number;
     NumberOfSisters: number;
     NumberOfBrothers: number;
+    GPAYear1 :number
+    GPAYear2 :number
+    GPAYear3:number
+    AdvisorName:string
 }
+
 interface GuardiansData {
     ApplicationID: string;
     FirstName: string;
+    PrefixName:string
     LastName: string;
     Type: string;
     Occupation: string;
@@ -23,28 +29,11 @@ interface GuardiansData {
     Age: number;
     Status: string;
     Workplace: string;
+    Phone:string
 }
-interface ApplicationFilesData {
-    ApplicationID: string;
-    DocumentName: string;
-    DocumentType: string;
-    FilePath: string;
-}
-interface WorkExperiencesData {
-    ApplicationID: string;
-    Name: string;
-    JobType: string;
-    Duration: string;
-    Earnings: number;
-}
-interface EducationHistoriesData {
-    ApplicationID: string;
-    EducationLevel: string;
-    AcademicYear: number;
-    GPA: number;
-    AdvisorName: string;
-    CourseName: string;
-}
+
+
+
 interface SiblingsData {
     ApplicationID: string;
     PrefixName: string;
@@ -55,14 +44,17 @@ interface SiblingsData {
     Income: number;
     Status: string;
 }
+
 interface AddressesData {
     ApplicationID: string;
     AddressLine: string;
     Subdistrict: string;
+    province: string;
     District: string;
     PostalCode: string;
     Type: string;
 }
+
 interface ActivitiesData {
     AcademicYear: string;
     ActivityName: string;
@@ -70,13 +62,34 @@ interface ActivitiesData {
     ApplicationID: string;
 }
 
-class ApiApplicationCreateInternalServices {
+interface ScholarshipHistoryData {
+    ApplicationID: string;     
+    ScholarshipName: string;   
+    AmountReceived: number;    
+    AcademicYear: string;      
+}
 
+interface WorkExperiencesData {
+    ApplicationID: string;
+    Name: string;
+    JobType: string;
+    Duration: string;
+    Earnings: number;
+}
+
+interface ApplicationFilesData {
+    ApplicationID: string;
+    DocumentName: string;
+    DocumentType: string;
+    FilePath: string;
+}
+
+class ApiApplicationCreateInternalServices {
     // สร้าง application internal ใหม่
     static async createApplication(applicationData: ApplicationInternaldata) {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.post(`${API_URL}/application-internal`, applicationData, {
+            const response = await axios.post(`${API_URL}/application-internals`, applicationData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             return response.data;
@@ -101,7 +114,7 @@ class ApiApplicationCreateInternalServices {
     }
 
     // สร้าง application file ใหม่
-    static async createApplicationFile(fileData: ApplicationFilesData) {
+    static async createApplicationFile(fileData: FormData) {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.post(`${API_URL}/application-files`, fileData, {
@@ -113,20 +126,25 @@ class ApiApplicationCreateInternalServices {
             throw error;
         }
     }
+    
 
-    // สร้าง sibling ใหม่
-    static async createSibling(siblingData: SiblingsData) {  // Update the type to SiblingsData
-        const token = localStorage.getItem('token');
-        try {
-            const response = await axios.post(`${API_URL}/siblings`, siblingData, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error creating sibling:', error);
-            throw error;
-        }
+  // สร้าง siblings ใหม่
+  static async createSiblings(siblingsData: SiblingsData[]): Promise<any> {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.post(`${API_URL}/siblings`, siblingsData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error creating siblings:', error);
+        throw error;
     }
+}
+
 
     // สร้าง guardian ใหม่
     static async createGuardian(guardianData: GuardiansData) {
@@ -142,22 +160,9 @@ class ApiApplicationCreateInternalServices {
         }
     }
 
-    // สร้าง education history ใหม่
-    static async createEducationHistory(historyData: EducationHistoriesData) {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await axios.post(`${API_URL}/education-histories`, historyData, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error creating education history:', error);
-            throw error;
-        }
-    }
 
     // สร้าง activity ใหม่
-    static async createActivity(activityData: ActivitiesData) {
+    static async createActivity(activityData: ActivitiesData[]): Promise<any> {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.post(`${API_URL}/activities`, activityData, {
@@ -171,10 +176,10 @@ class ApiApplicationCreateInternalServices {
     }
 
     // สร้าง scholarship history ใหม่
-    static async createScholarshipHistory(historyData: any) {  // If you have a specific interface, use it
+    static async createScholarshipHistory(scholarshipHistory: ScholarshipHistoryData[]): Promise<any>  {  // If you have a specific interface, use it
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.post(`${API_URL}/scholarship-histories`, historyData, {
+            const response = await axios.post(`${API_URL}/scholarship-histories`, scholarshipHistory, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             return response.data;
@@ -185,7 +190,7 @@ class ApiApplicationCreateInternalServices {
     }
 
     // สร้าง work experience ใหม่
-    static async createWorkExperience(experienceData: WorkExperiencesData) {
+    static async createWorkExperience(experienceData: WorkExperiencesData[]): Promise<any>  {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.post(`${API_URL}/work-experiences`, experienceData, {

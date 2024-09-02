@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = `${process.env.NEXT_PUBLIC_API_Backend}/api`;
 
 class ApiScholarshipHistoryServices {
     // ดึงข้อมูล scholarship histories ทั้งหมด
@@ -33,19 +33,7 @@ class ApiScholarshipHistoryServices {
 
 
 
-    // อัปเดตข้อมูล scholarship history ตาม ID
-    static async updateScholarshipHistory(historyId: number, historyData: any) {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await axios.put(`${API_URL}/scholarship-histories/${historyId}`, historyData, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return response.data;
-        } catch (error) {
-            console.error(`Error updating scholarship history with ID ${historyId}:`, error);
-            throw error;
-        }
-    }
+
 
     // ลบ scholarship history ตาม ID
     static async deleteScholarshipHistory(historyId: number) {

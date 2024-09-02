@@ -67,7 +67,7 @@ const AdminHeader: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-4 flex justify-between items-center ">
+    <div className="bg-white p-2 flex justify-between items-center ">
       <div className="flex items-center">
       </div>
       <div className="flex items-center space-x-6">

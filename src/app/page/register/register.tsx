@@ -41,7 +41,24 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     let validationErrors = { ...errors };
     let hasErrors = false;
-
+  
+    // Reset all previous errors
+    validationErrors = {
+      StudentID: "",
+      Password: "",
+      FirstName: "",
+      LastName: "",
+      Email: "",
+      GPA: "",
+      Year_Entry: "",
+      PrefixName: "",
+      Phone: "",
+      DOB: "",
+      Course: "",
+      Religion: "",
+      form: ""
+    };
+  
     // Validate each field before attempting to register
     if (!StudentID) {
       validationErrors.StudentID = "Student ID is required";
@@ -59,17 +76,16 @@ export default function RegisterPage() {
       validationErrors.LastName = "Last Name is required";
       hasErrors = true;
     }
-    if (!Email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(Email)) {
-      validationErrors.Email = "Valid email address is required";
+    if (!Email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(Email) || /[^\x00-\x7F]/.test(Email)) {
+      validationErrors.Email = "กรุณากรอกอีเมลที่ถูกต้องและเป็นภาษาอังกฤษเท่านั้น";
       hasErrors = true;
     }
     if (!Phone || !/^\d{10}$/.test(Phone)) {
       validationErrors.Phone = "Phone number must be a valid 10-digit number";
       hasErrors = true;
     }
-
-    if (Password.length < 6) {
-      validationErrors.Password = "Password must be at least 6 characters";
+    if (Password.length < 6 || /[^\x00-\x7F]/.test(Password)) {
+      validationErrors.Password = "Password must be at least 6 characters and contain only English characters";
       hasErrors = true;
     }
     if (!Year_Entry) {
@@ -84,18 +100,20 @@ export default function RegisterPage() {
       validationErrors.GPA = "Valid GPA between 1.00 and 4.00 is required";
       hasErrors = true;
     }
-
+  
+    // Update state with validation errors
     setErrors(validationErrors);
-
+  
+    // If there are any validation errors, prevent form submission
     if (hasErrors) {
       setErrors({ ...validationErrors, form: "Please correct the errors above and try again." });
       return;
     }
-
+  
     // Convert Year_Entry to a number before sending it to the API
     const yearEntryNumber = parseInt(Year_Entry, 10);
     const gpaNumber = parseFloat(GPA);
-
+  
     try {
       const response = await ApiAuthService.registerStudent(
         StudentID,
@@ -111,6 +129,7 @@ export default function RegisterPage() {
         gpaNumber,
         Religion
       );
+  
       console.log("Registration successful", response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -120,18 +139,19 @@ export default function RegisterPage() {
       localStorage.setItem("FirstName", FirstName);
       localStorage.setItem("LastName", LastName);
       localStorage.setItem("Email", Email);
-
+  
       // Redirect to the login page
       router.push("/page/scholarships");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setErrors({ ...errors, form: "Registration failed: " + (error.response?.data.message || error.message) });
+        setErrors({ ...errors, form: (error.response?.data.message || error.message) });
       } else {
         setErrors({ ...errors, form: "An unknown error occurred during registration" });
       }
       console.error("Registration failed", error);
     }
   };
+  
 
   const handleStudentIDChange = (e: { target: { value: any; }; }) => {
     const value = e.target.value;
@@ -240,18 +260,18 @@ export default function RegisterPage() {
               <option value="" disabled>ศาสนา</option>
               <option value="พุทธ">พุทธ</option>
               <option value="คริส">คริส</option>
-              <option value="ไทย">ไทย</option>
+              <option value="อิสลาม">อิสลาม</option>
               <option value="ไม่ระบุ">ไม่ระบุ</option>
             </select>
             {errors.Religion && <p className="text-red-500 mb-4">{errors.Religion}</p>}
             <input
-              type="email"
-              placeholder="อีเมล"
-              value={Email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
-            />
-            {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
+        type="email"
+        placeholder="อีเมล"
+        value={Email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full p-3 mb-2 border border-gray-300 rounded"
+      />
+      {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
 
             <input
               type="text"
@@ -287,9 +307,9 @@ export default function RegisterPage() {
                   className="w-full p-3 mb-2 border border-gray-300 rounded"
                 >
                   <option value="" disabled>เลือกสาขา</option>
-                  <option value="Computer Science">วิทยาการคอมพิวเตอร์</option>
-                  <option value="Information Technology">เทคโนโลยีสารสนเทศ</option>
-                  <option value="Software Engineering">วิศวกรรมซอฟต์แวร์</option>
+                  <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
+                  <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
+                  <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
                   {/* Add more options as needed */}
                 </select>
                 {errors.Course && <p className="text-red-500 mb-4">{errors.Course}</p>}

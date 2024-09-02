@@ -4,7 +4,6 @@ import React, { useState, useEffect, ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
-import ApiApplicationWithAttachmentService from '@/app/services/applicationwithAttachment/api';
 
 interface Attachment {
   ApplicationID: string;
@@ -83,11 +82,11 @@ export default function ApplicationDetail() {
         console.log("Fetching application details for id:", id);
         try {
           // Fetch application details along with attachments
-          const response = await ApiApplicationWithAttachmentService.getApplicationAttachments(Number(id));
-          const applicationData = response.data;
-          console.log("Application data fetched:", applicationData);
+          // const response = await ApiApplicationWithAttachmentService.getApplicationAttachments(Number(id));
+          // const applicationData = response.data;
+          // console.log("Application data fetched:", applicationData);
 
-          setApplication(applicationData); // Set application data
+          // setApplication(applicationData); // Set application data
         } catch (error) {
           console.error('Error fetching application details', error);
         } finally {

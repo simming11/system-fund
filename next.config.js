@@ -10,11 +10,7 @@ const nextConfig = {
       {
         source: '/page/scholarships/:id',
         destination: '/page/scholarships/:id', // Dynamic route for detail page
-      },
-      {
-        source: '/page/application/detail/:id',
-        destination: '/application/:id', // Dynamic route for application detail page
-      },
+      }
     ];
   },
   async redirects() {

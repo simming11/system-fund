@@ -1,342 +1,234 @@
-'use client';
+"use client";
+import { useRouter, useSearchParams } from 'next/navigation';
+import Header from '@/app/components/header/Header';
+import Footer from '@/app/components/footer/footer';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import ApiCreateApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiCreateAppicationExternalServicer';
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
-import ApiService from "@/app/services/scholarships/ApiScholarShips";
-import HeaderHome from "@/app/components/headerHome/headerHome";
-import Header from "@/app/components/header/Header";
-import Footer from "@/app/components/footer/footer";
+interface ApplicationExternaldata {
+  StudentID: string;
+  ScholarshipID: string;
+  ApplicationDate: string;
+  Status: string;
+}
+
+interface ApplicationFilesData {
+    Application_EtID: string;
+  DocumentName: string;
+  DocumentType: string;
+  FilePath: string | File;
+}
 
 export default function CreateApplicationExternalPage() {
-    const searchParams = useSearchParams();
-    const id = searchParams.get('scholarshipId');
-    const router = useRouter();
-    const [formData, setFormData] = useState({
-        ScholarshipName: "",
-        Description: "",
-        YearLevel: "",
-        TypeID: "",
-        FundingSource: "",
-        StartDate: "",
-        EndDate: "",
-        Status: "",
-        CreatedBy: localStorage.getItem('AcademicID') || '',
-        Files: [] as File[],
-        Image: null as File | null,
-    });
-    const [fileInputs, setFileInputs] = useState([0]);
+  const searchParams = useSearchParams();
+  const id = searchParams.get('scholarshipId');
+  const idStudent = localStorage.getItem('UserID');
+  const router = useRouter();
 
-    const [error, setError] = useState("");
-    const [showSection, setShowSection] = useState({
-        scholarshipInfo: true,
-        additionalInfo: true,
-        files: true,
-    });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+  const [applicationData, setApplicationData] = useState<ApplicationExternaldata>(() => {
+    const savedApplicationData = sessionStorage.getItem('applicationData');
+    return savedApplicationData ? JSON.parse(savedApplicationData) : {
+      StudentID: idStudent || '',
+      ScholarshipID: id || '',
+      ApplicationDate: '',
+      Status: 'รออนุมัติ',
     };
+  });
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        if (e.target.files) {
-            const newFiles = [...formData.Files];
-            newFiles[index] = e.target.files[0];
-            setFormData({
-                ...formData,
-                Files: newFiles,
-            });
-        }
+
+  const [applicationFiles, setApplicationFiles] = useState<ApplicationFilesData[]>([
+    { Application_EtID: '', DocumentName: '', DocumentType: '', FilePath: '' },
+  ]);
+
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
+
+      if (!token || Role?.trim().toLowerCase() !== 'student') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/login');
+      }
+    }
+  }, [router]);
+  // Saving the state data to sessionStorage when the component mounts or state changes
+
+  useEffect(() => {
+    sessionStorage.setItem('applicationData', JSON.stringify(applicationData));
+  }, [applicationData]);
+
+
+
+  useEffect(() => {
+    sessionStorage.setItem('applicationFiles', JSON.stringify(applicationFiles));
+  }, [applicationFiles]);
+
+
+  // Handle file input changes
+  const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const updatedFiles = [...applicationFiles];
+    updatedFiles[index] = {
+      ...updatedFiles[index],
+      [name]: value,
     };
+    setApplicationFiles(updatedFiles);
+  };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setFormData({
-                ...formData,
-                Image: e.target.files[0] as File,
-            });
-        }
-    };
+  // Handle file upload
+  const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const updatedFiles = [...applicationFiles];
+      updatedFiles[index].FilePath = file;
+      setApplicationFiles(updatedFiles);
+    }
+  };
 
-    const handleAddFileInput = () => {
-        setFileInputs([...fileInputs, fileInputs.length]);
-    };
+  // Add a new file entry
+  const addFileEntry = () => {
+    setApplicationFiles([...applicationFiles, { Application_EtID: '', DocumentName: '', DocumentType: '', FilePath: '' }]);
+  };
 
-    const handleRemoveFileInput = (index: number) => {
-        const newFileInputs = fileInputs.filter((_, i) => i !== index);
-        const newFiles = formData.Files.filter((_, i) => i !== index);
-        setFileInputs(newFileInputs);
-        setFormData({
-            ...formData,
-            Files: newFiles,
-        });
-    };
+  // Remove a file entry
+  const removeFileEntry = (index: number) => {
+    const updatedFiles = applicationFiles.filter((_, i) => i !== index);
+    setApplicationFiles(updatedFiles);
+  };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+  
 
-        // if (Object.values(formData).some((value) => value === "" || (Array.isArray(value) && value.length === 0))) {
-        //   setError("All fields are required");
-        //   return;
-        // }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-        const payload = new FormData();
-        for (const [key, value] of Object.entries(formData)) {
-            if (key === "Files" && Array.isArray(value)) {
-                value.forEach((file) => payload.append("Files[]", file));
-            } else {
-                payload.append(key, value as string | Blob);
+    try {
+        // Set the status to 'รอประกาศผล'
+        const updatedApplicationData = {
+            ...applicationData,
+            Status: 'รอประกาศผล',
+        };
+
+        // Create the application and retrieve the Application_EtID
+        const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
+        const Application_EtID = applicationResponse.Application_EtID;
+
+        const tasks: Promise<any>[] = [];
+        // Submit application files
+        for (const [index, fileData] of applicationFiles.entries()) {
+            const formData = new FormData();
+            formData.append('Application_EtID', Application_EtID);
+            formData.append('DocumentName', fileData.DocumentName);
+            formData.append('DocumentType', fileData.DocumentType);
+            if (fileData.FilePath instanceof File) {
+                formData.append('FilePath', fileData.FilePath);
             }
+            tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
+            console.log('File data sent:', formData);
         }
 
-        try {
-            await ApiService.createScholarship(payload);
-            router.push("/scholarships");
-        } catch (error) {
-            setError("Failed to create scholarship");
-            console.error("Error creating scholarship", error);
+        // Execute all tasks
+        await Promise.all(tasks);
+
+        console.log('All data submitted successfully.');
+
+        sessionStorage.clear();
+        // Navigate to the application page with status=บันทึกแล้ว
+        router.push(`/page/History-Application`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            setError('Validation error: ' + error.response?.data.message);
+        } else {
+            setError('Error creating application. Please check the form fields and try again.');
         }
-    };
+        console.error('Error creating application:', error);
+    }
+};
 
-    const toggleSection = (section: keyof typeof showSection) => {
-        setShowSection((prevShowSection) => ({
-            ...prevShowSection,
-            [section]: !prevShowSection[section],
-        }));
-    };
 
-    return (
-        <div className="min-h-screen flex flex-col">
-            <HeaderHome />
-            <Header />
-            <div className="flex-1 container mx-auto px-4 py-8">
-                <div className="bg-white shadow-md rounded-lg p-6">
-                    <h2 className="text-2xl font-semibold mb-6">Create Scholarship</h2>
-                    {error && <p className="text-red-500 mb-4">{error}</p>}
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-4">
-                            <h3
-                                className="text-lg font-semibold mb-2 cursor-pointer"
-                                onClick={() => toggleSection("scholarshipInfo")}
-                            >
-                                ข้อมูลทุนการศึกษา
-                                <span>{showSection.scholarshipInfo ? "-" : "+"}</span>
-                            </h3>
-                            {showSection.scholarshipInfo && (
-                                <>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="ScholarshipName"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            ชื่อทุนการศึกษา
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="ScholarshipName"
-                                            name="ScholarshipName"
-                                            value={formData.ScholarshipName}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="Description"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            รายละเอียด
-                                        </label>
-                                        <textarea
-                                            id="Description"
-                                            name="Description"
-                                            value={formData.Description}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="YearLevel"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            ชั้นปี
-                                        </label>
-                                        <select
-                                            id="YearLevel"
-                                            name="YearLevel"
-                                            value={formData.YearLevel}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        >
-                                            <option value="" disabled>เลือกชั้นปี</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
-                                            <option value="4">4</option>
-                                            <option value="1-2">1-2</option>
-                                            <option value="1-3">1-3</option>
-                                            <option value="1-4">1-4</option>
-                                            <option value="2-2">2-2</option>
-                                            <option value="2-3">2-3</option>
-                                            <option value="2-4">2-4</option>
-                                            <option value="3-4">3-4</option>
-                                        </select>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="TypeID"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            ประเภททุน
-                                        </label>
-                                        <select
-                                            id="TypeID"
-                                            name="TypeID"
-                                            value={formData.TypeID}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        >
-                                            <option value="" disabled>
-                                                เลือกประเภททุน
-                                            </option>
-                                            <option value="1">ภายใน</option>
-                                            <option value="2">ภายนอก</option>
-                                        </select>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="FundingSource"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            แหล่งที่มาของทุน
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="FundingSource"
-                                            name="FundingSource"
-                                            value={formData.FundingSource}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="StartDate" className="block text-gray-700 mb-2">
-                                            วันที่เริ่ม
-                                        </label>
-                                        <input
-                                            type="date"
-                                            id="StartDate"
-                                            name="StartDate"
-                                            value={formData.StartDate}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="EndDate" className="block text-gray-700 mb-2">
-                                            วันที่สิ้นสุด
-                                        </label>
-                                        <input
-                                            type="date"
-                                            id="EndDate"
-                                            name="EndDate"
-                                            value={formData.EndDate}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="Status" className="block text-gray-700 mb-2">
-                                            สถานะ
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="Status"
-                                            name="Status"
-                                            value={formData.Status}
-                                            onChange={handleChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        <div className="mb-4">
-                            <h3
-                                className="text-lg font-semibold mb-2 cursor-pointer"
-                                onClick={() => toggleSection("files")}
-                            >
-                                อัพโหลดไฟล์
-                                <span>{showSection.files ? "-" : "+"}</span>
-                            </h3>
-                            {showSection.files && (
-                                <>
-                                    {fileInputs.map((input, index) => (
-                                        <div className="mb-4" key={index}>
-                                            <label
-                                                htmlFor={`Files-${index}`}
-                                                className="block text-gray-700 mb-2"
-                                            >
-                                                อัพโหลดไฟล์
-                                            </label>
-                                            <input
-                                                type="file"
-                                                id={`Files-${index}`}
-                                                name="Files"
-                                                onChange={(e) => handleFileChange(e, index)}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveFileInput(index)}
-                                                className="bg-red-500 text-white px-2 py-1 rounded ml-2"
-                                            >
-                                                ลบ
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={handleAddFileInput}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-2"
-                                    >
-                                        เพิ่มอัพโหลดไฟล์
-                                    </button>
-                                    <div className="mb-4">
-                                        <label
-                                            htmlFor="Image"
-                                            className="block text-gray-700 mb-2"
-                                        >
-                                            อัพโหลดรูปภาพ
-                                        </label>
-                                        <input
-                                            type="file"
-                                            id="Image"
-                                            name="Image"
-                                            onChange={handleImageChange}
-                                            className="w-full p-3 border border-gray-300 rounded"
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6"
-                        >
-                            ประกาศทุนการศึกษาใหม่
-                        </button>
-                    </form>
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <div className="flex-1 container mx-auto px-4 py-8">
+      <div>
+            {applicationFiles.map((file, index) => (
+              <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
+                <div>
+                  <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
+                  <select
+                    id={`DocumentType-${index}`}
+                    name="DocumentType"
+                    value={file.DocumentType}
+                    onChange={(e) => handleFileChange(index, e)}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  >
+                    <option value="">เลือกประเภทไฟล์</option>
+                    <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
+                    <option value="ผลการเรียน">ผลการเรียน</option>
+                    <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
+                  </select>
                 </div>
-            </div>
-            <Footer />
+                <div>
+                  <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
+                  <input
+                    type="text"
+                    id={`DocumentName-${index}`}
+                    name="DocumentName"
+                    value={file.DocumentName}
+                    onChange={(e) => handleFileChange(index, e)}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+                  <input
+                    type="file"
+                    id={`FilePath-${index}`}
+                    name="FilePath"
+                    onChange={(e) => handleFileUpload(index, e)}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => removeFileEntry(index)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                  >
+                    ลบ
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addFileEntry}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              เพิ่มไฟล์
+            </button>
+          </div>
+        <div className="bg-white shadow-md rounded-lg p-6">
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <form onSubmit={handleSubmit}>
+
+              <div className="flex justify-end mt-6">
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Submit
+                </button>
+              </div>
+
+
+          </form>
         </div>
-    );
+      </div>
+      <Footer />
+    </div>
+  );
 }

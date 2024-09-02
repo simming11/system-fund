@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = `${process.env.NEXT_PUBLIC_API_Backend}/api`;
 
 class ApiAddressServices {
     // ดึงข้อมูล addresses ทั้งหมด
