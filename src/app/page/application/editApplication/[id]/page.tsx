@@ -313,7 +313,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         if (idStudent) {
             const fetchStudentData = async () => {
                 try {
-                    const studentResponse = await ApiStudentServices.getStudent(Number(idStudent));
+                    const studentResponse = await ApiStudentServices.getStudent(idStudent);
                     setUserData(studentResponse.data);
                     setStudents((prevData) => ({
                         ...prevData,

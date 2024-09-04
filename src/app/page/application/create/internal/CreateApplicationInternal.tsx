@@ -377,7 +377,7 @@ export default function CreateApplicationInternalPage() {
     if (idStudent) {
       const fetchStudentData = async () => {
         try {
-          const studentResponse = await ApiStudentServices.getStudent(Number(idStudent));
+          const studentResponse = await ApiStudentServices.getStudent(idStudent);
           setUserData(studentResponse.data);
           setStudents((prevData) => ({
             ...prevData,
@@ -759,6 +759,19 @@ export default function CreateApplicationInternalPage() {
 
   const [addressErrors, setAddressErrors] = useState<{ [key: string]: string }>({});
   const [currentAddressErrors, setCurrentAddressErrors] = useState<{ [key: string]: string }>({});
+  const [applicationErrors, setApplicationErrors] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState(false); // Initialize loading state
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
+        <p className="ml-4 text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+  
+
 
   const validateAddress = () => {
     const errors: { [key: string]: string } = {};
@@ -786,25 +799,54 @@ export default function CreateApplicationInternalPage() {
     return Object.keys(errors).length === 0;
   };
 
+  const validateApplication = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
+      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0.00 - 4.00)';
+
+    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
+      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0.00 - 4.00)';
+
+    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
+      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0.00 - 4.00)';
+
+    if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
+
+    setApplicationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleNextStep = () => {
     if (step === 1) {
       if (!validateAddress()) return;
       if (!validateCurrentAddress()) return;
     }
-    if (step === 2) {
-
+    if (step === 3) {
+      if (!validateApplication()) return;
     }
     setStep(step < 5 ? step + 1 : step);
   };
 
   const handleSave = async () => {
+    // Add loading state
+
+  
     try {
+      setLoading(true); // Start loading
+  
+      // Update the application data with the new status
+      const updatedApplicationData = {
+        ...applicationData,
+        Status: 'บันทึกแล้ว',
+      };
+  
       // Create the application and retrieve the ApplicationID
-      const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(applicationData);
+      const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
       const applicationID = applicationResponse.ApplicationID;
-
+  
       const tasks: Promise<any>[] = [];
-
+  
       // Update and submit caretakerData if it's filled out, or replace empty values with "-"
       const updatedCaretakerData = {
         ...caretakerData,
@@ -821,7 +863,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
       console.log('Caretaker data sent:', updatedCaretakerData);
-
+  
       // Update and submit fatherData if it's filled out, or replace empty values with "-"
       const updatedFatherData = {
         ...fatherData,
@@ -837,7 +879,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedFatherData));
       console.log('Father data sent:', updatedFatherData);
-
+  
       // Update and submit motherData if it's filled out, or replace empty values with "-"
       const updatedMotherData = {
         ...motherData,
@@ -853,7 +895,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
-
+  
       // Send all sibling data as an array to the API
       const updatedSiblingsData = siblingsData.map((sibling) => ({
         ...sibling,
@@ -861,7 +903,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
       console.log('Siblings data sent:', updatedSiblingsData);
-
+  
       // Send all activities data as an array to the API
       const updatedActivities = activities.map((activity) => ({
         ...activity,
@@ -869,7 +911,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
       console.log('Activities data sent:', updatedActivities);
-
+  
       // Send all scholarship history data as an array to the API
       const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
         ...scholarship,
@@ -877,7 +919,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
       console.log('Scholarship history data sent:', updatedScholarshipHistory);
-
+  
       // Send all work experience data as an array to the API
       const updatedWorkExperiences = workExperiences.map((workExperience) => ({
         ...workExperience,
@@ -885,21 +927,21 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
       console.log('Work experience data sent:', updatedWorkExperiences);
-
+  
       // Submit the addressData and currentAddressData
       const updatedAddressData = { ...addressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
       console.log('Address data sent:', updatedAddressData);
-
+  
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
       console.log('Current address data sent:', updatedCurrentAddressData);
-
+  
       // Execute all tasks
       await Promise.all(tasks);
-
+  
       console.log('All data submitted successfully.');
-
+  
       // Clear sessionStorage after successful submission
       sessionStorage.removeItem('step');
       sessionStorage.removeItem('fatherData');
@@ -908,10 +950,9 @@ export default function CreateApplicationInternalPage() {
       sessionStorage.removeItem('addressData');
       sessionStorage.removeItem('currentAddressData');
       sessionStorage.removeItem('siblingsData');
-      sessionStorage.clear()
+      sessionStorage.clear();
       router.push(`/page/History-Application?status=บันทึกแล้ว`);
-
-
+  
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('Validation error: ' + error.response?.data.message);
@@ -919,143 +960,117 @@ export default function CreateApplicationInternalPage() {
         setError('Error creating application. Please check the form fields and try again.');
       }
       console.error('Error creating application:', error);
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
+    setLoading(true); // Optionally, set loading state to disable the form or show a spinner
+  
     try {
       // Set the status to 'รอประกาศผล'
       const updatedApplicationData = {
         ...applicationData,
         Status: 'รอประกาศผล',
       };
-
+  
       // Create the application and retrieve the ApplicationID
       const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
       const applicationID = applicationResponse.ApplicationID;
-
+  
       const tasks: Promise<any>[] = [];
-
-      // Update and submit caretakerData if it's filled out, or replace empty values with "-"
-      const updatedCaretakerData = {
-        ...caretakerData,
-        ApplicationID: applicationID,
-        FirstName: caretakerData.FirstName || '-',
-        LastName: caretakerData.LastName || '-',
-        PrefixName: caretakerData.PrefixName || '-',
-        Occupation: caretakerData.Occupation || '-',
-        Phone: caretakerData.Phone || '-',
-        Workplace: caretakerData.Workplace || '-',
-        Status: caretakerData.Status || '-',
-        Type: caretakerData.Type || '-',
-        Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
+  
+      // Function to update guardian data (caretaker, father, mother)
+      const createGuardian = (guardianData: GuardiansData) => {
+        const updatedGuardianData = {
+          ...guardianData,
+          ApplicationID: applicationID,
+          FirstName: guardianData.FirstName || '-',
+          LastName: guardianData.LastName || '-',
+          PrefixName: guardianData.PrefixName || '-',
+          Occupation: guardianData.Occupation || '-',
+          Phone: guardianData.Phone || '-',
+          Workplace: guardianData.Workplace || '-',
+          Status: guardianData.Status || '-',
+          Age: guardianData.Age || 0,  // Set Age to 0 if not provided
+        };
+        return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
       };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
-      console.log('Caretaker data sent:', updatedCaretakerData);
-
-      // Update and submit fatherData if it's filled out, or replace empty values with "-"
-      const updatedFatherData = {
-        ...fatherData,
-        ApplicationID: applicationID,
-        FirstName: fatherData.FirstName || '-',
-        LastName: fatherData.LastName || '-',
-        PrefixName: fatherData.PrefixName || '-',
-        Occupation: fatherData.Occupation || '-',
-        Phone: fatherData.Phone || '-',
-        Workplace: fatherData.Workplace || '-',
-        Status: fatherData.Status || '-',
-        Age: fatherData.Age || 0,  // Set Age to 0 if not provided
-      };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedFatherData));
-      console.log('Father data sent:', updatedFatherData);
-
-      // Update and submit motherData if it's filled out, or replace empty values with "-"
-      const updatedMotherData = {
-        ...motherData,
-        ApplicationID: applicationID,
-        FirstName: motherData.FirstName || '-',
-        LastName: motherData.LastName || '-',
-        PrefixName: motherData.PrefixName || '-',
-        Occupation: motherData.Occupation || '-',
-        Phone: motherData.Phone || '-',
-        Workplace: motherData.Workplace || '-',
-        Status: motherData.Status || '-',
-        Age: motherData.Age || 0,  // Set Age to 0 if not provided
-      };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
-      console.log('Mother data sent:', updatedMotherData);
-
-      // Send all sibling data as an array to the API
-      const updatedSiblingsData = siblingsData.map((sibling) => ({
-        ...sibling,
-        ApplicationID: applicationID,
-      }));
-      tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
-      console.log('Siblings data sent:', updatedSiblingsData);
-
-      // Send all activities data as an array to the API
-      const updatedActivities = activities.map((activity) => ({
-        ...activity,
-        ApplicationID: applicationID,
-      }));
-      tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
-      console.log('Activities data sent:', updatedActivities);
-
-      // Send all scholarship history data as an array to the API
-      const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
-        ...scholarship,
-        ApplicationID: applicationID,
-      }));
-      tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
-      console.log('Scholarship history data sent:', updatedScholarshipHistory);
-
-      // Send all work experience data as an array to the API
-      const updatedWorkExperiences = workExperiences.map((workExperience) => ({
-        ...workExperience,
-        ApplicationID: applicationID,
-      }));
-      tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
-      console.log('Work experience data sent:', updatedWorkExperiences);
-
-      // Submit the addressData and currentAddressData
+  
+      // Submit caretaker, father, and mother data
+      tasks.push(createGuardian(caretakerData));
+      tasks.push(createGuardian(fatherData));
+      tasks.push(createGuardian(motherData));
+  
+      // Submit siblings data
+      if (siblingsData.length > 0) {
+        const updatedSiblingsData = siblingsData.map((sibling) => ({
+          ...sibling,
+          ApplicationID: applicationID,
+        }));
+        tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
+      }
+  
+      // Submit activities data
+      if (activities.length > 0) {
+        const updatedActivities = activities.map((activity) => ({
+          ...activity,
+          ApplicationID: applicationID,
+        }));
+        tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
+      }
+  
+      // Submit scholarship history data
+      if (scholarshipHistory.length > 0) {
+        const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
+          ...scholarship,
+          ApplicationID: applicationID,
+        }));
+        tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
+      }
+  
+      // Submit work experience data
+      if (workExperiences.length > 0) {
+        const updatedWorkExperiences = workExperiences.map((workExperience) => ({
+          ...workExperience,
+          ApplicationID: applicationID,
+        }));
+        tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
+      }
+  
+      // Submit address data
       const updatedAddressData = { ...addressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
-      console.log('Address data sent:', updatedAddressData);
-
+  
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
-      console.log('Current address data sent:', updatedCurrentAddressData);
-
+  
       // Submit application files
-      for (const [index, fileData] of applicationFiles.entries()) {
-        const formData = new FormData();
-        formData.append('ApplicationID', applicationID);
-        formData.append('DocumentName', fileData.DocumentName);
-        formData.append('DocumentType', fileData.DocumentType);
-        if (fileData.FilePath instanceof File) {
-          formData.append('FilePath', fileData.FilePath);
+      if (applicationFiles.length > 0) {
+        for (const fileData of applicationFiles) {
+          const formData = new FormData();
+          formData.append('ApplicationID', applicationID);
+          formData.append('DocumentName', fileData.DocumentName);
+          formData.append('DocumentType', fileData.DocumentType);
+          if (fileData.FilePath instanceof File) {
+            formData.append('FilePath', fileData.FilePath);
+          }
+          tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
         }
-        tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
-        console.log('File data sent:', formData);
       }
-
-      // Execute all tasks
+  
+      // Execute all tasks in parallel
       await Promise.all(tasks);
-
+  
       console.log('All data submitted successfully.');
-
+  
       // Clear sessionStorage after successful submission
-      sessionStorage.removeItem('step');
-      sessionStorage.removeItem('fatherData');
-      sessionStorage.removeItem('motherData');
-      sessionStorage.removeItem('caretakerData');
-      sessionStorage.removeItem('addressData');
-      sessionStorage.removeItem('currentAddressData');
-      sessionStorage.removeItem('siblingsData');
-      sessionStorage.clear()
+      sessionStorage.clear();
+  
       // Navigate to the application page with status=บันทึกแล้ว
       router.push(`/page/History-Application?status=บันทึกแล้ว`);
     } catch (error) {
@@ -1065,8 +1080,12 @@ export default function CreateApplicationInternalPage() {
         setError('Error creating application. Please check the form fields and try again.');
       }
       console.error('Error creating application:', error);
+    } finally {
+      setLoading(false); // Stop loading spinner or enable the form
     }
   };
+  
+  
 
   const renderStep = () => {
     switch (step) {
@@ -1205,205 +1224,205 @@ export default function CreateApplicationInternalPage() {
                 </div>
               </div>
               <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
-<div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-  <div>
-    <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
-      เลขที่
-    </label>
-    <input
-      type="text"
-      id="AddressLine"
-      name="AddressLine"
-      value={addressData.AddressLine}
-      onChange={handleChangeAddress}
-      className="w-full p-3 border border-gray-300 rounded"
-    />
-    {addressErrors.AddressLine && <p className="text-red-500">{addressErrors.AddressLine}</p>}
-  </div>
-  <div>
-    <label htmlFor="province" className="block text-gray-700 mb-2">
-      จังหวัด
-    </label>
-    <select
-      id="province"
-      name="province"
-      value={addressData.province}
-      onChange={handleChangeAddress}
-      className="w-full p-3 border border-gray-300 rounded"
-    >
-      <option value="">เลือกจังหวัด</option>
-      {provinces.map((province) => (
-        <option key={province.id} value={province.name}>
-          {province.name}
-        </option>
-      ))}
-    </select>
-    {addressErrors.province && <p className="text-red-500">{addressErrors.province}</p>}
-  </div>
-  <div>
-    <label htmlFor="District" className="block text-gray-700 mb-2">
-      อำเภอ
-    </label>
-    <select
-      id="District"
-      name="District"
-      value={addressData.District}
-      onChange={handleChangeAddress}
-      className="w-full p-3 border border-gray-300 rounded"
-    >
-      <option value="">เลือกอำเภอ</option>
-      {districtsForIDCard.map((district) => (
-        <option key={district.id} value={district.name}>
-          {district.name}
-        </option>
-      ))}
-    </select>
-    {addressErrors.District && <p className="text-red-500">{addressErrors.District}</p>}
-  </div>
-  <div>
-    <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
-      ตำบล
-    </label>
-    <select
-      id="Subdistrict"
-      name="Subdistrict"
-      value={addressData.Subdistrict}
-      onChange={handleChangeAddress}
-      className="w-full p-3 border border-gray-300 rounded"
-    >
-      <option value="">เลือกตำบล</option>
-      {subdistrictsForIDCard.map((subdistrict) => (
-        <option key={subdistrict.id} value={subdistrict.name}>
-          {subdistrict.name}
-        </option>
-      ))}
-    </select>
-    {addressErrors.Subdistrict && <p className="text-red-500">{addressErrors.Subdistrict}</p>}
-  </div>
-  <div>
-    <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-      รหัสไปรษณีย์
-    </label>
-    <input
-      type="text"
-      id="PostalCode"
-      name="PostalCode"
-      value={addressData.PostalCode}
-      onChange={handleChangeAddress}
-      className="w-full p-3 border border-gray-300 rounded"
-    />
-    {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
-  </div>
-</div>
-<div className="">
-  <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
-    <div className="flex items-center justify-between mb-2">
-      <div className="text-gray-700">
-        ที่อยู่ปัจจุบัน
-        <button
-          type="button"
-          onClick={() => {
-            const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
-            setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
-          }}
-          className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
-        >
-          ที่อยู่ตามบัตรประชาชน
-        </button>
-      </div>
-    </div>
-    <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-      <div>
-        <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
-          เลขที่
-        </label>
-        <input
-          type="text"
-          id="AddressLine"
-          name="AddressLine"
-          value={currentAddressData.AddressLine}
-          onChange={handleChangeCurrentAddress}
-          className="w-full p-3 border border-gray-300 rounded"
-        />
-        {currentAddressErrors.AddressLine && <p className="text-red-500">{currentAddressErrors.AddressLine}</p>}
-      </div>
-      <div>
-        <label htmlFor="province" className="block text-gray-700 mb-2">
-          จังหวัด
-        </label>
-        <select
-          id="province"
-          name="province"
-          value={currentAddressData.province}
-          onChange={handleChangeCurrentAddress}
-          className="w-full p-3 border border-gray-300 rounded"
-        >
-          <option value="">เลือกจังหวัด</option>
-          {provinces.map((province) => (
-            <option key={province.id} value={province.name}>
-              {province.name}
-            </option>
-          ))}
-        </select>
-        {currentAddressErrors.province && <p className="text-red-500">{currentAddressErrors.province}</p>}
-      </div>
-      <div>
-        <label htmlFor="District" className="block text-gray-700 mb-2">
-          อำเภอ
-        </label>
-        <select
-          id="District"
-          name="District"
-          value={currentAddressData.District}
-          onChange={handleChangeCurrentAddress}
-          className="w-full p-3 border border-gray-300 rounded"
-        >
-          <option value="">เลือกอำเภอ</option>
-          {districtsForCurrentAddress.map((district) => (
-            <option key={district.id} value={district.name}>
-              {district.name}
-            </option>
-          ))}
-        </select>
-        {currentAddressErrors.District && <p className="text-red-500">{currentAddressErrors.District}</p>}
-      </div>
-      <div>
-        <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
-          ตำบล
-        </label>
-        <select
-          id="Subdistrict"
-          name="Subdistrict"
-          value={currentAddressData.Subdistrict}
-          onChange={handleChangeCurrentAddress}
-          className="w-full p-3 border border-gray-300 rounded"
-        >
-          <option value="">เลือกตำบล</option>
-          {subdistrictsForCurrentAddress.map((subdistrict) => (
-            <option key={subdistrict.id} value={subdistrict.name}>
-              {subdistrict.name}
-            </option>
-          ))}
-        </select>
-        {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
-      </div>
-      <div>
-        <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-          รหัสไปรษณีย์
-        </label>
-        <input
-          type="text"
-          id="PostalCode"
-          name="PostalCode"
-          value={currentAddressData.PostalCode}
-          onChange={handleChangeCurrentAddress}
-          className="w-full p-3 border border-gray-300 rounded"
-        />
-        {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
-      </div>
-    </div>
-  </div>
-</div>
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
+                    เลขที่
+                  </label>
+                  <input
+                    type="text"
+                    id="AddressLine"
+                    name="AddressLine"
+                    value={addressData.AddressLine}
+                    onChange={handleChangeAddress}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                  {addressErrors.AddressLine && <p className="text-red-500">{addressErrors.AddressLine}</p>}
+                </div>
+                <div>
+                  <label htmlFor="province" className="block text-gray-700 mb-2">
+                    จังหวัด
+                  </label>
+                  <select
+                    id="province"
+                    name="province"
+                    value={addressData.province}
+                    onChange={handleChangeAddress}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  >
+                    <option value="">เลือกจังหวัด</option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={province.name}>
+                        {province.name}
+                      </option>
+                    ))}
+                  </select>
+                  {addressErrors.province && <p className="text-red-500">{addressErrors.province}</p>}
+                </div>
+                <div>
+                  <label htmlFor="District" className="block text-gray-700 mb-2">
+                    อำเภอ
+                  </label>
+                  <select
+                    id="District"
+                    name="District"
+                    value={addressData.District}
+                    onChange={handleChangeAddress}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  >
+                    <option value="">เลือกอำเภอ</option>
+                    {districtsForIDCard.map((district) => (
+                      <option key={district.id} value={district.name}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                  {addressErrors.District && <p className="text-red-500">{addressErrors.District}</p>}
+                </div>
+                <div>
+                  <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
+                    ตำบล
+                  </label>
+                  <select
+                    id="Subdistrict"
+                    name="Subdistrict"
+                    value={addressData.Subdistrict}
+                    onChange={handleChangeAddress}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  >
+                    <option value="">เลือกตำบล</option>
+                    {subdistrictsForIDCard.map((subdistrict) => (
+                      <option key={subdistrict.id} value={subdistrict.name}>
+                        {subdistrict.name}
+                      </option>
+                    ))}
+                  </select>
+                  {addressErrors.Subdistrict && <p className="text-red-500">{addressErrors.Subdistrict}</p>}
+                </div>
+                <div>
+                  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                    รหัสไปรษณีย์
+                  </label>
+                  <input
+                    type="text"
+                    id="PostalCode"
+                    name="PostalCode"
+                    value={addressData.PostalCode}
+                    onChange={handleChangeAddress}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                  {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
+                </div>
+              </div>
+              <div className="">
+                <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-gray-700">
+                      ที่อยู่ปัจจุบัน
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
+                          setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
+                        }}
+                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
+                      >
+                        ที่อยู่ตามบัตรประชาชน
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
+                        เลขที่
+                      </label>
+                      <input
+                        type="text"
+                        id="AddressLine"
+                        name="AddressLine"
+                        value={currentAddressData.AddressLine}
+                        onChange={handleChangeCurrentAddress}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      />
+                      {currentAddressErrors.AddressLine && <p className="text-red-500">{currentAddressErrors.AddressLine}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="province" className="block text-gray-700 mb-2">
+                        จังหวัด
+                      </label>
+                      <select
+                        id="province"
+                        name="province"
+                        value={currentAddressData.province}
+                        onChange={handleChangeCurrentAddress}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      >
+                        <option value="">เลือกจังหวัด</option>
+                        {provinces.map((province) => (
+                          <option key={province.id} value={province.name}>
+                            {province.name}
+                          </option>
+                        ))}
+                      </select>
+                      {currentAddressErrors.province && <p className="text-red-500">{currentAddressErrors.province}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="District" className="block text-gray-700 mb-2">
+                        อำเภอ
+                      </label>
+                      <select
+                        id="District"
+                        name="District"
+                        value={currentAddressData.District}
+                        onChange={handleChangeCurrentAddress}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      >
+                        <option value="">เลือกอำเภอ</option>
+                        {districtsForCurrentAddress.map((district) => (
+                          <option key={district.id} value={district.name}>
+                            {district.name}
+                          </option>
+                        ))}
+                      </select>
+                      {currentAddressErrors.District && <p className="text-red-500">{currentAddressErrors.District}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
+                        ตำบล
+                      </label>
+                      <select
+                        id="Subdistrict"
+                        name="Subdistrict"
+                        value={currentAddressData.Subdistrict}
+                        onChange={handleChangeCurrentAddress}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      >
+                        <option value="">เลือกตำบล</option>
+                        {subdistrictsForCurrentAddress.map((subdistrict) => (
+                          <option key={subdistrict.id} value={subdistrict.name}>
+                            {subdistrict.name}
+                          </option>
+                        ))}
+                      </select>
+                      {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                        รหัสไปรษณีย์
+                      </label>
+                      <input
+                        type="text"
+                        id="PostalCode"
+                        name="PostalCode"
+                        value={currentAddressData.PostalCode}
+                        onChange={handleChangeCurrentAddress}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      />
+                      {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
 
               <div className="flex items-end">
@@ -2096,6 +2115,7 @@ export default function CreateApplicationInternalPage() {
                     pattern="[1-9]*[0.0]"
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
+                  {applicationErrors.GPAYear1 && <p className="text-red-500">{applicationErrors.GPAYear1}</p>}
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
@@ -2111,6 +2131,7 @@ export default function CreateApplicationInternalPage() {
                     pattern="[1-9]*[0.0]"
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
+                  {applicationErrors.GPAYear2 && <p className="text-red-500">{applicationErrors.GPAYear2}</p>}
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
@@ -2126,9 +2147,8 @@ export default function CreateApplicationInternalPage() {
                     pattern="[1-9]*[0.0]"
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
+                  {applicationErrors.GPAYear3 && <p className="text-red-500">{applicationErrors.GPAYear3}</p>}
                 </div>
-
-
               </div>
 
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
@@ -2144,8 +2164,10 @@ export default function CreateApplicationInternalPage() {
                     onChange={handleChangeApplication}
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
+                  {applicationErrors.AdvisorName && <p className="text-red-500">{applicationErrors.AdvisorName}</p>}
                 </div>
               </div>
+
             </div>
 
             <div className='mt-10 '>
@@ -2420,93 +2442,94 @@ export default function CreateApplicationInternalPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-    <Header />
-    <div className="flex-1 container mx-auto px-4 py-8">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex justify-center mb-6">
-          <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>
-            <span
-              className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
-            >
-              1
-            </span>
-            <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
+      <Header />
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="flex justify-center mb-6">
+            <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                1
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                2
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                3
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                4
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                5
+              </span>
+              <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
+            </div>
           </div>
-          <div className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}>
-            <span
-              className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
-            >
-              2
-            </span>
-            <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
-          </div>
-          <div className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}>
-            <span
-              className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
-            >
-              3
-            </span>
-            <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
-          </div>
-          <div className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}>
-            <span
-              className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
-            >
-              4
-            </span>
-            <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
-          </div>
-          <div className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}>
-            <span
-              className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
-            >
-              5
-            </span>
-            <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
-          </div>
-        </div>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          {renderStep()}
-          <div className="flex justify-between mt-6">
-            <button
-              type="button"
-              onClick={() => setStep(step > 1 ? step - 1 : step)}
-              className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={step === 1}
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              onClick={handleNextStep}
-              className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={step === 5}
-            >
-              Next
-            </button>
-          </div>
-          {step === 5 && (
-            <div className="flex justify-end mt-6">
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <form onSubmit={handleSubmit}>
+            {renderStep()}
+            <div className="flex justify-between mt-6">
               <button
                 type="button"
-                onClick={handleSave}
-                className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                onClick={() => setStep(step > 1 ? step - 1 : step)}
+                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={step === 1}
               >
-                Save
+                Previous
               </button>
               <button
-                type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                type="button"
+                onClick={handleNextStep}
+                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={step === 5}
               >
-                Submit
+                Next
               </button>
             </div>
-          )}
-        </form>
+            {step === 5 && (
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                >
+                  Save
+                </button>
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Submit
+                </button>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
+      <Footer />
     </div>
-    <Footer />
-  </div>
   );
 }
+

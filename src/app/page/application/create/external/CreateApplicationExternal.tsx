@@ -113,6 +113,8 @@ export default function CreateApplicationExternalPage() {
         };
 
         // Create the application and retrieve the Application_EtID
+        console.log(updatedApplicationData);
+        
         const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
         const Application_EtID = applicationResponse.Application_EtID;
 

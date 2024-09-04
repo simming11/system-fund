@@ -56,7 +56,7 @@ export default function EditInternalScholarshipPage() {
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
   const [error, setError] = useState("");
-
+  const [loading, setLoading] = useState(false);  // Loading state
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
@@ -280,105 +280,122 @@ export default function EditInternalScholarshipPage() {
       CreatedBy: formData.CreatedBy,
     };
 
-    try {
-      // Convert submitFormData to FormData
-      const payload = new FormData();
-      for (const [key, value] of Object.entries(submitFormData)) {
-        if (value !== undefined && value !== null) {
-          payload.append(key, value.toString());
+    let timerInterval: string | number | NodeJS.Timeout | undefined;
+    Swal.fire({
+      title: "Processing your request!",
+      html: "This will close in <b></b> milliseconds.",
+      timer: 2500,
+      timerProgressBar: true,
+      didOpen: () => {
+        Swal.showLoading();
+        const timer = Swal.getHtmlContainer()?.querySelector("b");
+        timerInterval = setInterval(() => {
+          if (timer) {
+            timer.textContent = `${Swal.getTimerLeft()}`;
+          }
+        }, 100);
+      },
+      willClose: () => {
+        clearInterval(timerInterval);
+      }
+    }).then(async (result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        try {
+          // Convert submitFormData to FormData
+          const payload = new FormData();
+          for (const [key, value] of Object.entries(submitFormData)) {
+            if (value !== undefined && value !== null) {
+              payload.append(key, value.toString());
+            }
+          }
+
+          // Ensure id is not null and is passed as a string
+          if (id) {
+            await ApiUpdateServiceScholarships.updateScholarship(id, payload);
+          } else {
+            throw new Error("Scholarship ID is missing.");
+          }
+
+          // Update Courses
+          if ((formData.course || []).length > 0) {
+            await ApiUpdateServiceScholarships.updateCourse(scholarshipID, {
+              ScholarshipID: scholarshipID,
+              CourseName: formData.course,
+            });
+          }
+
+          // Update Documents
+          const selectedDocuments = formData.documents
+            .filter((item: { text: string, isActive: boolean }) => item.isActive && item.text !== "อื่น ๆ")
+            .map((item: { text: string }) => item.text);
+
+          if (formData.showinformationOtherInput && formData.otherDocument) {
+            selectedDocuments.push(formData.otherDocument);
+          }
+
+          if (selectedDocuments.length > 0) {
+            await ApiUpdateServiceScholarships.updateDocument(scholarshipID, {
+              ScholarshipID: scholarshipID,
+              documents: selectedDocuments,
+              otherDocument: formData.otherDocument,
+              IsActive: true,
+            });
+          }
+
+          // Update Qualifications
+          const selectedQualifications = formData.qualifications
+            .filter((item: { text: string, isActive: boolean }) => item.isActive && item.text !== "อื่น ๆ")
+            .map((item: { text: string }) => item.text);
+
+          if (formData.showDescriptionOtherInput && formData.otherQualificationText) {
+            selectedQualifications.push(formData.otherQualificationText);
+          }
+
+          if (selectedQualifications.length > 0) {
+            await ApiUpdateServiceScholarships.updateQualification(scholarshipID, {
+              ScholarshipID: scholarshipID,
+              qualifications: selectedQualifications,
+              otherQualificationText: formData.otherQualificationText,
+              IsActive: true,
+            });
+          }
+
+          if (formData.Image) {
+            await ApiUpdateServiceScholarships.updateImage(scholarshipID, formData.Image);
+          }
+
+          // Prepare and Update other files
+          const filesToUpdate = formData.Files
+            .filter((fileObj: { file: File | null }) => fileObj.file)
+            .map((fileObj: { file: File | null }) => ({
+              FileType: "ไฟล์",
+              FilePath: fileObj.file as File,
+              Description: fileObj.file?.name || ""
+            }));
+
+          if (filesToUpdate.length > 0) {
+            await ApiUpdateServiceScholarships.updateFiles(scholarshipID, filesToUpdate, scholarshipID);
+          }
+
+          // Success message
+          Swal.fire({
+            title: "Good job!",
+            text: "Scholarship updated successfully!",
+            icon: "success"
+          });
+
+          // Clear session storage and redirect
+          sessionStorage.clear();
+          router.push("/page/scholarships/Manage-internal-scholarships");
+
+        } catch (error) {
+          setError("Failed to update scholarship. Please try again.");
+          console.error("Error updating scholarship:", error);
         }
       }
-
-      // Ensure id is not null and is passed as a string
-      if (id) {
-        await ApiUpdateServiceScholarships.updateScholarship(id, payload);
-      } else {
-        throw new Error("Scholarship ID is missing.");
-      }
-
-
-
-
-
-      // Update Courses
-      if ((formData.course || []).length > 0) {
-        await ApiUpdateServiceScholarships.updateCourse(scholarshipID, {
-          ScholarshipID: scholarshipID,
-          CourseName: formData.course,
-        });
-      }
-
-      // Update Documents
-      const selectedDocuments = formData.documents
-        .filter((item: { text: string, isActive: boolean }) => item.isActive && item.text !== "อื่น ๆ")
-        .map((item: { text: string }) => item.text);
-
-      if (formData.showinformationOtherInput && formData.otherDocument) {
-        selectedDocuments.push(formData.otherDocument);
-      }
-
-      if (selectedDocuments.length > 0) {
-        await ApiUpdateServiceScholarships.updateDocument(scholarshipID, {
-          ScholarshipID: scholarshipID,
-          documents: selectedDocuments,
-          otherDocument: formData.otherDocument,
-          IsActive: true,
-        });
-      }
-
-      // Update Qualifications
-      const selectedQualifications = formData.qualifications
-        .filter((item: { text: string, isActive: boolean }) => item.isActive && item.text !== "อื่น ๆ")
-        .map((item: { text: string }) => item.text);
-
-      if (formData.showDescriptionOtherInput && formData.otherQualificationText) {
-        selectedQualifications.push(formData.otherQualificationText);
-      }
-
-      if (selectedQualifications.length > 0) {
-        await ApiUpdateServiceScholarships.updateQualification(scholarshipID, {
-          ScholarshipID: scholarshipID,
-          qualifications: selectedQualifications,
-          otherQualificationText: formData.otherQualificationText,
-          IsActive: true,
-        });
-      }
-
-      if (formData.Image) {
-        await ApiUpdateServiceScholarships.updateImage(scholarshipID, formData.Image);
-      }
-
-
-
-      // Prepare and Update other files
-      const filesToUpdate = formData.Files
-        .filter((fileObj: { file: File | null }) => fileObj.file)
-        .map((fileObj: { file: File | null }) => ({
-          FileType: "ไฟล์",
-          FilePath: fileObj.file as File,
-          Description: fileObj.file?.name || ""
-        }));
-
-      if (filesToUpdate.length > 0) {
-        await ApiUpdateServiceScholarships.updateFiles(scholarshipID, filesToUpdate, scholarshipID);
-      }
-
-      // Success message
-      Swal.fire({
-        title: "Good job!",
-        text: "Scholarship updated successfully!",
-        icon: "success"
-      });
-
-      // Clear session storage and redirect
-      sessionStorage.clear();
-      router.push("/page/scholarships/Manage-internal-scholarships");
-
-    } catch (error) {
-      setError("Failed to update scholarship. Please try again.");
-      console.error("Error updating scholarship:", error);
-    }
+    });
   };
+
 
 
 
@@ -400,6 +417,12 @@ export default function EditInternalScholarshipPage() {
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">Edit Scholarship</h2>
+            {loading && (
+              <div className="flex items-center justify-center mb-4">
+                <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
+                <p className="ml-4 text-gray-600">Loading...</p>
+              </div>
+            )}
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">

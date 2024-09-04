@@ -149,172 +149,175 @@ export default function CreateInternalScholarshipPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-        // ตรวจสอบฟิลด์ที่จำเป็นต้องกรอกทีละอัน
-        if (!formData.ScholarshipName) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ ชื่อทุนการศึกษา");
-          return;
-      }
   
-      if (formData.Major.length === 0) {
-          setError("กรุณาเลือกอย่างน้อยหนึ่งสาขาวิชา");
-          return;
+    // Show the SweetAlert loading with auto-close timer
+    let timerInterval: string | number | NodeJS.Timeout | undefined;
+    Swal.fire({
+      title: "Processing your request!",
+      html: "This will close in <b></b> milliseconds.",
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: () => {
+        Swal.showLoading();
+        const timer = Swal.getHtmlContainer()?.querySelector("b");
+        timerInterval = setInterval(() => {
+          if (timer) {
+            timer.textContent = `${Swal.getTimerLeft()}`;
+          }
+        }, 100);
+      },
+      willClose: () => {
+        clearInterval(timerInterval);
       }
+    }).then(async (result) => {
+      if (result.dismiss === Swal.DismissReason.timer) {
+        try {
+          // Validate required fields
+          if (!formData.ScholarshipName) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ ชื่อทุนการศึกษา");
+            return;
+          }
   
-      if (!formData.Year) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
-          return;
-      }
+          if (formData.Major.length === 0) {
+            setError("กรุณาเลือกอย่างน้อยหนึ่งสาขาวิชา");
+            return;
+          }
   
-      if (!formData.YearLevel) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
-          return;
-      }
+          if (!formData.Year) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
+            return;
+          }
   
-      if (!formData.Num_scholarship) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
-          return;
-      }
+          if (!formData.YearLevel) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
+            return;
+          }
   
-      if (!formData.Minimum_GPA) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ");
-          return;
-      }
+          if (!formData.Num_scholarship) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
+            return;
+          }
   
-      if (formData.Description.length === 0 && !formData.otherQualificationText) {
-          setError("กรุณาเพิ่มคุณสมบัติอย่างน้อยหนึ่งรายการ");
-          return;
-      }
+          if (!formData.Minimum_GPA) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ");
+            return;
+          }
   
-      if (formData.information.length === 0 && !formData.otherDocument) {
-          setError("กรุณาเพิ่มเอกสารประกอบการสมัครอย่างน้อยหนึ่งรายการ");
-          return;
-      }
+          if (formData.Description.length === 0 && !formData.otherQualificationText) {
+            setError("กรุณาเพิ่มคุณสมบัติอย่างน้อยหนึ่งรายการ");
+            return;
+          }
   
-          // ตรวจสอบการอัปโหลดรูปภาพ
+          if (formData.information.length === 0 && !formData.otherDocument) {
+            setError("กรุณาเพิ่มเอกสารประกอบการสมัครอย่างน้อยหนึ่งรายการ");
+            return;
+          }
+  
           if (!formData.Image) {
-              setError("กรุณาอัปโหลดรูปภาพประกอบการสมัคร");
-              return;
+            setError("กรุณาอัปโหลดรูปภาพประกอบการสมัคร");
+            return;
           }
-      
-          // ตรวจสอบการอัปโหลดไฟล์
+  
           if (formData.Files.length === 0) {
-              setError("กรุณาอัปโหลดไฟล์ประกอบการสมัครอย่างน้อยหนึ่งไฟล์");
-              return;
+            setError("กรุณาอัปโหลดไฟล์ประกอบการสมัครอย่างน้อยหนึ่งไฟล์");
+            return;
           }
   
-      if (!formData.StartDate) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ วันที่เริ่ม");
-          return;
-      }
+          if (!formData.StartDate) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ วันที่เริ่ม");
+            return;
+          }
   
-      if (!formData.EndDate) {
-          setError("กรุณากรอกข้อมูลในฟิลด์ วันที่สิ้นสุด");
-          return;
-      }
+          if (!formData.EndDate) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ วันที่สิ้นสุด");
+            return;
+          }
   
-
-    // Prepare the form data, ensuring to exclude 'อื่น ๆ' and include otherDocument
-    const submitFormData = {
-      ...formData,
-      information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
-      Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
-    };
-
-    console.log("Form data after processing:", submitFormData);
-
-    try {
-      const payload = new FormData();
-      for (const [key, value] of Object.entries(submitFormData)) {
-        if (Array.isArray(value)) {
-          value.forEach((item: string) => {
-            payload.append(`${key}[]`, item);
-            console.log(`Appending array item to payload: key=${key}[], value=${item}`);
+          // Prepare the form data
+          const submitFormData = {
+            ...formData,
+            information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
+            Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
+          };
+  
+          const payload = new FormData();
+          for (const [key, value] of Object.entries(submitFormData)) {
+            if (Array.isArray(value)) {
+              value.forEach((item: string) => {
+                payload.append(`${key}[]`, item);
+              });
+            } else {
+              payload.append(key, value as string | Blob);
+            }
+          }
+  
+          // Create Scholarship
+          const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
+  
+          // Create Courses
+          if (formData.Major.length > 0) {
+            await ApiAllcreateServiceScholarships.createCourses({
+              ScholarshipID: scholarshipID,
+              CourseName: formData.Major,
+            });
+          }
+  
+          // Create Documents
+          if (submitFormData.information.length > 0 || formData.otherDocument) {
+            await ApiAllcreateServiceScholarships.createDocuments({
+              ScholarshipID: scholarshipID,
+              documents: submitFormData.information,
+              otherDocument: formData.otherDocument
+            });
+          }
+  
+          // Create Qualifications
+          if (submitFormData.Description.length > 0) {
+            await ApiAllcreateServiceScholarships.createQualifications({
+              ScholarshipID: scholarshipID,
+              qualifications: submitFormData.Description,
+              otherQualificationText: submitFormData.otherQualificationText
+            });
+          }
+  
+          // Upload the image file
+          if (formData.Image) {
+            await ApiAllcreateServiceScholarships.createImage({
+              ScholarshipID: scholarshipID,
+              ImagePath: formData.Image,
+            });
+          }
+  
+          // Upload other files
+          for (const file of formData.Files) {
+            if (file) {
+              await ApiAllcreateServiceScholarships.createFile({
+                ScholarshipID: scholarshipID,
+                FileType: "ไฟล์",
+                FilePath: file,
+              });
+            }
+          }
+  
+          // Success message
+          Swal.fire({
+            title: "Good job!",
+            text: "Scholarship created successfully!",
+            icon: "success"
           });
-        } else {
-          payload.append(key, value as string | Blob);
-          console.log(`Appending to payload: key=${key}, value=${value}`);
+  
+          // Clear session storage and redirect
+          sessionStorage.clear();
+          router.push("/page/scholarships/Manage-internal-scholarships");
+  
+        } catch (error) {
+          setError("Failed to create scholarship. Please try again.");
+          console.error("Error creating scholarship:", error);
         }
       }
-
-      // Create Scholarship
-      console.log("Payload before scholarship creation:", payload);
-      const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-      console.log("Scholarship created with ID:", scholarshipID);
-
-      // Create Courses
-      if (formData.Major.length > 0) {
-        console.log("Creating courses for majors:", formData.Major);
-        await ApiAllcreateServiceScholarships.createCourses({
-          ScholarshipID: scholarshipID,
-          CourseName: formData.Major,
-        });
-        console.log("Courses created successfully.");
-      }
-
-      // Create Documents
-      if (submitFormData.information.length > 0 || formData.otherDocument) {
-        console.log("Creating documents with information:", submitFormData.information);
-        await ApiAllcreateServiceScholarships.createDocuments({
-          ScholarshipID: scholarshipID,
-          documents: submitFormData.information,
-          otherDocument: formData.otherDocument
-        });
-        console.log("Documents created successfully.");
-      }
-
-      // Create Qualifications
-      if (submitFormData.Description.length > 0) {
-        console.log("Creating qualifications with descriptions:", submitFormData.Description);
-        await ApiAllcreateServiceScholarships.createQualifications({
-          ScholarshipID: scholarshipID,
-          qualifications: submitFormData.Description,
-          otherQualificationText: submitFormData.otherQualificationText
-        });
-        console.log("Qualifications created successfully.");
-      }
-
-      if (formData.Image) {
-        // Upload the image file
-        console.log("Uploading image:", formData.Image);
-        await ApiAllcreateServiceScholarships.createImage({
-          ScholarshipID: scholarshipID,
-          ImagePath: formData.Image,
-        });
-        console.log("Image uploaded successfully:", formData.Image.name);
-      }
-
-      // Upload other files
-      for (const file of formData.Files) {
-        if (file) {
-          console.log("Uploading file:", file);
-          await ApiAllcreateServiceScholarships.createFile({
-            ScholarshipID: scholarshipID,
-            FileType: "ไฟล์",
-            FilePath: file,
-          });
-          console.log("File uploaded successfully:", file.name);
-        }
-      }
-
-      // Success message
-      Swal.fire({
-        title: "Good job!",
-        text: "Scholarship created successfully!",
-        icon: "success"
-      });
-
-      // Clear session storage and redirect
-      console.log("Clearing session storage and redirecting...");
-      sessionStorage.clear();
-      router.push("/page/scholarships/Manage-internal-scholarships");
-
-    } catch (error) {
-      // Set error message and log the error for debugging
-      setError("Failed to create scholarship. Please try again.");
-      console.error("Error creating scholarship:", error);
-    }
+    });
   };
+  
 
 
 

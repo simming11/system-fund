@@ -1,12 +1,15 @@
 "use client";
 
-import ScholarShipsPage from "./scholarships";
+import StudentDataPage from "./student-data";
+
+
 
 
 const Page = () => {
   return (
     <div>
-      <ScholarShipsPage/>
+      <StudentDataPage
+      />
     </div>
   );
 }

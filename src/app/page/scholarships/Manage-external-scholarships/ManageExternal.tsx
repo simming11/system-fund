@@ -92,7 +92,7 @@ export default function ManageExternalScholarshipsPage() {
     }, []);
 
     const handleEdit = (id: number) => {
-        router.push(`/page/scholarships/Manage-internal-scholarships/Edit?id=${id}`);
+        router.push(`/page/scholarships/Manage-external-scholarships/Edit?id=${id}`);
     };
 
     const handleDelete = async (id: number) => {

@@ -18,7 +18,7 @@ class ApiStudentServices {
     }
 
     // ดึงข้อมูลนักศึกษาตาม ID
-    static async getStudent(studentId: number) {
+    static async getStudent(studentId: string) {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.get(`${API_URL}/students/${studentId}`, {

@@ -108,12 +108,12 @@ const Sidebar = () => {
               {isApplicationOpen && (
                 <ul className="ml-4 mt-2 space-y-2 text-gray-600">
                   <li>
-                    <Link href="/internal-application-data" className="hover:text-blue-500">
+                    <Link href="/page/internal-application-data" className="hover:text-blue-500">
                       ข้อมูลการสมัครทุนภายใน
                     </Link>
                   </li>
                   <li>
-                    <Link href="/external-application-data" className="hover:text-blue-500">
+                    <Link href="/page/external-application-data" className="hover:text-blue-500">
                       ข้อมูลการสมัครทุนภายนอก
                     </Link>
                   </li>
@@ -126,7 +126,7 @@ const Sidebar = () => {
               </Link>
             </li>
             <li>
-              <Link href="/student-data" className="text-gray-700 hover:text-blue-500">
+              <Link href="/page/student-data" className="text-gray-700 hover:text-blue-500">
                 ข้อมูลนิสิต
               </Link>
             </li>
