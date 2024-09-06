@@ -24,18 +24,18 @@ export default function CreateApplicationExternalPage() {
   const searchParams = useSearchParams();
   const id = searchParams.get('scholarshipId');
   const idStudent = localStorage.getItem('UserID');
+  console.log(idStudent);
+  
   const router = useRouter();
 
 
-  const [applicationData, setApplicationData] = useState<ApplicationExternaldata>(() => {
-    const savedApplicationData = sessionStorage.getItem('applicationData');
-    return savedApplicationData ? JSON.parse(savedApplicationData) : {
-      StudentID: idStudent || '',
-      ScholarshipID: id || '',
-      ApplicationDate: '',
-      Status: 'รออนุมัติ',
-    };
+  const [applicationData, setApplicationData] = useState<ApplicationExternaldata>({
+    StudentID: idStudent || '',
+    ScholarshipID: id || '',
+    ApplicationDate: '',
+    Status: 'รออนุมัติ',
   });
+  
 
 
   const [applicationFiles, setApplicationFiles] = useState<ApplicationFilesData[]>([

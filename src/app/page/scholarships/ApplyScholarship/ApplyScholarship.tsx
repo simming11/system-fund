@@ -10,33 +10,30 @@ import HeaderHome from '@/app/components/headerHome/headerHome';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 import ApiGetALLfilesServiceScholarships from '@/app/services/scholarships/ApiServiceScholarshipsFiles';
 import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
+import ApiStudentServices from '@/app/services/students/ApiStudent';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
+interface Student {
+  StudentID: string;
+  FirstName: string;
+  LastName: string;
+  GPA: number;
+  Course: string;
+  Year_Entry: number;
 }
 
 interface Scholarship {
+  ScholarshipID: number;
+  ScholarshipName: string;
+  Minimum_GPA: number;
+  courses: { CourseName: string }[]; // Assuming it's an array of course names
   StartDate: Date;
   EndDate: Date;
-  CreatedBy: string;
-  TypeID: string;
-  ScholarshipName: string;
-  FundingSource: string;
   Description: string;
-  YearLevel: string;
-  UploadFile: string;
   ImagePath: string;
-  updated_at: Date;
-  created_at: Date;
-  ScholarshipID: number;
 }
 
 export default function ApplyScholarShipsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [recommendedScholarships, setRecommendedScholarships] = useState<Scholarship[]>([]);
   const [allScholarships, setAllScholarships] = useState<Scholarship[]>([]);
@@ -44,6 +41,7 @@ export default function ApplyScholarShipsPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(true);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [student, setStudent] = useState<Student | null>(null);
 
   useEffect(() => {
     const fetchUserData = () => {
@@ -58,10 +56,10 @@ export default function ApplyScholarShipsPage() {
       try {
         const response = await ApiServiceScholarships.getAllScholarships();
         const scholarshipsData = response.data;
-  
+
         // Log the data received from the API
         console.log('Scholarships data:', scholarshipsData);
-        
+
         const updatedScholarships = await Promise.all(
           scholarshipsData.map(async (scholarship: Scholarship) => {
             if (scholarship.ScholarshipID) {
@@ -78,7 +76,7 @@ export default function ApplyScholarShipsPage() {
             return scholarship;
           })
         );
-  
+
         setScholarships(updatedScholarships);
         setRecommendedScholarships(updatedScholarships.slice(0, 1)); // Assuming the first scholarship is recommended
         setAllScholarships(updatedScholarships); // Initialize all scholarships
@@ -89,11 +87,67 @@ export default function ApplyScholarShipsPage() {
         setLoading(false);
       }
     };
-  
+
     fetchScholarshipsData();
   }, []);
-  
-  
+
+
+  // Fetch student data by ID and set student state
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      const StudentID = localStorage.getItem('UserID'); // Get the student ID from localStorage
+
+      if (StudentID) {
+        try {
+          const studentResponse = await ApiStudentServices.getStudent(StudentID);
+          setStudent(studentResponse.data); // Set student data into state
+          console.log('Student data:', studentResponse.data);
+        } catch (error) {
+          console.error('Error fetching student data', error);
+          router.push('/page/login'); // Redirect to login if fetching student data fails
+        }
+      } else {
+        console.warn('No StudentID found in localStorage');
+      }
+    };
+
+    fetchStudentData();
+  }, [router]); // Add router to the dependency array if needed
+
+  useEffect(() => {
+    if (student && scholarships.length > 0) {
+      console.log('Student data:', student); // Log the student data
+      console.log('All scholarships:', scholarships); // Log the scholarships data
+
+      // Filter scholarships where the student's GPA > Minimum_GPA OR Course matches any scholarship courses
+      const matchingScholarships = scholarships.filter(scholarship => {
+        const studentMeetsGPA = student.GPA > scholarship.Minimum_GPA; // Changed to 'greater than' for recommendation
+        const courseMatch = scholarship.courses.some(course => course.CourseName === student.Course);
+
+        // Log the GPA check
+        if (!studentMeetsGPA) {
+          console.log(`GPA does not exceed the requirement for scholarship: ${scholarship.ScholarshipName}. Required GPA: ${scholarship.Minimum_GPA}, Student GPA: ${student.GPA}`);
+        }
+
+        // Log the course match check
+        if (!courseMatch) {
+          console.log(`Course does not match for scholarship: ${scholarship.ScholarshipName}. Student Course: ${student.Course}, Scholarship Courses: ${scholarship.courses.map(c => c.CourseName).join(', ')}`);
+        }
+
+        // Display the scholarship if GPA exceeds OR course matches
+        return studentMeetsGPA || courseMatch;
+      });
+
+      console.log('Recommended scholarships based on GPA or course:', matchingScholarships); // Log the matching scholarships
+
+      setRecommendedScholarships(matchingScholarships);
+      setLoading(false);
+    }
+  }, [student, scholarships]);
+
+
+
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       window.location.reload();
@@ -147,22 +201,28 @@ export default function ApplyScholarShipsPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <main className="flex-1">
-          <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา</h2>
-          <div className="relative mb-4 group">
-            <div className="flex overflow-auto space-x-4" ref={scrollRef}>
-              {recommendedScholarships.map((scholarship) => (
-                <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
-                  <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg flex-shrink-0 border border-gray-200">
-                    <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-                    <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                    <p className="text-gray-600">{scholarship.Description}</p>
-                    <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
-                    <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
-                  </a>
-                </Link>
-              ))}
-            </div>
-          </div>
+            {recommendedScholarships.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา ####</h2>
+                <div className="" ref={scrollRef}>
+                  <div className="flex flex-wrap justify-start">
+                    {recommendedScholarships.map((scholarship) => (
+                      <div
+                        key={scholarship.ScholarshipID}
+                        className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200"
+                      >
+                        <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName}  className="w-full h-80 object-cover rounded-lg"/>
+                        <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                        <p className="text-gray-600">{scholarship.Description}</p>
+                        <p className="text-gray-500 text-sm">Start Date:{' '} {scholarship.StartDate   ? new Date(scholarship.StartDate).toLocaleDateString(): 'N/A'}</p>
+                        <p className="text-gray-500 text-sm">End Date:{' '} {scholarship.EndDate ? new Date(scholarship.EndDate).toLocaleDateString() : 'N/A'} </p>
+                      </div>
+                    ))} 
+                  </div>
+                </div>
+              </div>
+            )}
+
           <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
           <div className="flex flex-wrap justify-start">
             {allScholarships.map((scholarship) => (

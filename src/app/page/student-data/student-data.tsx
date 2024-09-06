@@ -18,6 +18,7 @@ interface StudentData {
 
 export default function StudentDataPage() {
     const [students, setStudents] = useState<StudentData[]>([]);
+    const [length, setlength] = useState<string>('');
     const [loading, setLoading] = useState(true);  // Loading state
     const router = useRouter();
 
@@ -39,6 +40,9 @@ export default function StudentDataPage() {
                 const response = await ApiStudentServices.getAllStudents();
                 console.log("Full API response:", response); // Check full API response
                 setStudents(response);
+                const  length = response.length
+                setlength(length)
+                 
             } catch (error) {
                 console.error("Failed to fetch students", error);
             } finally {
@@ -73,6 +77,7 @@ export default function StudentDataPage() {
                 <div className="bg-white  flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลนักศึกษา</h2>
+                        <h2>จำนวนนิสิตทั้งหมด {length} </h2>
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
                                 <tr className="bg-gray-200">

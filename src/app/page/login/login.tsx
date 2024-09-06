@@ -92,62 +92,58 @@ export default function LoginPage() {
     <div className="bg-white min-h-screen flex flex-col">
       <HeaderHome/>
       <Header />
-      <div className="flex flex-grow items-center justify-center">
-        <div className="bg-white shadow-md rounded-lg p-8 flex flex-col lg:flex-row items-center justify-center lg:space-x-8">
-          <div className="w-full lg:w-1/1 p-4 lg:order-1 lg:mr-8">
-            <img src="/images/government-scholarship-icon.png" alt="Scholarship" className="rounded-lg" />
-          </div>
-          <div className="w-full lg:w-1/1 p-4 lg:order-2 lg:ml-8">
-            <h2 className="text-center text-2xl font-bold mb-8 text-blue-800">เข้าสู่ระบบ</h2>
-            <form className="w-full" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="text"
-                placeholder="รหัสนิสิต"
-                value={identifier}
-                onChange={handleIdentifierChange}
-                className="w-full p-2 mb-4 border border-gray-300 rounded"
-              />
-              <div className="relative mb-4">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="รหัสผ่าน"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-                {password && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-2 bg-gray-200 p-1 rounded"
-                  >
-                    {showPassword ? 'ซ่อน' : 'แสดง'}
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center mb-4">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2"
-                />
-                <label>จำฉันไว้</label>
-              </div>
-              {error && <p className="text-red-500 mb-4">{error}</p>}
-              <button
-                onClick={handleLoginStudent}
-                className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-              >
-                LOGIN
-              </button>
-              <p className="text-gray-600 mt-4 text-center">
-              สำหรับเจ้าหน้าที่ <a href="./control" target="_blank" className="text-blue-500">คลิกที่นี่</a>
-            </p>
-            </form>
-          </div>
-        </div>
+      <div className="flex flex-grow items-center justify-center min-h-screen">
+  <div className="bg-white shadow-lg rounded-lg p-8  w-full max-w-xl"> 
+    <h2 className="text-center text-3xl font-bold mb-10 text-blue-800">เข้าสู่ระบบ</h2> 
+    <form className="w-full" onSubmit={(e) => e.preventDefault()}>
+      <input
+        type="text"
+        placeholder="รหัสนิสิต"
+        value={identifier}
+        onChange={handleIdentifierChange}
+        className="w-full p-3 mb-5 border border-gray-300 rounded text-lg"
+      />
+      <div className="relative mb-5">
+        <input
+          type={showPassword ? 'text' : 'password'}
+          placeholder="รหัสผ่าน"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded text-lg" 
+        />
+        {password && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-3 bg-gray-200 p-2 rounded text-sm" 
+          >
+            {showPassword ? 'ซ่อน' : 'แสดง'}
+          </button>
+        )}
       </div>
+      <div className="flex items-center mb-6">
+        <input
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          className="mr-2"
+        />
+        <label className="text-lg">จำฉันไว้</label>
+      </div>
+      {error && <p className="text-red-500 mb-4 text-lg">{error}</p>} 
+      <button
+        onClick={handleLoginStudent}
+        className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 text-xl" 
+      >
+        LOGIN
+      </button>
+      <p className="text-gray-600 mt-6 text-center text-lg"> 
+        สำหรับเจ้าหน้าที่ <a href="./control" target="_blank" className="text-blue-500">คลิกที่นี่</a>
+      </p>
+    </form>
+  </div>
+</div>
+
     </div>
   );
 }

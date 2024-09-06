@@ -11,6 +11,16 @@ class ApiServiceScholarships {
     }
 
 
+    static async downloadAnnouncementFile(scholarshipId: string) {
+        const token = localStorage.getItem('token');
+
+        // This assumes that you will have an endpoint for downloading files, similar to `/download-announcement`
+        return axios.get(`${API_URL}/scholarships/${scholarshipId}/download-announcement`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'blob', // Important for downloading files
+        });
+    }
+
     static async getScholarship(id: number) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarships/${id}`, {

@@ -184,167 +184,199 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col">
-      <HeaderHome />
-      <Header />
-      <div className="flex flex-grow flex-col lg:flex-row items-center justify-center">
-        <div className="w-full lg:w-1/2 p-4 flex justify-center">
-          <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
-        </div>
-        <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center">
-          <div className="bg-white p-8 rounded shadow-md w-full max-w-md mt-10">
-            <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
-            {errors.form && <p className="text-red-500 mb-4">{errors.form}</p>}
-            <div className="flex flex-col lg:flex-row justify-between mb-4">
-              <div className="w-full lg:w-2/3 lg:pr-2">
-                <input
-                  type="text"
-                  placeholder="รหัสนิสิต"
-                  value={StudentID}
-                  onChange={handleStudentIDChange}
-                  className="w-full p-3 mb-2 border border-gray-300 rounded"
-                />
-                {errors.StudentID && <p className="text-red-500 mb-4">{errors.StudentID}</p>}
-              </div>
-              <div className="w-full lg:w-1/3 lg:pl-2">
-                <select
-                  value={Year_Entry}
-                  onChange={(e) => setYear_Entry(e.target.value)} // Keep it as a string
-                  className="w-full p-3 mb-2 border border-gray-300 rounded"
-                >
-                  <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
-                  <option value="2019">2019</option>
-                  <option value="2020">2020</option>
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                </select>
-                {errors.Year_Entry && <p className="text-red-500 mb-4">{errors.Year_Entry}</p>}
-              </div>
-
-              <div className="w-full lg:w-1/3 lg:pl-2">
-                <select
-                  value={PrefixName}
-                  onChange={(e) => setPrefixName(e.target.value)}
-                  className="w-full p-3 mb-2 border border-gray-300 rounded"
-                >
-                  <option value="" disabled>คำนำหน้า</option>
-                  <option value="นาย">นาย</option>
-                  <option value="นาง">นาง</option>
-                  <option value="นางสาว">นางสาว</option>
-                </select>
-                {errors.PrefixName && <p className="text-red-500 mb-4">{errors.PrefixName}</p>}
-              </div>
-            </div>
+<div className="bg-white min-h-screen flex flex-col">
+  <HeaderHome />
+  <Header />
+  <div className="flex flex-grow flex-col lg:flex-row items-center justify-center">
+    <div className="w-full lg:w-1/2 p-4 flex justify-center">
+      <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
+    </div>
+    <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md mt-10">
+        <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
+        {errors.form && <p className="text-red-500 mb-4">{errors.form}</p>}
+        
+        {/* Student ID and Year Entry */}
+        <div className="flex flex-col lg:flex-row justify-between mb-4">
+          <div className="w-full lg:w-2/3 lg:pr-2">
+            <label className="block text-gray-700 mb-1">รหัสนิสิต</label>
             <input
               type="text"
-              placeholder="ชื่อ"
-              value={FirstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="รหัสนิสิต"
+              value={StudentID}
+              onChange={handleStudentIDChange}
               className="w-full p-3 mb-2 border border-gray-300 rounded"
             />
-            {errors.FirstName && <p className="text-red-500 mb-4">{errors.FirstName}</p>}
-            <input
-              type="text"
-              placeholder="นามสกุล"
-              value={LastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
-            />
-            {errors.LastName && <p className="text-red-500 mb-4">{errors.LastName}</p>}
-
+            {errors.StudentID && <p className="text-red-500 mb-4">{errors.StudentID}</p>}
+          </div>
+          <div className="w-full lg:w-1/3 lg:pl-2">
+            <label className="block text-gray-700 mb-1">ปีการศึกษาที่เข้ามา</label>
             <select
-              value={Religion}
-              onChange={(e) => setReligion(e.target.value)}
+              value={Year_Entry}
+              onChange={(e) => setYear_Entry(e.target.value)} 
               className="w-full p-3 mb-2 border border-gray-300 rounded"
             >
-              <option value="" disabled>ศาสนา</option>
-              <option value="พุทธ">พุทธ</option>
-              <option value="คริส">คริส</option>
-              <option value="อิสลาม">อิสลาม</option>
-              <option value="ไม่ระบุ">ไม่ระบุ</option>
+              <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
+              <option value="2019">2019</option>
+              <option value="2020">2020</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
             </select>
-            {errors.Religion && <p className="text-red-500 mb-4">{errors.Religion}</p>}
-            <input
-        type="email"
-        placeholder="อีเมล"
-        value={Email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-3 mb-2 border border-gray-300 rounded"
-      />
-      {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
-
-            <input
-              type="text"
-              placeholder="เบอร์โทรศัพท์"
-              value={Phone}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d{0,10}$/.test(value)) { // Allow only numbers with a maximum of 10 digits
-                  setPhone(value);
-                  setErrors({ ...errors, Phone: "" });
-                } else {
-                  setErrors({ ...errors, Phone: "Phone number must be a valid 10-digit number" });
-                }
-              }}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
-            />
-            {errors.Phone && <p className="text-red-500 mb-4">{errors.Phone}</p>}
-
-            <input
-              type="date"
-              placeholder="วันเกิด"
-              value={DOB}
-              onChange={(e) => setDOB(e.target.value)}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
-            />
-            {errors.DOB && <p className="text-red-500 mb-4">{errors.DOB}</p>}
-
-            <div className="flex flex-col lg:flex-row justify-between mb-4">
-              <div className="w-full lg:w-2/3 lg:pr-2">
-                <select
-                  value={Course}
-                  onChange={(e) => setCourse(e.target.value)}
-                  className="w-full p-3 mb-2 border border-gray-300 rounded"
-                >
-                  <option value="" disabled>เลือกสาขา</option>
-                  <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
-                  <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
-                  <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
-                  {/* Add more options as needed */}
-                </select>
-                {errors.Course && <p className="text-red-500 mb-4">{errors.Course}</p>}
-              </div>
-              <div className="w-full lg:w-1/3 lg:pl-2">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="1.00"
-                  max="4.00"
-                  placeholder="เกรดเฉลี่ย"
-                  value={GPA}
-                  onChange={handleGPAChange}
-                  className="w-full p-3 mb-2 border border-gray-300 rounded"
-                />
-                {errors.GPA && <p className="text-red-500 mb-4">{errors.GPA}</p>}
-              </div>
-            </div>
-            <input
-              type="password"
-              placeholder="รหัสผ่าน"
-              value={Password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
-            />
-            {errors.Password && <p className="text-red-500 mb-4">{errors.Password}</p>}
-            <button
-              onClick={handleRegister}
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-            >
-              SIGN UP
-            </button>
+            {errors.Year_Entry && <p className="text-red-500 mb-4">{errors.Year_Entry}</p>}
           </div>
         </div>
+        
+        {/* PrefixName */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">คำนำหน้า</label>
+          <select
+            value={PrefixName}
+            onChange={(e) => setPrefixName(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          >
+            <option value="" disabled>คำนำหน้า</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+          </select>
+          {errors.PrefixName && <p className="text-red-500 mb-4">{errors.PrefixName}</p>}
+        </div>
+
+        {/* First Name and Last Name */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">ชื่อ</label>
+          <input
+            type="text"
+            placeholder="ชื่อ"
+            value={FirstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.FirstName && <p className="text-red-500 mb-4">{errors.FirstName}</p>}
+        </div>
+        
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">นามสกุล</label>
+          <input
+            type="text"
+            placeholder="นามสกุล"
+            value={LastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.LastName && <p className="text-red-500 mb-4">{errors.LastName}</p>}
+        </div>
+
+        {/* Religion */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">ศาสนา</label>
+          <select
+            value={Religion}
+            onChange={(e) => setReligion(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          >
+            <option value="" disabled>ศาสนา</option>
+            <option value="พุทธ">พุทธ</option>
+            <option value="คริส">คริส</option>
+            <option value="อิสลาม">อิสลาม</option>
+            <option value="ไม่ระบุ">ไม่ระบุ</option>
+          </select>
+          {errors.Religion && <p className="text-red-500 mb-4">{errors.Religion}</p>}
+        </div>
+
+        {/* Email */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">อีเมล</label>
+          <input
+            type="email"
+            placeholder="อีเมล"
+            value={Email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
+        </div>
+
+        {/* Phone */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">เบอร์โทรศัพท์</label>
+          <input
+            type="text"
+            placeholder="เบอร์โทรศัพท์"
+            value={Phone}
+            onChange={handlePhoneChange}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.Phone && <p className="text-red-500 mb-4">{errors.Phone}</p>}
+        </div>
+
+        {/* DOB */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">วันเกิด</label>
+          <input
+            type="date"
+            value={DOB}
+            onChange={(e) => setDOB(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.DOB && <p className="text-red-500 mb-4">{errors.DOB}</p>}
+        </div>
+
+        {/* Course and GPA */}
+        <div className="flex flex-col lg:flex-row justify-between mb-4">
+          <div className="w-full lg:w-2/3 lg:pr-2">
+            <label className="block text-gray-700 mb-1">เลือกสาขา</label>
+            <select
+              value={Course}
+              onChange={(e) => setCourse(e.target.value)}
+              className="w-full p-3 mb-2 border border-gray-300 rounded"
+            >
+              <option value="" disabled>เลือกสาขา</option>
+              <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
+              <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
+              <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
+            </select>
+            {errors.Course && <p className="text-red-500 mb-4">{errors.Course}</p>}
+          </div>
+          <div className="w-full lg:w-1/3 lg:pl-2">
+            <label className="block text-gray-700 mb-1">เกรดเฉลี่ย</label>
+            <input
+              type="number"
+              step="0.01"
+              min="1.00"
+              max="4.00"
+              placeholder="เกรดเฉลี่ย"
+              value={GPA}
+              onChange={handleGPAChange}
+              className="w-full p-3 mb-2 border border-gray-300 rounded"
+            />
+            {errors.GPA && <p className="text-red-500 mb-4">{errors.GPA}</p>}
+          </div>
+        </div>
+
+        {/* Password */}
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-1">รหัสผ่าน</label>
+          <input
+            type="password"
+            placeholder="รหัสผ่าน"
+            value={Password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 mb-2 border border-gray-300 rounded"
+          />
+          {errors.Password && <p className="text-red-500 mb-4">{errors.Password}</p>}
+        </div>
+
+        <button
+          onClick={handleRegister}
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          SIGN UP
+        </button>
       </div>
     </div>
+  </div>
+</div>
+
   );
 }

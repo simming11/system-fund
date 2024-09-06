@@ -36,7 +36,7 @@ const Header = () => {
         const token = localStorage.getItem('token');
         if (token && userRole === 'student' && userData) {
           try {
-            const response = await ApiStudentServices.getStudent(Number(userData));
+            const response = await ApiStudentServices.getStudent(userData);
             setUser({ ...response.data, role: 'student' });
           } catch (error) {
             console.error('Error fetching user data', error);
@@ -69,15 +69,22 @@ const Header = () => {
 
   const confirmLogout = async () => {
     try {
+      // Call the logout API
       await ApiService.logout();
+  
+      // Ensure both sessionStorage and localStorage are cleared
       if (typeof window !== 'undefined') {
-        localStorage.clear();
+        sessionStorage.clear(); // Clear session storage
+        localStorage.clear();   // Clear local storage
       }
+  
+      // Redirect the user to the homepage after successful logout
       router.push('/');
     } catch (error) {
       console.error('Logout failed', error);
     }
   };
+  
 
   const cancelLogout = () => {
     setShowLogoutModal(false);
@@ -91,6 +98,8 @@ const Header = () => {
           <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
           <Link href="/page/scholarships" className="text-gray-600 hover:text-gray-900">ทุนการศึกษา</Link>
           <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
+          <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
+
         </nav>
       </div>
       <div className="flex items-center space-x-4 relative">

@@ -107,7 +107,7 @@ class ApiApplicationExternalServices {
     }
 
     // อัปเดตข้อมูล application external ตาม ID
-    static async updateApplication(applicationId: number, applicationData: any) {
+    static async updateApplication(applicationId: string, applicationData: any) {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.put(`${API_URL}/applications-external/${applicationId}`, applicationData, {

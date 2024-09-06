@@ -43,7 +43,7 @@ export default function UserPage() {
 
         if (StudentID) {
           try {
-            const studentResponse = await ApiStudentServices.getStudent(Number(StudentID));
+            const studentResponse = await ApiStudentServices.getStudent(StudentID);
             setUserData({ ...studentResponse.data, role: userRole });
             console.log('User data:', studentResponse.data);
           } catch (error) {
