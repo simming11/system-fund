@@ -115,35 +115,40 @@ export default function ApplyScholarShipsPage() {
   }, [router]); // Add router to the dependency array if needed
 
   useEffect(() => {
-    if (student && scholarships.length > 0) {
+    const userID = localStorage.getItem('UserID'); // Check if the user is logged in
+    
+    if (userID && student && scholarships.length > 0) {
       console.log('Student data:', student); // Log the student data
       console.log('All scholarships:', scholarships); // Log the scholarships data
-
+  
       // Filter scholarships where the student's GPA > Minimum_GPA OR Course matches any scholarship courses
       const matchingScholarships = scholarships.filter(scholarship => {
         const studentMeetsGPA = student.GPA > scholarship.Minimum_GPA; // Changed to 'greater than' for recommendation
         const courseMatch = scholarship.courses.some(course => course.CourseName === student.Course);
-
+  
         // Log the GPA check
         if (!studentMeetsGPA) {
           console.log(`GPA does not exceed the requirement for scholarship: ${scholarship.ScholarshipName}. Required GPA: ${scholarship.Minimum_GPA}, Student GPA: ${student.GPA}`);
         }
-
+  
         // Log the course match check
         if (!courseMatch) {
           console.log(`Course does not match for scholarship: ${scholarship.ScholarshipName}. Student Course: ${student.Course}, Scholarship Courses: ${scholarship.courses.map(c => c.CourseName).join(', ')}`);
         }
-
+  
         // Display the scholarship if GPA exceeds OR course matches
         return studentMeetsGPA || courseMatch;
       });
-
+  
       console.log('Recommended scholarships based on GPA or course:', matchingScholarships); // Log the matching scholarships
-
+  
       setRecommendedScholarships(matchingScholarships);
       setLoading(false);
+    } else if (!userID) {
+      console.log('User is not logged in. No recommendations available.');
     }
   }, [student, scholarships]);
+  
 
 
 
@@ -201,27 +206,32 @@ export default function ApplyScholarShipsPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <main className="flex-1">
-            {recommendedScholarships.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา ####</h2>
-                <div className="" ref={scrollRef}>
-                  <div className="flex flex-wrap justify-start">
-                    {recommendedScholarships.map((scholarship) => (
-                      <div
-                        key={scholarship.ScholarshipID}
-                        className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200"
-                      >
-                        <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName}  className="w-full h-80 object-cover rounded-lg"/>
-                        <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                        <p className="text-gray-600">{scholarship.Description}</p>
-                        <p className="text-gray-500 text-sm">Start Date:{' '} {scholarship.StartDate   ? new Date(scholarship.StartDate).toLocaleDateString(): 'N/A'}</p>
-                        <p className="text-gray-500 text-sm">End Date:{' '} {scholarship.EndDate ? new Date(scholarship.EndDate).toLocaleDateString() : 'N/A'} </p>
-                      </div>
-                    ))} 
-                  </div>
-                </div>
-              </div>
-            )}
+        {localStorage.getItem('UserID') && recommendedScholarships.length > 0 && (
+  <div>
+    <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา ####</h2>
+    <div className="" ref={scrollRef}>
+      <div className="flex flex-wrap justify-start">
+        {recommendedScholarships.map((scholarship) => (
+          <div
+            key={scholarship.ScholarshipID}
+            className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200"
+          >
+            <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+            <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+            <p className="text-gray-600">{scholarship.Description}</p>
+            <p className="text-gray-500 text-sm">Start Date:{' '}
+              {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
+            </p>
+            <p className="text-gray-500 text-sm">End Date:{' '}
+              {scholarship.EndDate ? new Date(scholarship.EndDate).toLocaleDateString() : 'N/A'}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
 
           <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
           <div className="flex flex-wrap justify-start">

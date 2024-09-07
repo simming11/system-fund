@@ -16,7 +16,7 @@ export default function HomePage() {
     // } else {
     //   router.push('/page/scholarships'); // Redirect to main if logged in
     // }
-    router.push('/page/scholarships'); // Redirect to main if logged in
+    router.push('/page/scholarships/ApplyScholarship'); // Redirect to main if logged in
   }, [router]);
   if (loading) {
     return (

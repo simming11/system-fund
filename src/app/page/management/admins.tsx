@@ -23,7 +23,7 @@ export default function AdminPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="max-h-screen flex flex-col bg-gray-100">
      <div className=''>
      <HeaderHome />
      <AdminHeader />

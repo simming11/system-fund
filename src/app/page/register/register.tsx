@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import ApiAuthService from "@/app/services/auth/ApiAuth";
@@ -36,6 +36,15 @@ export default function RegisterPage() {
     form: ""
   });
 
+  useEffect(() => {
+    // Check if UserID exists in localStorage
+    if (localStorage.getItem('UserID')) {
+      // Redirect to another page if the user is logged in
+      router.push('/'); // Redirect to homepage or any other page
+    }
+  }, []);
+
+
   const router = useRouter();
 
   const handleRegister = async () => {
@@ -58,28 +67,35 @@ export default function RegisterPage() {
       Religion: "",
       form: ""
     };
+
+
+    
   
     // Validate each field before attempting to register
-    if (!StudentID) {
-      validationErrors.StudentID = "Student ID is required";
+    if (!StudentID || StudentID.length < 7) {
+      validationErrors.StudentID = "Student ID must be at least 7 characters";
       hasErrors = true;
     }
+    
     if (!PrefixName) {
       validationErrors.PrefixName = "PrefixName is required";
       hasErrors = true;
     }
-    if (!FirstName) {
-      validationErrors.FirstName = "First Name is required";
+    if (!FirstName || !/^[A-Za-zก-๙]+$/.test(FirstName)) {
+      validationErrors.FirstName = "First Name must contain only letters";
       hasErrors = true;
     }
-    if (!LastName) {
-      validationErrors.LastName = "Last Name is required";
+    if (!LastName || !/^[A-Za-zก-๙]+$/.test(LastName)) {
+      validationErrors.LastName = "Last Name must contain only letters";
       hasErrors = true;
     }
-    if (!Email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(Email) || /[^\x00-\x7F]/.test(Email)) {
-      validationErrors.Email = "กรุณากรอกอีเมลที่ถูกต้องและเป็นภาษาอังกฤษเท่านั้น";
+    
+    if (!Email || !/^[^\s@]+@(gmail|email|tsu)\.[a-z]{2,}$/.test(Email)) {
+      validationErrors.Email = "กรุณากรอกอีเมลที่ลงท้ายด้วย Gmail, Email หรือ TSU เท่านั้น";
       hasErrors = true;
     }
+    
+    
     if (!Phone || !/^\d{10}$/.test(Phone)) {
       validationErrors.Phone = "Phone number must be a valid 10-digit number";
       hasErrors = true;
@@ -101,6 +117,17 @@ export default function RegisterPage() {
       hasErrors = true;
     }
   
+    // Validate Religion and DOB
+  if (!Religion) {
+    validationErrors.Religion = "Religion is required";
+    hasErrors = true;
+  }
+  if (!DOB) {
+    validationErrors.DOB = "Date of Birth is required";
+    hasErrors = true;
+  }
+
+
     // Update state with validation errors
     setErrors(validationErrors);
   
@@ -183,6 +210,8 @@ export default function RegisterPage() {
     }
   };
 
+
+
   return (
 <div className="bg-white min-h-screen flex flex-col">
   <HeaderHome />
@@ -192,29 +221,30 @@ export default function RegisterPage() {
       <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
     </div>
     <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md mt-10">
+      <div className="">
         <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
-        {errors.form && <p className="text-red-500 mb-4">{errors.form}</p>}
-        
-        {/* Student ID and Year Entry */}
-        <div className="flex flex-col lg:flex-row justify-between mb-4">
-          <div className="w-full lg:w-2/3 lg:pr-2">
+
+        {/* Student ID, Year Entry, and First Name */}
+        <div className="mb-4 grid grid-cols-2 gap-5">
+          <div className="w-full lg:pr-2">
             <label className="block text-gray-700 mb-1">รหัสนิสิต</label>
             <input
               type="text"
               placeholder="รหัสนิสิต"
               value={StudentID}
               onChange={handleStudentIDChange}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
+              className={`w-full p-3 mb-1 border ${errors.StudentID ? 'border-red-500' : 'border-gray-300'} rounded`}
             />
-            {errors.StudentID && <p className="text-red-500 mb-4">{errors.StudentID}</p>}
+            <div className="min-h-[1.25rem]">
+              {errors.StudentID && <p className="text-red-500 text-sm">{errors.StudentID}</p>}
+            </div>
           </div>
-          <div className="w-full lg:w-1/3 lg:pl-2">
+          <div className="w-full lg:pl-2">
             <label className="block text-gray-700 mb-1">ปีการศึกษาที่เข้ามา</label>
             <select
               value={Year_Entry}
               onChange={(e) => setYear_Entry(e.target.value)} 
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
+              className={`w-full p-3 mb-1 border ${errors.Year_Entry ? 'border-red-500' : 'border-gray-300'} rounded`}
             >
               <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
               <option value="2019">2019</option>
@@ -222,123 +252,125 @@ export default function RegisterPage() {
               <option value="2023">2023</option>
               <option value="2024">2024</option>
             </select>
-            {errors.Year_Entry && <p className="text-red-500 mb-4">{errors.Year_Entry}</p>}
+            <div className="min-h-[1.25rem]">
+              {errors.Year_Entry && <p className="text-red-500 text-sm">{errors.Year_Entry}</p>}
+            </div>
           </div>
         </div>
+
+        {/* PrefixName, Last Name, and Religion */}
+        <div className="mb-4 grid grid-cols-3 gap-5">
+          <div className="w-full lg:pr-2">
+            <label className="block text-gray-700 mb-1">คำนำหน้า</label>
+            <select
+              value={PrefixName}
+              onChange={(e) => setPrefixName(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.PrefixName ? 'border-red-500' : 'border-gray-300'} rounded`}
+            >
+              <option value="" disabled>คำนำหน้า</option>
+              <option value="นาย">นาย</option>
+              <option value="นาง">นาง</option>
+              <option value="นางสาว">นางสาว</option>
+            </select>
+            <div className="min-h-[1.25rem]">
+              {errors.PrefixName && <p className="text-red-500 text-sm">{errors.PrefixName}</p>}
+            </div>
+          </div>
+          <div className="w-full lg:pl-2">
+            <label className="block text-gray-700 mb-1">ชื่อ</label>
+            <input
+              type="text"
+              placeholder="ชื่อ"
+              value={FirstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.FirstName ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.FirstName && <p className="text-red-500 text-sm">{errors.FirstName}</p>}
+            </div>
+          </div>
         
-        {/* PrefixName */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">คำนำหน้า</label>
-          <select
-            value={PrefixName}
-            onChange={(e) => setPrefixName(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          >
-            <option value="" disabled>คำนำหน้า</option>
-            <option value="นาย">นาย</option>
-            <option value="นาง">นาง</option>
-            <option value="นางสาว">นางสาว</option>
-          </select>
-          {errors.PrefixName && <p className="text-red-500 mb-4">{errors.PrefixName}</p>}
+          <div className="w-full lg:pl-2">
+            <label className="block text-gray-700 mb-1">นามสกุล</label>
+            <input
+              type="text"
+              placeholder="นามสกุล"
+              value={LastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.LastName ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.LastName && <p className="text-red-500 text-sm">{errors.LastName}</p>}
+            </div>
+          </div>
         </div>
 
-        {/* First Name and Last Name */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">ชื่อ</label>
-          <input
-            type="text"
-            placeholder="ชื่อ"
-            value={FirstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.FirstName && <p className="text-red-500 mb-4">{errors.FirstName}</p>}
-        </div>
-        
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">นามสกุล</label>
-          <input
-            type="text"
-            placeholder="นามสกุล"
-            value={LastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.LastName && <p className="text-red-500 mb-4">{errors.LastName}</p>}
-        </div>
-
-        {/* Religion */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">ศาสนา</label>
-          <select
-            value={Religion}
-            onChange={(e) => setReligion(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          >
-            <option value="" disabled>ศาสนา</option>
-            <option value="พุทธ">พุทธ</option>
-            <option value="คริส">คริส</option>
-            <option value="อิสลาม">อิสลาม</option>
-            <option value="ไม่ระบุ">ไม่ระบุ</option>
-          </select>
-          {errors.Religion && <p className="text-red-500 mb-4">{errors.Religion}</p>}
-        </div>
-
-        {/* Email */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">อีเมล</label>
-          <input
-            type="email"
-            placeholder="อีเมล"
-            value={Email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.Email && <p className="text-red-500 mb-4">{errors.Email}</p>}
-        </div>
-
-        {/* Phone */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">เบอร์โทรศัพท์</label>
-          <input
-            type="text"
-            placeholder="เบอร์โทรศัพท์"
-            value={Phone}
-            onChange={handlePhoneChange}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.Phone && <p className="text-red-500 mb-4">{errors.Phone}</p>}
-        </div>
-
-        {/* DOB */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">วันเกิด</label>
-          <input
-            type="date"
-            value={DOB}
-            onChange={(e) => setDOB(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.DOB && <p className="text-red-500 mb-4">{errors.DOB}</p>}
+        {/* Email, Phone, and DOB */}
+        <div className="mb-4 grid grid-cols-3 gap-5">
+          <div className="w-full lg:pl-2">
+            <label className="block text-gray-700 mb-1">ศาสนา</label>
+            <select
+              value={Religion}
+              onChange={(e) => setReligion(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.Religion ? 'border-red-500' : 'border-gray-300'} rounded`}
+            >
+              <option value="" disabled>ศาสนา</option>
+              <option value="พุทธ">พุทธ</option>
+              <option value="คริส">คริส</option>
+              <option value="อิสลาม">อิสลาม</option>
+              <option value="ไม่ระบุ">ไม่ระบุ</option>
+            </select>
+            <div className="min-h-[1.25rem]">
+              {errors.Religion && <p className="text-red-500 text-sm">{errors.Religion}</p>}
+            </div>
+          </div>
+          <div className="w-full lg:pl-2">
+            <label className="block text-gray-700 mb-1">วันเกิด</label>
+            <input
+              type="date"
+              value={DOB}
+              onChange={(e) => setDOB(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
+            </div>
+          </div>
+          
+          <div className="w-full lg:pl-2">
+            <label className="block text-gray-700 mb-1">เบอร์โทรศัพท์</label>
+            <input
+              type="text"
+              placeholder="เบอร์โทรศัพท์"
+              value={Phone}
+              onChange={handlePhoneChange}
+              className={`w-full p-3 mb-1 border ${errors.Phone ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.Phone && <p className="text-red-500 text-sm">{errors.Phone}</p>}
+            </div>
+          </div>
         </div>
 
         {/* Course and GPA */}
-        <div className="flex flex-col lg:flex-row justify-between mb-4">
-          <div className="w-full lg:w-2/3 lg:pr-2">
+        <div className="mb-4 grid grid-cols-2 gap-5">
+          <div className="w-full lg:pr-2">
             <label className="block text-gray-700 mb-1">เลือกสาขา</label>
             <select
               value={Course}
               onChange={(e) => setCourse(e.target.value)}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
+              className={`w-full p-3 mb-1 border ${errors.Course ? 'border-red-500' : 'border-gray-300'} rounded`}
             >
               <option value="" disabled>เลือกสาขา</option>
               <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
               <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
               <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
             </select>
-            {errors.Course && <p className="text-red-500 mb-4">{errors.Course}</p>}
+            <div className="min-h-[1.25rem]">
+              {errors.Course && <p className="text-red-500 text-sm">{errors.Course}</p>}
+            </div>
           </div>
-          <div className="w-full lg:w-1/3 lg:pl-2">
+          <div className="w-full lg:pl-2">
             <label className="block text-gray-700 mb-1">เกรดเฉลี่ย</label>
             <input
               type="number"
@@ -348,23 +380,41 @@ export default function RegisterPage() {
               placeholder="เกรดเฉลี่ย"
               value={GPA}
               onChange={handleGPAChange}
-              className="w-full p-3 mb-2 border border-gray-300 rounded"
+              className={`w-full p-3 mb-1 border ${errors.GPA ? 'border-red-500' : 'border-gray-300'} rounded`}
             />
-            {errors.GPA && <p className="text-red-500 mb-4">{errors.GPA}</p>}
+            <div className="min-h-[1.25rem]">
+              {errors.GPA && <p className="text-red-500 text-sm">{errors.GPA}</p>}
+            </div>
           </div>
         </div>
 
-        {/* Password */}
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-1">รหัสผ่าน</label>
-          <input
-            type="password"
-            placeholder="รหัสผ่าน"
-            value={Password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 mb-2 border border-gray-300 rounded"
-          />
-          {errors.Password && <p className="text-red-500 mb-4">{errors.Password}</p>}
+        <div className="mb-4 grid grid-cols-2 gap-5">
+          <div className="w-full lg:pr-2">
+            <label className="block text-gray-700 mb-1">อีเมล</label>
+            <input
+              type="email"
+              placeholder="อีเมล"
+              value={Email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.Email ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.Email && <p className="text-red-500 text-sm">{errors.Email}</p>}
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-1">รหัสผ่าน</label>
+            <input
+              type="password"
+              placeholder="รหัสผ่าน"
+              value={Password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`w-full p-3 mb-1 border ${errors.Password ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            <div className="min-h-[1.25rem]">
+              {errors.Password && <p className="text-red-500 text-sm">{errors.Password}</p>}
+            </div>
+          </div>
         </div>
 
         <button
@@ -377,6 +427,9 @@ export default function RegisterPage() {
     </div>
   </div>
 </div>
+
+
+
 
   );
 }

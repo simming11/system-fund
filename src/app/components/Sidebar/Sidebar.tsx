@@ -55,8 +55,9 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="flex flex-col h-50 ">
-      {/* Toggle button for mobile view */}
+    <div className=" ">
+      <div className="flex flex-col h-screen">
+
       <div className="lg:hidden p-4 bg-white shadow-md">
         <button
           className="text-gray-700 hover:text-blue-500"
@@ -139,32 +140,20 @@ const Sidebar = () => {
         </div>
 
       </div>
-      <div className='w-full'>
-      <button
-          className="w-full mt-50 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          onClick={handleLogoutClick}
-        >
-          ออกจากระบบ
-        </button>
-
-        {/* Logout Confirmation Modal */}
-        {showLogoutModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-30">
-            <div className="fixed inset-0 bg-black opacity-50"></div>
-            <div className="bg-white p-6 rounded-lg shadow-lg z-40">
-              <h2 className="text-xl font-semibold mb-4">ต้องการออกจากระบบหรือไม่</h2>
-              <div className="flex justify-end space-x-4">
-                <button onClick={cancelLogout} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-                  ยกเลิก
-                </button>
-                <button onClick={confirmLogout} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                  ยืนยัน
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="flex flex-col justify-between h-60 ">
+  {/* Other content */}
+  
+  <button
+    className="w-full py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+    style={{ marginTop: 'auto' }}
+    onClick={handleLogoutClick}
+  >
+    ออกจากระบบ
+  </button>
+</div>
       </div>
+
+
     </div>
   );
 };

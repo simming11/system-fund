@@ -45,6 +45,14 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Check if UserID exists in localStorage
+    if (localStorage.getItem('UserID')) {
+      // Redirect to another page if the user is logged in
+      router.push('/'); // Redirect to homepage or any other page
+    }
+  }, []);
+
+  useEffect(() => {
     const savedIdentifier = localStorage.getItem('savedIdentifier');
     const savedPassword = localStorage.getItem('savedPassword');
     if (savedIdentifier && savedPassword) {
@@ -70,7 +78,7 @@ export default function LoginPage() {
         localStorage.removeItem('savedIdentifier');
         localStorage.removeItem('savedPassword');
       }
-      router.push('./scholarships');
+      router.push('./scholarships/ApplyScholarship');
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('Login failed: ' + (error.response?.data.message || error.message));
