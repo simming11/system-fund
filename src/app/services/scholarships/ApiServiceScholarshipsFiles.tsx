@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_Backend}/api`;
 
-
 interface ScholarshipFileData {
     ScholarshipID: number;
     FileType: string;
@@ -14,15 +13,20 @@ class ApiGetALLfilesServiceScholarships {
     static async getAllFiles() {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarship-files`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
-
 
     static async getFile(id: number) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarship-files/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 
@@ -30,15 +34,21 @@ class ApiGetALLfilesServiceScholarships {
     static async getScholarshipDocuments(scholarshipId: number) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarships/${scholarshipId}/files/documents`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 
-     // Get files of type 'images' for a specific scholarship by ID
-     static async getScholarshipImages(scholarshipId: number) {
+    // Get files of type 'images' for a specific scholarship by ID
+    static async getScholarshipImages(scholarshipId: number) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarships/${scholarshipId}/files/images`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 
@@ -51,21 +61,31 @@ class ApiGetALLfilesServiceScholarships {
         if (data.Description) formData.append('Description', data.Description);
 
         return axios.post(`${API_URL}/scholarship-files/${id}?_method=PUT`, formData, {
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+                'Content-Type': 'multipart/form-data',
+            },
         });
     }
 
     static async deleteFile(id: number) {
         const token = localStorage.getItem('token');
         return axios.delete(`${API_URL}/scholarship-files/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 
     static async downloadFile(id: number, fileName: string) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarship-files/${id}/download`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
             responseType: 'blob', // Ensure the response is treated as a blob
         }).then(response => {
             // Use the provided fileName, but fall back to the one from the content-disposition header if not provided
@@ -96,10 +116,6 @@ class ApiGetALLfilesServiceScholarships {
             console.error('Error downloading the file:', error);
         });
     }
-    
-    
-    
-    
 }
 
 export default ApiGetALLfilesServiceScholarships;

@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useEffect } from 'react';
 import Footer from '@/app/components/footer/footer';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import AdminHeader from '@/app/components/headerAdmin/headerAdmin';
 import Sidebar from '@/app/components/Sidebar/Sidebar';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
   const router = useRouter();

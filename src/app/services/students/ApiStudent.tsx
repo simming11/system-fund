@@ -8,7 +8,10 @@ class ApiStudentServices {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.get(`${API_URL}/students`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
             });
             return response.data;
         } catch (error) {
@@ -22,7 +25,10 @@ class ApiStudentServices {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.get(`${API_URL}/students/${studentId}`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
             });
             return response;
         } catch (error) {
@@ -36,7 +42,10 @@ class ApiStudentServices {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.post(`${API_URL}/students`, studentData, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
             });
             return response.data;
         } catch (error) {
@@ -50,7 +59,10 @@ class ApiStudentServices {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.put(`${API_URL}/students/${studentId}`, studentData, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
             });
             return response.data;
         } catch (error) {
@@ -64,7 +76,10 @@ class ApiStudentServices {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.delete(`${API_URL}/students/${studentId}`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
             });
             return response.data;
         } catch (error) {

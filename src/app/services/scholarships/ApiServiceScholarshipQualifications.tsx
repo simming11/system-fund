@@ -13,29 +13,41 @@ class ApiServiceScholarshipQualifications {
     static async getAllQualifications() {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarship-qualifications`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
-
 
     static async getQualification(id: number) {
         const token = localStorage.getItem('token');
         return axios.get(`${API_URL}/scholarship-qualifications/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 
     static async updateQualification(id: number, data: QualificationData) {
         const token = localStorage.getItem('token');
         return axios.put(`${API_URL}/scholarship-qualifications/${id}`, data, {
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+                'Content-Type': 'application/json',
+            },
         });
     }
 
     static async deleteQualification(id: number) {
         const token = localStorage.getItem('token');
         return axios.delete(`${API_URL}/scholarship-qualifications/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
     }
 }
