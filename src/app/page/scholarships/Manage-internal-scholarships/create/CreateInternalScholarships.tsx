@@ -7,7 +7,8 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import Swal from "sweetalert2";
 import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createScholarship";
-
+import ApiLineNotifyServices from "@/app/services/line-notifies/line";
+const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function CreateInternalScholarshipPage() {
   const router = useRouter();
 
@@ -34,7 +35,11 @@ export default function CreateInternalScholarshipPage() {
         Image:[] as File[],  // Initialize Image as null
       };
   });
-
+  const [LineData, setLineData] = useState({
+    notify_client_id: '',
+    client_secret: '',
+    AcademicID: '', // AcademicID กำหนดเป็น string ที่ว่างเปล่าเริ่มต้น
+  });
   const [fileInputs, setFileInputs] = useState([0]);
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
@@ -58,8 +63,40 @@ export default function CreateInternalScholarshipPage() {
   //   }
   // }, [router]);
 
+  const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
+  const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+  const fetchLineNotifies = async () => {
+    try {
+      if (!AcademicID) {
+        throw new Error('AcademicID is missing');
+      }
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
+  
+      if (response.length > 0) {
+        // Extract client_secret, notify_client_id, and LineToken from the response
+        const { client_secret, notify_client_id, LineToken } = response[0];
+  
+        // Store LineToken in state
+        setLineToken(response[0].LineToken);
+        console.log(response[0].LineToken);
+        
+        console.log('Updated formData with client_secret and notify_client_id:', {
+          client_secret,
+          notify_client_id,
+          LineToken,
+        });
+      }
+  
+      console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+    } catch (error) {
+      console.error('Error fetching line notifies:', error);
+    }
+  };
 
+
+  
   useEffect(() => {
+    fetchLineNotifies()
     sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
   }, [formData]);
 
@@ -147,10 +184,13 @@ export default function CreateInternalScholarshipPage() {
     });
   };
 
+
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
     // Show the SweetAlert loading with auto-close timer
+
+  
     let timerInterval: string | number | NodeJS.Timeout | undefined;
     Swal.fire({
       title: "Processing your request!",
@@ -198,8 +238,8 @@ export default function CreateInternalScholarshipPage() {
             return;
           }
   
-          if (!formData.Minimum_GPA) {
-            setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ");
+          if (!formData.Minimum_GPA  || Number(formData.Minimum_GPA) < 1.00 || Number(formData.Minimum_GPA) > 4.00  ) {
+            setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
             return;
           }
   
@@ -253,7 +293,13 @@ export default function CreateInternalScholarshipPage() {
   
           // Create Scholarship
           const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-  
+        // ตรวจสอบว่า lineToken ไม่ใช่ null ก่อนส่ง
+        if (lineToken) {
+          const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
+          await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
+        } else {
+          console.error("LINE Notify token is null");
+        }
           // Create Courses
           if (formData.Major.length > 0) {
             await ApiAllcreateServiceScholarships.createCourses({
@@ -306,6 +352,9 @@ export default function CreateInternalScholarshipPage() {
             icon: "success"
           });
   
+          // Send LINE Notify message with the scholarship ID
+         
+          
           // Clear session storage and redirect
           sessionStorage.clear();
           router.push("/page/scholarships/Manage-internal-scholarships");
@@ -317,6 +366,7 @@ export default function CreateInternalScholarshipPage() {
       }
     });
   };
+  
   
 
 

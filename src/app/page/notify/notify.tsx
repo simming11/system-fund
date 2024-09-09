@@ -87,7 +87,7 @@ export default function LineNotifyForm() {
           params: {
             grant_type: 'authorization_code',
             code,
-            redirect_uri: 'https://b2b1-180-180-225-124.ngrok-free.app/page/notify', // เปลี่ยน URI ตามที่คุณใช้
+            redirect_uri: 'https://77a4-180-180-225-124.ngrok-free.app/page/notify', // เปลี่ยน URI ตามที่คุณใช้
             client_id: notify_client_id, // ใช้ค่า notify_client_id ที่ดึงมาจาก firstLineNotify
             client_secret: client_secret, // ใช้ค่า client_secret ที่ดึงมาจาก firstLineNotify
           },
@@ -210,7 +210,7 @@ const handleDelete = async (id: string) => {
       return;
     }
 
-    const redirectUri = 'https://b2b1-180-180-225-124.ngrok-free.app/page/notify';
+    const redirectUri = 'https://77a4-180-180-225-124.ngrok-free.app/page/notify';
     const scope = 'notify';
     const state = [...Array(30)].map(() => Math.random().toString(36)[2]).join('');
 
@@ -284,7 +284,9 @@ const handleDelete = async (id: string) => {
         <AdminHeader />
       </div>
       <div className="flex flex-row">
-        <Sidebar />
+      <div className="bg-white w-1/8 p-4">
+                    <Sidebar />
+                </div>
         <div className="bg-white w-1/8 p-4">
           <h1 className="text-2xl font-bold mb-4">Line Notify Form</h1>
 

@@ -54,23 +54,22 @@ class ApiLineNotifyServices {
         }
     }
 
-// อัพเดต LineNotify ตาม AcademicID
-static async updateLineNotify(academicID: string, lineNotifyData: any) {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await axios.put(`${API_URL}/line-notifies/academic/${academicID}`, lineNotifyData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true',
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error updating line notify:', error);
-        throw error;
+    // อัพเดต LineNotify ตาม AcademicID
+    static async updateLineNotify(academicID: string, lineNotifyData: any) {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.put(`${API_URL}/line-notifies/academic/${academicID}`, lineNotifyData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true',
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating line notify:', error);
+            throw error;
+        }
     }
-}
-
 
     // ลบ LineNotify
     static async deleteLineNotify(id: string) {
@@ -88,6 +87,33 @@ static async updateLineNotify(academicID: string, lineNotifyData: any) {
             throw error;
         }
     }
+
+// เพิ่มฟังก์ชัน sendLineNotify
+static async sendLineNotify(message: string, token: string) {
+    try {
+        const response = await fetch(`${API_URL}/line-notify`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,  // ใช้ Bearer Token ที่ถูกต้องใน Headers
+                'Content-Type': 'application/x-www-form-urlencoded',  // เปลี่ยนเป็นแบบ x-www-form-urlencoded
+            },
+            body: new URLSearchParams({
+                message: message,  // ส่งข้อความที่ต้องการแจ้งเตือนไปยัง LINE Notify API
+            }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            console.log('LINE Notify sent successfully:', data.message);
+        } else {
+            console.error('Error sending LINE Notify:', data.error);
+        }
+    } catch (error) {
+        console.error('Error sending LINE Notify:', error);
+    }
+}
+
+
 }
 
 export default ApiLineNotifyServices;

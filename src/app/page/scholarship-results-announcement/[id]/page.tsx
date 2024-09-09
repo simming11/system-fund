@@ -9,7 +9,8 @@ import ApiApplicationInternalServices from '@/app/services/ApiApplicationInterna
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
 import ApiApplicationUpdateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationUpdateInternal';
 import ApiUpdateServiceScholarships from '@/app/services/scholarships/updateScholarships';
-
+import ApiLineNotifyServices from '@/app/services/line-notifies/line';
+const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 interface StudentData {
     StudentID: string;
     FirstName: string;
@@ -86,8 +87,37 @@ export default function ScholarshipResultsAnnouncementPage() {
     const [ApplicationINEX, setApplicationsINEX] = useState<ApplicationINEX[]>([]);
     const [loading, setLoading] = useState(true);
     const [file, setFile] = useState<File | null>(null);
-
+    const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
+    const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+    const fetchLineNotifies = async () => {
+      try {
+        if (!AcademicID) {
+          throw new Error('AcademicID is missing');
+        }
+        const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
+    
+        if (response.length > 0) {
+          // Extract client_secret, notify_client_id, and LineToken from the response
+          const { client_secret, notify_client_id, LineToken } = response[0];
+    
+          // Store LineToken in state
+          setLineToken(response[0].LineToken);
+          console.log(response[0].LineToken);
+          
+          console.log('Updated formData with client_secret and notify_client_id:', {
+            client_secret,
+            notify_client_id,
+            LineToken,
+          });
+        }
+    
+        console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+      } catch (error) {
+        console.error('Error fetching line notifies:', error);
+      }
+    };
     useEffect(() => {
+        fetchLineNotifies()
         const fetchScholarshipDetails = async () => {
             try {
                 const scholarshipId = Array.isArray(id) ? id[0] : id;
@@ -217,6 +247,12 @@ const handleSubmit = async () => {
 
                     const response = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
 
+                    if (lineToken) {
+                        const message = ` ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/results-announcement/${scholarshipId}`;
+                        await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
+                      } else {
+                        console.error("LINE Notify token is null");
+                      }
                     console.log('Internal update response:', JSON.stringify(response, null, 2));
                     return response;
 
@@ -276,8 +312,15 @@ const handleSubmit = async () => {
 
     if (!applications || applications.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="min-h-screen flex flex-col bg-gray-100">
+                            <HeaderHome />
+                            <AdminHeader />
+                            <div className="flex flex-row">
+                            <div className="bg-white w-1/8 p-4">
+                    <Sidebar />
+                </div>
                 <p className="text-gray-600">Scholarship not found or no students available.</p>
+                            </div>
             </div>
         );
     }
@@ -321,9 +364,10 @@ const handleSubmit = async () => {
                                             <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
                                             <td className="border border-gray-300 p-2 text-center">
                                                 <select
-                                                    value={ApplicationINEX[index].Status || "อนุมัติ"} // Default to "อนุมัติ" if Status is empty
+                                                    value={ApplicationINEX[index].Status || "เลือก"} // Default to "อนุมัติ" if Status is empty
                                                     onChange={(e) => handleStatusChange(index, e)}
                                                     className="p-2 border border-gray-300 rounded">
+                                                    <option value="">เลือก</option>
                                                     <option value="อนุมัติ">อนุมัติ</option>
                                                     <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
                                                 </select>

@@ -168,7 +168,7 @@ export default function RegisterPage() {
       localStorage.setItem("Email", Email);
   
       // Redirect to the login page
-      router.push("/page/scholarships");
+      router.push("/page/scholarships/ApplyScholarship");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setErrors({ ...errors, form: (error.response?.data.message || error.message) });

@@ -7,7 +7,8 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import Swal from "sweetalert2";
 import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createScholarship";
-
+import ApiLineNotifyServices from "@/app/services/line-notifies/line";
+const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function CreateExternalScholarshipPage() {
   const router = useRouter();
 
@@ -57,9 +58,38 @@ export default function CreateExternalScholarshipPage() {
   //     }
   //   }
   // }, [router]);
-
+  const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
+  const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+  const fetchLineNotifies = async () => {
+    try {
+      if (!AcademicID) {
+        throw new Error('AcademicID is missing');
+      }
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
+  
+      if (response.length > 0) {
+        // Extract client_secret, notify_client_id, and LineToken from the response
+        const { client_secret, notify_client_id, LineToken } = response[0];
+  
+        // Store LineToken in state
+        setLineToken(response[0].LineToken);
+        console.log(response[0].LineToken);
+        
+        console.log('Updated formData with client_secret and notify_client_id:', {
+          client_secret,
+          notify_client_id,
+          LineToken,
+        });
+      }
+  
+      console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+    } catch (error) {
+      console.error('Error fetching line notifies:', error);
+    }
+  };
 
   useEffect(() => {
+    fetchLineNotifies()
     sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
   }, [formData]);
 
@@ -176,9 +206,9 @@ export default function CreateExternalScholarshipPage() {
         return;
     }
 
-    if (!formData.Minimum_GPA) {
-        setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ");
-        return;
+    if (!formData.Minimum_GPA  || Number(formData.Minimum_GPA) < 1.00 || Number(formData.Minimum_GPA) > 4.00  ) {
+      setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
+      return;
     }
 
     if (formData.Description.length === 0 && !formData.otherQualificationText) {
@@ -242,6 +272,13 @@ export default function CreateExternalScholarshipPage() {
         console.log("Payload before scholarship creation:", payload);
         const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
         console.log("Scholarship created with ID:", scholarshipID);
+
+        if (lineToken) {
+          const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
+          await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
+        } else {
+          console.error("LINE Notify token is null");
+        }
 
         // Create Courses
         if (formData.Major.length > 0) {

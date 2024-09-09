@@ -73,12 +73,12 @@ export default function ApplicationDataPage() {
                 </div>
                 <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายในมหาวิทยาลัย</h2>
+                        <h2 className="text-2xl font-semibold mb-6">ประกาศทุนการศึกษา</h2>
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
-                                    <th className="border border-gray-300 p-2">รายละเอียด</th>
+                                    <th className="border border-gray-300 p-2">สถานะ</th>
                                 </tr>
                             </thead>
                             <tbody>
