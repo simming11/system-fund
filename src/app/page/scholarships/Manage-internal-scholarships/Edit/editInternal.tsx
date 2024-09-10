@@ -416,7 +416,7 @@ export default function EditInternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">Edit Scholarship</h2>
+            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
             {loading && (
               <div className="flex items-center justify-center mb-4">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
@@ -426,11 +426,7 @@ export default function EditInternalScholarshipPage() {
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2 cursor-pointer" onClick={() => toggleSection("scholarshipInfo")}>
-                  ข้อมูลทุนการศึกษา
-                  <span>{showSection.scholarshipInfo ? "-" : "+"}</span>
-                </h3>
-                {showSection.scholarshipInfo && (
+              
                   <>
                     <div className="mb-4">
                       <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
@@ -567,12 +563,10 @@ export default function EditInternalScholarshipPage() {
                               { value: "1", label: "ปี 1" },
                               { value: "2", label: "ปี 2" },
                               { value: "3", label: "ปี 3" },
-                              { value: "4", label: "ปี 4" },
-                              { value: "1-2", label: "ปี 1-2" },
-                              { value: "1-3", label: "ปี 1-3" },
-                              { value: "1-4", label: "ปี 1-4" },
-                              { value: "2-3", label: "ปี 2-3" },
-                              { value: "3-4", label: "ปี 3-4" }
+                              { value: "1-4", label: "ทุกชั้นปี" },
+                              { value: "2-4", label: "2ขึ้นไป" },
+                              { value: "3-4", label: "3ขึ้นไป" },
+
                             ].map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
@@ -775,7 +769,7 @@ export default function EditInternalScholarshipPage() {
                       </div>
                     </div>
                   </>
-                )}
+
               </div>
               <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
                 Update Scholarship

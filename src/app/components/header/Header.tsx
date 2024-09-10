@@ -17,8 +17,10 @@ interface User {
 const Header = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isScholarshipDropdownOpen, setIsScholarshipDropdownOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const scholarshipDropdownRef = useRef<HTMLDivElement>(null); // For the scholarship dropdown
   const router = useRouter();
   const [userData, setUserData] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -51,6 +53,9 @@ const Header = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (scholarshipDropdownRef.current && !scholarshipDropdownRef.current.contains(event.target as Node)) {
+        setIsScholarshipDropdownOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -63,28 +68,26 @@ const Header = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const toggleScholarshipDropdown = () => {
+    setIsScholarshipDropdownOpen(!isScholarshipDropdownOpen);
+  };
+
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
   };
 
   const confirmLogout = async () => {
     try {
-      // Call the logout API
       await ApiService.logout();
-  
-      // Ensure both sessionStorage and localStorage are cleared
       if (typeof window !== 'undefined') {
-        sessionStorage.clear(); // Clear session storage
-        localStorage.clear();   // Clear local storage
+        sessionStorage.clear();
+        localStorage.clear();
       }
-  
-      // Redirect the user to the homepage after successful logout
       router.push('/');
     } catch (error) {
       console.error('Logout failed', error);
     }
   };
-  
 
   const cancelLogout = () => {
     setShowLogoutModal(false);
@@ -96,10 +99,30 @@ const Header = () => {
         <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
         <nav className="hidden md:flex space-x-4">
           <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-          <Link href="/page/scholarships" className="text-gray-600 hover:text-gray-900">ทุนการศึกษา</Link>
+          <button
+            type="button"
+            className="inline-flex justify-center text-gray-600 hover:text-gray-900"
+            onClick={toggleScholarshipDropdown}
+          >
+            ทุนการศึกษา
+          </button>
+          {isScholarshipDropdownOpen && (
+            <div
+              ref={scholarshipDropdownRef} // Reference for the scholarship dropdown
+              className="origin-top-right absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+            >
+              <div className="py-1">
+                <Link href="/page/internal-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                  ทุนภายใน
+                </Link>
+                <Link href="/page/external-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                  ทุนภายนอก
+                </Link>
+              </div>
+            </div>
+          )}
           <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
           <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
-
         </nav>
       </div>
       <div className="flex items-center space-x-4 relative">
@@ -126,13 +149,6 @@ const Header = () => {
             <Link href="/page/register" className="text-gray-600 hover:text-gray-900">ลงทะเบียน</Link>
           </>
         )}
-      </div>
-      <div className="md:hidden">
-        <button className="text-gray-700 focus:outline-none" onClick={toggleDropdown}>
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
       </div>
 
       {showLogoutModal && (

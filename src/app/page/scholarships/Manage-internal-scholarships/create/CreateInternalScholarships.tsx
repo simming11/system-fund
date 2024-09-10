@@ -369,15 +369,6 @@ export default function CreateInternalScholarshipPage() {
   
   
 
-
-
-  const toggleSection = (section: keyof typeof showSection) => {
-    setShowSection((prevShowSection) => ({
-      ...prevShowSection,
-      [section]: !prevShowSection[section],
-    }));
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <HeaderHome />
@@ -388,15 +379,10 @@ export default function CreateInternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">สร้างประกาศทุนภายใน</h2>
+            <h2 className="text-2xl font-semibold mb-6">เพิ่มทุนการศึกษาภายในมหาวิทยาลัย</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2 cursor-pointer" onClick={() => toggleSection("scholarshipInfo")}>
-                  ข้อมูลทุนการศึกษา
-                  <span>{showSection.scholarshipInfo ? "-" : "+"}</span>
-                </h3>
-                {showSection.scholarshipInfo && (
                   <>
                     <div className="mb-4">
                       <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
@@ -552,11 +538,9 @@ export default function CreateInternalScholarshipPage() {
                             <option value="2">2</option>
                             <option value="3">3</option>
                             <option value="4">4</option>
-                            <option value="1-2">1-2</option>
-                            <option value="1-3">1-3</option>
-                            <option value="1-4">1-4</option>
-                            <option value="2-3">2-3</option>
-                            <option value="3-4">3-4</option>
+                            <option value="1-4">ทุกชั้นปี</option>
+                            <option value="2-4">2ขึ้นไป</option>
+                            <option value="3-4">3ขึ้นไป</option>
                           </select>
 
                         </div>
@@ -669,7 +653,7 @@ export default function CreateInternalScholarshipPage() {
                               value={formData.otherQualificationText}
                               onChange={handleChange}
                               className="ml-4 p-2 border border-gray-300 rounded"
-                              placeholder="ระบุเอกสารอื่น ๆ"
+                              placeholder="อื่น ๆ"
                             />
                           )}
                         </div>
@@ -843,7 +827,7 @@ export default function CreateInternalScholarshipPage() {
                       </div>
                     </div>
                   </>
-                )}
+
               </div>
 
               <div className="flex ...">
