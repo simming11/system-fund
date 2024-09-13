@@ -1,0 +1,330 @@
+[33mcommit 21e4fbf956c746690ce563beabeee8bb24adc4cc[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: simming11 <abdulazem.m13@gmail.com>
+Date:   Thu Sep 12 01:49:07 2024 +0700
+
+    แก้ไขหน้าlogin อีเมลกับวันเกิดและ หน้า สร้างทุนภายในตรงGPA
+
+[1mdiff --git a/src/app/page/register/register.tsx b/src/app/page/register/register.tsx[m
+[1mindex d943c19..a01edb8 100644[m
+[1m--- a/src/app/page/register/register.tsx[m
+[1m+++ b/src/app/page/register/register.tsx[m
+[36m@@ -13,9 +13,8 @@[m [mimport { format, Locale } from "date-fns";[m
+ [m
+ // Register Thai locale[m
+ registerLocale("th", th as unknown as Locale);[m
+[31m-// Register the Thai locale[m
+[32m+[m
+ export default function RegisterPage() {[m
+[31m- [m
+   const [StudentID, setStudentID] = useState<string>("");[m
+   const [FirstName, setFirstName] = useState<string>("");[m
+   const [LastName, setLastName] = useState<string>("");[m
+[36m@@ -44,16 +43,15 @@[m [mexport default function RegisterPage() {[m
+     form: ""[m
+   });[m
+ [m
+[32m+[m[32m  const router = useRouter();[m
+[32m+[m
+   useEffect(() => {[m
+     // Check if UserID exists in localStorage[m
+     if (localStorage.getItem('UserID')) {[m
+[31m-      // Redirect to another page if the user is logged in[m
+[31m-      router.push('/'); // Redirect to homepage or any other page[m
+[32m+[m[32m      router.push('/'); // Redirect to homepage if already logged in[m
+     }[m
+   }, []);[m
+ [m
+[31m-  const router = useRouter();[m
+[31m-[m
+   const handleRegister = async () => {[m
+     let validationErrors = { ...errors };[m
+     let hasErrors = false;[m
+[36m@@ -75,72 +73,73 @@[m [mexport default function RegisterPage() {[m
+       form: ""[m
+     };[m
+ [m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-    // Validate each field before attempting to register[m
+[32m+[m[32m    // ตรวจสอบความถูกต้องของแต่ละฟิลด์ก่อนทำการลงทะเบียน[m
+     if (!StudentID || StudentID.length < 7) {[m
+[31m-      validationErrors.StudentID = "Student ID must be at least 7 characters";[m
+[32m+[m[32m      validationErrors.StudentID = "รหัสนักศึกษาต้องมีความยาวอย่างน้อย 7 ตัวอักษร";[m
+       hasErrors = true;[m
+     }[m
+ [m
+     if (!PrefixName) {[m
+[31m-      validationErrors.PrefixName = "PrefixName is required";[m
+[32m+[m[32m      validationErrors.PrefixName = "คำนำหน้าชื่อเป็นข้อมูลที่จำเป็น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!FirstName || !/^[A-Za-zก-๙]+$/.test(FirstName)) {[m
+[31m-      validationErrors.FirstName = "First Name must contain only letters";[m
+[32m+[m[32m      validationErrors.FirstName = "ชื่อจริงต้องประกอบด้วยตัวอักษรเท่านั้น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!LastName || !/^[A-Za-zก-๙]+$/.test(LastName)) {[m
+[31m-      validationErrors.LastName = "Last Name must contain only letters";[m
+[32m+[m[32m      validationErrors.LastName = "นามสกุลต้องประกอบด้วยตัวอักษรเท่านั้น";[m
+       hasErrors = true;[m
+     }[m
+ [m
+[31m-    if (!Email || !/^[^\s@]+@(gmail|email|tsu)\.[a-z]{2,}$/.test(Email)) {[m
+[31m-      validationErrors.Email = "กรุณากรอกอีเมลที่ลงท้ายด้วย Gmail, Email หรือ TSU เท่านั้น";[m
+[32m+[m[32m    if (!Email || !/^[^\s@]+@(tsu\.ac\.th|TSU\.AC\.TH)$/.test(Email)) {[m
+[32m+[m[32m      validationErrors.Email = "กรุณากรอกอีเมลที่ลงท้ายด้วย @tsu.ac.th หรือ @TSU.AC.TH เท่านั้น";[m
+       hasErrors = true;[m
+     }[m
+ [m
+[31m-[m
+     if (!Phone || !/^\d{10}$/.test(Phone)) {[m
+[31m-      validationErrors.Phone = "Phone number must be a valid 10-digit number";[m
+[32m+[m[32m      validationErrors.Phone = "หมายเลขโทรศัพท์ต้องมีความยาว 10 หลักและเป็นตัวเลขเท่านั้น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (Password.length < 6 || /[^\x00-\x7F]/.test(Password)) {[m
+[31m-      validationErrors.Password = "Password must be at least 6 characters and contain only English characters";[m
+[32m+[m[32m      validationErrors.Password = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร และต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!Year_Entry) {[m
+[31m-      validationErrors.Year_Entry = "Year Entry is required";[m
+[32m+[m[32m      validationErrors.Year_Entry = "ปีที่เข้าศึกษาเป็นข้อมูลที่จำเป็น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!Course) {[m
+[31m-      validationErrors.Course = "Major is required";[m
+[32m+[m[32m      validationErrors.Course = "สาขาวิชาเป็นข้อมูลที่จำเป็น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!GPA || isNaN(Number(GPA)) || Number(GPA) < 1.00 || Number(GPA) > 4.00) {[m
+[31m-      validationErrors.GPA = "Valid GPA between 1.00 and 4.00 is required";[m
+[32m+[m[32m      validationErrors.GPA = "เกรดเฉลี่ย (GPA) ต้องเป็นค่าระหว่าง 1.00 ถึง 4.00";[m
+       hasErrors = true;[m
+     }[m
+ [m
+[31m-    // Validate Religion and DOB[m
+     if (!Religion) {[m
+[31m-      validationErrors.Religion = "Religion is required";[m
+[32m+[m[32m      validationErrors.Religion = "ศาสนาเป็นข้อมูลที่จำเป็น";[m
+       hasErrors = true;[m
+     }[m
+[32m+[m
+     if (!DOB) {[m
+[31m-      validationErrors.DOB = "Date of Birth is required";[m
+[32m+[m[32m      validationErrors.DOB = "วันเกิดเป็นข้อมูลที่จำเป็น";[m
+       hasErrors = true;[m
+     }[m
+ [m
+[31m-    [m
+[31m-    // Update state with validation errors[m
+[32m+[m[32m    // อัปเดตสถานะด้วยข้อผิดพลาดในการตรวจสอบความถูกต้อง[m
+     setErrors(validationErrors);[m
+ [m
+[31m-    // If there are any validation errors, prevent form submission[m
+[32m+[m[32m    // หากมีข้อผิดพลาดในการตรวจสอบความถูกต้อง ให้ป้องกันการส่งฟอร์ม[m
+     if (hasErrors) {[m
+[31m-      setErrors({ ...validationErrors, form: "Please correct the errors above and try again." });[m
+[32m+[m[32m      setErrors({ ...validationErrors, form: "กรุณาแก้ไขข้อผิดพลาดด้านบนและลองอีกครั้ง" });[m
+       return;[m
+     }[m
+ [m
+[36m@@ -148,6 +147,9 @@[m [mexport default function RegisterPage() {[m
+     const yearEntryNumber = parseInt(Year_Entry, 10);[m
+     const gpaNumber = parseFloat(GPA);[m
+ [m
+[32m+[m[32m    // Format DOB to d/m/y format for submission[m
+[32m+[m[32m    const formattedDOB = DOB ? format(DOB, 'dd/MM/yyyy') : "";[m
+[32m+[m
+     try {[m
+       const response = await ApiAuthService.registerStudent([m
+         StudentID,[m
+[36m@@ -159,7 +161,7 @@[m [mexport default function RegisterPage() {[m
+         Phone,[m
+         yearEntryNumber,[m
+         Course,[m
+[31m-        DOB ? DOB.toISOString() : "",  // Ensure fallback for undefined DOB[m
+[32m+[m[32m        formattedDOB,  // Send formatted DOB[m
+         gpaNumber,[m
+         Religion[m
+       );[m
+[36m@@ -186,9 +188,6 @@[m [mexport default function RegisterPage() {[m
+     }[m
+   };[m
+ [m
+[31m-[m
+[31m-[m
+[31m-[m
+   const handleStudentIDChange = (e: { target: { value: any; }; }) => {[m
+     const value = e.target.value;[m
+     if (/^\d*$/.test(value)) {[m
+[36m@@ -219,16 +218,15 @@[m [mexport default function RegisterPage() {[m
+     }[m
+   };[m
+ [m
+[31m-   // Function to convert the selected date to Buddhist year for display[m
+[31m-   const formatToBuddhistYear = (date: Date | null) => {[m
+[32m+[m[32m  // Function to convert the selected date to Buddhist year for display[m
+[32m+[m[32m  const formatToBuddhistYear = (date: Date | null) => {[m
+     if (!date) return "";[m
+     const buddhistYear = date.getFullYear() + 543;[m
+     return format(date, `dd/MM/${buddhistYear}`);[m
+   };[m
+ [m
+[31m-[m
+[31m-   // Handle date change[m
+[31m-   const handleDateChange = (date: Date | null) => {[m
+[32m+[m[32m  // Handle date change[m
+[32m+[m[32m  const handleDateChange = (date: Date | null) => {[m
+     if (date) {[m
+       setDOB(date);[m
+       setErrors((prevErrors) => ({ ...prevErrors, DOB: "" }));[m
+[36m@@ -236,7 +234,7 @@[m [mexport default function RegisterPage() {[m
+       setErrors((prevErrors) => ({ ...prevErrors, DOB: "กรุณาเลือกวันเกิด" }));[m
+     }[m
+   };[m
+[31m-  [m
+[32m+[m
+   return ([m
+     <div className="bg-white min-h-screen flex flex-col">[m
+       <HeaderHome />[m
+[36m@@ -246,350 +244,305 @@[m [mexport default function RegisterPage() {[m
+           <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />[m
+         </div>[m
+         <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center mr-10">[m
+[31m-  <div className="w-full">[m
+[31m-    <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>[m
+[31m-[m
+[31m-    {/* Form starts here */}[m
+[31m-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">[m
+[31m-      [m
+[31m-      {/* Student ID */}[m
+[31m-      <div className="w-full">[m
+[31m-  <label className="block text-gray-700 mb-1">รหัสนิสิต</label>[m
+[31m-  <input[m
+[31m-    type="text"[m
+[31m-    placeholder="รหัสนิสิต"[m
+[31m-    value={StudentID}[m
+[31m-    onChange={(e) => {[m
+[31m-      const value = e.target.value;[m
+[31m-      // Use regex to allow only numeric characters[m
+[31m-      const regex = /^[0-9]*$/;[m
+[31m-      if (regex.test(value)) {[m
+[31m-        if (value.length > 10) {[m
+[31m-          // Set error if input exceeds 10 digits[m
+[31m-          setErrors((prevErrors) => ({[m
+[31m-            ...prevErrors,[m
+[31m-            StudentID: 'รหัสนิสิตต้องไม่เกิน 10 ตัวเลข',[m
+[31m-          }));[m
+[31m-        } else {[m
+[31m-          // Clear error if input is valid[m
+[31m-          setErrors((prevErrors) => ({[m
+[31m-            ...prevErrors,[m
+[31m-            StudentID: '',[m
+[31m-          }));[m
+[31m-          setStudentID(value);[m
+[31m-        }[m
+[31m-      } else {[m
+[31m-        // Set error if non-numeric characters are entered[m
+[31m-        setErrors((prevErrors) => ({[m
+[31m-          ...prevErrors,[m
+[31m-          StudentID: 'กรุณากรอกตัวเลขเท่านั้น',[m
+[31m-        }));[m
+[31m-      }[m
+[31m-    }}[m
+[31m-    className={`w-full p-3 mb-1 border ${errors.StudentID ? 'border-red-500' : 'border-gray-300'} rounded`}[m
+[31m-  />[m
+[31m-  {errors.StudentID && <p className="text-red-500 text-sm">{errors.StudentID}</p>}[m
+[31m-</div>[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-      {/* Year Entry */}[m
+[31m-      <div className="w-full">[m
+[31m-        <label className="block text-gray-700 mb-1">ปีการศึกษาที่เข้ามา</label>[m
+[31m-        <select[m
+[31m-          value={Year_Entry}[m
+[31m-          onChange={(e) => setYear_Entry(e.target.value)}[m
+[31m-          className={`w-full p-3 mb-1 border ${errors.Year_Entry ? 'border-red-500' : 'border-gray-300'} rounded`}[m
+[31m-        >[m
+[31m-          <option value="" disabled>ปีการศึกษาที่เข้ามา</option>[m
+[31m-          {[...Array(17).keys()].map(i => ([m
+[31m-            <option key={i} value={2564 + i}>{2564 + i}</option>[m
+[31m-          ))}[m
+[31m-        </select>[m
+[31m-        {errors.Year_Entry && <p className="text-red-500 text-sm">{errors.Year_Entry}</p>}[m
+[31m-      </div>[m
+[31m-[m
+[31m-      {/* Course */}[m
+[31m-      <div className="w-full">[m
+[31m-        <label className="block text-gray-700 mb-1">เลือกสาขา</label>[m
+[31m-        <select[m
+[31m-          value={Course}[m
+[31m-          onChange={(e) => setCourse(e.target.value)}[m
+[31m-          className={`w-full p-3 mb-1 border ${errors.Course ? 'border-red-500' : 'border-gray-300'} rounded`}[m
+[31m-        >[m
+[31m-          <option value="" disabled>เลือกสาขา</option>[m
+[31m-          <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>[m
+[31m-          <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>[m
+[31m-          <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>[m
+[31m-        </select>[m
+[31m-        {errors.Course && <p className="text-red-500 text-sm">{errors.Course}</p>}[m
+[31m-      </div>[m
+[31m-[m
+[31m-      {/* PrefixName */}[m
+[31m-      <div className="w-full">[m
+[31m-        <label className="block text-gray-700 mb-1">คำนำหน้า</label>[m
+[31m-        <select[m
+[31m-          value={PrefixName}[m
+[31m-          onChange={(e) => setPrefixName(e.target.value)}[m
+[31m-          className={`w-full p-3 mb-1 border ${errors.PrefixName ? 'border-red-500' : 'border-gray-300'} rounded`}[m
+[31m-        >[m
+[31m-          <option value="" disabled>คำนำหน้า</option>[m
+[31m-          <option value="นาย">นาย</option>[m
+[31m-          <option value="นางสาว">นางสาว</option>[m
+[31m-        </select>[m
+[31m-        {errors.PrefixName && <p className="text-red-500 text-sm">{errors.PrefixName}</p>}[m
+[31m-      </div>[m
+[31m-[m
+[31m-      {/* First Name */}[m
+[31m-      <div className="w-full">[m
+[31m-  <label className="block text-gray-700 mb-1">ชื่อ</label>[m
+[31m-  <input[m
+[31m-    type="text"[m
+[31m-    placeholder="ชื่อ"[m
+[31m-    value={FirstName}[m
+[31m-    onChange={(e) => {[m
+[31m-      const value = e.target.value;[m
+[31m-      // Use regex to allow only alphabetic characters and spaces[m
+[31m-      const regex = /^[ก-๙a-zA-Z\s]*$/;[m
+[31m-      if (regex.test(value)) {[m
+[31m-        setFirstName(value); // Set value if it's valid[m
+[31m-        setErrors((prevErrors) => ({[m
+[31m-          ...prevErrors,[m
+[31m-          FirstName: '', // Clear error if valid[m
+[31m-        }));[m
+[31m-      } else {[m
+[31m-        // Set error if non-alphabetic characters are entered[m
+[31m-        setErrors((prevErrors) => ({[m
+[31m-          ...prevErrors,[m
+[31m-          FirstName: 'กรุณากรอกตัวอักษรเท่านั้น',[m
+[31m-        }));[m
+[31m-      }[m
+[31m-    }}[m
+[31m-    className={`w-full p-3 mb-1 border ${errors.FirstName ? 'border-red-500' : 'border-gray-300'} rounded`}[m
+[31m-  />[m
+[31m-  {errors.FirstName && <p className="text-red-500 text-sm">{errors.FirstName}</p>}[m
+[31m-</div>[m
+[31m-[m
+[31m-[m
+[31m-      {/* Last Name */}[m
+[31m-      <div className="w-full">[m
+[31m-  <label className="block text-gray-700 mb-1">นามสกุล</label>[m
+[31m-

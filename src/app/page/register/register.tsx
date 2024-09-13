@@ -139,7 +139,7 @@ export default function RegisterPage() {
 
     // หากมีข้อผิดพลาดในการตรวจสอบความถูกต้อง ให้ป้องกันการส่งฟอร์ม
     if (hasErrors) {
-      setErrors({ ...validationErrors, form: "กรุณาแก้ไขข้อผิดพลาดด้านบนและลองอีกครั้ง" });
+      setErrors({ ...validationErrors, form: "กรุณาแก้ไขข้อผิดพลาดด้านล่างและลองอีกครั้ง" });
       return;
     }
 
@@ -180,12 +180,34 @@ export default function RegisterPage() {
       router.push("/page/scholarships/ApplyScholarship");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        setErrors({ ...errors, form: (error.response?.data.message || error.message) });
+          const errorResponse = error.response?.data.errors;
+          
+          // ตรวจสอบและเก็บข้อผิดพลาดทั้งหมด
+          let errorMessages = [];
+  
+          if (errorResponse?.Email) {
+              errorMessages.push(`อีเมลถูกใช้งานแล้วถูกใช้งานแล้ว`);
+          }
+          if (errorResponse?.Password) {
+              errorMessages.push(`Password: ${errorResponse.Password[0]}`);
+          }
+          if (errorResponse?.StudentID) {
+              errorMessages.push(`รหัสนิสิตถูกใช้งานแล้ว `);
+          }
+  
+          // รวมข้อความข้อผิดพลาดทั้งหมดเป็นสตริงเดียว
+          const fullErrorMessage = errorMessages.join(', ');
+          setErrors({ ...errors, form: fullErrorMessage });
+          
+          
       } else {
-        setErrors({ ...errors, form: "An unknown error occurred during registration" });
+          const unknownError = "An unknown error occurred during registration";
+          setErrors({ ...errors, form: unknownError });
       }
       console.error("Registration failed", error);
-    }
+  }
+  
+  
   };
 
   const handleStudentIDChange = (e: { target: { value: any; }; }) => {
@@ -245,6 +267,8 @@ export default function RegisterPage() {
         </div>
         <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center mr-10">
           <div className="w-full">
+          {errors.form && <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">{errors.form}</div>}
+
             <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
 
             {/* Form starts here */}

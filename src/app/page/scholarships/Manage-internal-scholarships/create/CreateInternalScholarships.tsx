@@ -12,7 +12,15 @@ import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; //
 const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function CreateInternalScholarshipPage() {
   const router = useRouter();
-
+  const [errors, setErrors] = useState({
+    ScholarshipName: "",
+    Year: "",
+    YearLevel: "",
+    Num_scholarship: "",
+    Minimum_GPA: "",
+    // Add other fields as needed
+  });
+  
   const [formData, setFormData] = useState(() => {
     const savedFormData = sessionStorage.getItem('createInternalScholarshipForm');
     return savedFormData
@@ -218,68 +226,69 @@ export default function CreateInternalScholarshipPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
     // Validate required fields before showing the loading spinner
     if (!formData.ScholarshipName) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชื่อทุนการศึกษา");
       return;
     }
-
+  
     if (formData.Major.length === 0) {
       setError("กรุณาเลือกอย่างน้อยหนึ่งสาขาวิชา");
       return;
     }
-
-    if (!formData.Year) {
+  
+    if (!formData.Year || isNaN(Number(formData.Year))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
       return;
     }
-
-    if (!formData.YearLevel) {
+  
+    if (!formData.YearLevel || isNaN(Number(formData.YearLevel))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
       return;
     }
-
-    if (!formData.Num_scholarship) {
+  
+    if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
       return;
     }
-
-    if (!formData.Minimum_GPA || Number(formData.Minimum_GPA) < 1.00 || Number(formData.Minimum_GPA) > 4.00) {
+  
+    const minimumGPA = Number(formData.Minimum_GPA);
+    if (!formData.Minimum_GPA || isNaN(minimumGPA) || minimumGPA < 1.00 || minimumGPA > 4.00) {
       setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
       return;
     }
-
+  
     if (formData.Description.length === 0 && !formData.otherQualificationText) {
       setError("กรุณาเพิ่มคุณสมบัติอย่างน้อยหนึ่งรายการ");
       return;
     }
-
+  
     if (formData.information.length === 0 && !formData.otherDocument) {
       setError("กรุณาเพิ่มเอกสารประกอบการสมัครอย่างน้อยหนึ่งรายการ");
       return;
     }
-
+  
     if (!formData.Image) {
       setError("กรุณาอัปโหลดรูปภาพประกอบการสมัคร");
       return;
     }
-
+  
     if (formData.Files.length === 0) {
       setError("กรุณาอัปโหลดไฟล์ประกอบการสมัครอย่างน้อยหนึ่งไฟล์");
       return;
     }
-
+  
     if (!formData.StartDate) {
       setError("กรุณากรอกข้อมูลในฟิลด์ วันที่เริ่ม");
       return;
     }
-
+  
     if (!formData.EndDate) {
       setError("กรุณากรอกข้อมูลในฟิลด์ วันที่สิ้นสุด");
       return;
     }
-
+  
     // Show loading spinner only after all validations have passed
     Swal.fire({
       title: "Processing your request!",
@@ -290,49 +299,50 @@ export default function CreateInternalScholarshipPage() {
         Swal.showLoading();
       },
     });
-
+  
     try {
       // Fetch all scholarships and check for duplicates
       const response = await ScholarshipService.getAllScholarships();
-      const scholarships = response.data; // Access the data property here
-
+      const scholarships = response.data;
+  
       const duplicate = scholarships.find(
         (scholarship: any) =>
           scholarship.ScholarshipName.trim().toLowerCase() === formData.ScholarshipName.trim().toLowerCase() &&
           scholarship.Year === formData.Year
       );
-
-      // If duplicate found, stop processing and alert user
+  
       if (duplicate) {
         Swal.fire({
           title: "Duplicate Scholarship",
           text: "Duplicate scholarship found. A scholarship with this name already exists for the same year.",
           icon: "error"
         });
-        return; // Stop further processing
+        return;
       }
-
+  
       // Prepare the form data
       const submitFormData = {
         ...formData,
         information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
         Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
       };
-
+  
       const payload = new FormData();
       for (const [key, value] of Object.entries(submitFormData)) {
         if (Array.isArray(value)) {
           value.forEach((item: string) => {
             payload.append(`${key}[]`, item);
           });
+        } else if (value instanceof Blob) {
+          payload.append(key, value);
         } else {
-          payload.append(key, value as string | Blob);
+          payload.append(key, value as string);
         }
       }
-
+  
       // Create Scholarship
       const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-
+  
       // Send notification if lineToken exists
       if (lineToken) {
         const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
@@ -340,24 +350,69 @@ export default function CreateInternalScholarshipPage() {
       } else {
         console.error("LINE Notify token is null");
       }
-
+  
+      // Create Courses
+      if (formData.Major.length > 0) {
+        await ApiAllcreateServiceScholarships.createCourses({
+          ScholarshipID: scholarshipID,
+          CourseName: formData.Major,
+        });
+      }
+  
+      // Create Documents
+      if (submitFormData.information.length > 0 || formData.otherDocument) {
+        await ApiAllcreateServiceScholarships.createDocuments({
+          ScholarshipID: scholarshipID,
+          documents: submitFormData.information,
+          otherDocument: formData.otherDocument
+        });
+      }
+  
+      // Create Qualifications
+      if (submitFormData.Description.length > 0) {
+        await ApiAllcreateServiceScholarships.createQualifications({
+          ScholarshipID: scholarshipID,
+          qualifications: submitFormData.Description,
+          otherQualificationText: submitFormData.otherQualificationText
+        });
+      }
+  
+      // Upload the image file
+      if (formData.Image) {
+        await ApiAllcreateServiceScholarships.createImage({
+          ScholarshipID: scholarshipID,
+          ImagePath: formData.Image,
+        });
+      }
+  
+      // Upload other files
+      for (const file of formData.Files) {
+        if (file) {
+          await ApiAllcreateServiceScholarships.createFile({
+            ScholarshipID: scholarshipID,
+            FileType: "ไฟล์",
+            FilePath: file,
+          });
+        }
+      }
+  
       // Success message
       Swal.fire({
         title: "Good job!",
         text: "Scholarship created successfully!",
         icon: "success"
       });
-
+  
       // Clear session storage and redirect
       sessionStorage.clear();
       router.push("/page/scholarships/Manage-internal-scholarships");
-
-    } catch (error: any) { // Cast error to any to avoid the type issue
+  
+    } catch (error: any) {
       // If there is a response with an error message, display it
       if (error.response && error.response.data && error.response.data.error) {
         Swal.fire({
           title: "Error",
-          text: error.response.data.error, // This is where the server error message will be shown
+          text: error.response.data.error,
           icon: "error",
         });
       } else {
@@ -371,9 +426,8 @@ export default function CreateInternalScholarshipPage() {
         });
       }
     }
-
-
   };
+  
 
 
 
@@ -404,8 +458,9 @@ export default function CreateInternalScholarshipPage() {
                       name="ScholarshipName"
                       value={formData.ScholarshipName}
                       onChange={handleChange}
-                      className="w-5/6 p-3 border border-gray-300 rounded"
+                      className={`w-5/6 p-3 border rounded ${errors.ScholarshipName ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                     {errors.ScholarshipName && <p className="text-red-500 text-sm">{errors.ScholarshipName}</p>}
                   </div>
 
                   <div className="mb-4">
@@ -580,9 +635,8 @@ export default function CreateInternalScholarshipPage() {
         max="4" // Maximum value
         value={formData.Minimum_GPA}
         onChange={handleChange}
-        className={`w-full p-3 border ${error ? 'border-red-500' : 'border-gray-300'} rounded`} // เปลี่ยนสีขอบหากมีข้อผิดพลาด
+        className="w-full p-3 border border-gray-300 rounded"// เปลี่ยนสีขอบหากมีข้อผิดพลาด
       />
-      {error && <p className="text-red-500 mt-2">{error}</p>} {/* แสดงข้อความแจ้งเตือน */}
     </div>
   </div>
 

@@ -266,25 +266,24 @@ static async updateWorkExperience(applicationID: string, workExperiencesData: Wo
 }
 
 
-    // Update Application Files
-    static async updateApplicationFiles(applicationID: string, filesData: ApplicationFileData[], id: number): Promise<void> {
-        const token = localStorage.getItem('token');
-        const formData = new FormData();
+// Update Application Files
+static async updateApplicationFiles(applicationID: string, formData: FormData): Promise<any> {
+    const token = localStorage.getItem('token');
 
-        // Append each file to the FormData object
-        filesData.forEach((fileData, index) => {
-            formData.append(`DocumentType[${index}]`, fileData.DocumentType);
-            formData.append(`FilePaths[${index}]`, fileData.FilePath); // Assuming FilePath is a File object
-            if (fileData.DocumentName) {
-                formData.append(`DocumentNames[${index}]`, fileData.DocumentName);
-            }
-        });
+    // ส่ง request แบบ POST พร้อมกับ FormData object
+    return await axios.post(`${API_URL}/application-files/${applicationID}`, formData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+    })
+    .then(response => {
+        console.log('File upload response:', response);
+        return response; // Return response here
+    })
+    .catch(error => {
+        console.error('Error uploading files:', error);
+        throw error; // Rethrow the error so it can be handled in the calling function
+    });
+}
 
-        // Send the POST request with the FormData object
-        await axios.post(`${API_URL}/application-files/${id}`, formData, {
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
-        });
-    }
 }
 
 export default ApiApplicationUpdateInternalServices;

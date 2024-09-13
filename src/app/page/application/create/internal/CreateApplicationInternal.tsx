@@ -135,14 +135,14 @@ export default function CreateApplicationInternalPage() {
       ScholarshipID: id || '',
       ApplicationDate: '',
       Status: 'รออนุมัติ',
-      MonthlyIncome: 1,
-      MonthlyExpenses: 1,
+      MonthlyIncome: 0,
+      MonthlyExpenses: 0,
       NumberOfSiblings: 0,
       NumberOfSisters: 0,
       NumberOfBrothers: 0,
-      GPAYear1: 1,
-      GPAYear2: 1,
-      GPAYear3: 1,
+      GPAYear1: '',
+      GPAYear2: '',
+      GPAYear3: '',
       AdvisorName: '',
     };
   });
@@ -802,14 +802,14 @@ export default function CreateApplicationInternalPage() {
   const validateApplication = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
-      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0.00 - 4.00)';
+    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 1 || applicationData.GPAYear1 > 4)
+      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (1.00 - 4.00)';
 
-    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
-      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0.00 - 4.00)';
+    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 1 || applicationData.GPAYear2 > 4)
+      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (1.00 - 4.00)';
 
-    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
-      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0.00 - 4.00)';
+    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 1 || applicationData.GPAYear3 > 4)
+      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (1.00 - 4.00)';
 
     if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
 
@@ -830,8 +830,6 @@ export default function CreateApplicationInternalPage() {
 
   const handleSave = async () => {
     // Add loading state
-
-  
     try {
       setLoading(true); // Start loading
   
@@ -936,7 +934,19 @@ export default function CreateApplicationInternalPage() {
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
       console.log('Current address data sent:', updatedCurrentAddressData);
-  
+            // Submit application files
+      if (applicationFiles.length > 0) {
+        for (const fileData of applicationFiles) {
+          const formData = new FormData();
+          formData.append('ApplicationID', applicationID);
+          formData.append('DocumentName', fileData.DocumentName);
+          formData.append('DocumentType', fileData.DocumentType);
+          if (fileData.FilePath instanceof File) {
+            formData.append('FilePath', fileData.FilePath);
+          }
+          tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
+        }
+      }
       // Execute all tasks
       await Promise.all(tasks);
   
@@ -951,7 +961,7 @@ export default function CreateApplicationInternalPage() {
       sessionStorage.removeItem('currentAddressData');
       sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
-      router.push(`/page/History-Application?status=บันทึกแล้ว`);
+      router.push(`/page/History-Application`);
   
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -1072,7 +1082,7 @@ export default function CreateApplicationInternalPage() {
       sessionStorage.clear();
   
       // Navigate to the application page with status=บันทึกแล้ว
-      router.push(`/page/History-Application?status=บันทึกแล้ว`);
+      router.push(`/page/History-Application`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('Validation error: ' + error.response?.data.message);
@@ -1300,19 +1310,35 @@ export default function CreateApplicationInternalPage() {
                   {addressErrors.Subdistrict && <p className="text-red-500">{addressErrors.Subdistrict}</p>}
                 </div>
                 <div>
-                  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-                    รหัสไปรษณีย์
-                  </label>
-                  <input
-                    type="text"
-                    id="PostalCode"
-                    name="PostalCode"
-                    value={addressData.PostalCode}
-                    onChange={handleChangeAddress}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                  {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
-                </div>
+  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+    รหัสไปรษณีย์
+  </label>
+  <input
+    type="text"
+    id="PostalCode"
+    name="PostalCode"
+    value={addressData.PostalCode}
+    onChange={(e) => {
+      const value = e.target.value;
+      // ดักตัวเลขและจำกัดความยาวไม่เกิน 6 หลัก
+      if (/^\d*$/.test(value) && value.length <= 5) {
+        handleChangeAddress(e); // อัปเดตค่าเมื่อเป็นตัวเลขและไม่เกิน 6 หลัก
+      } else if (value.length > 5) {
+        // ตัดให้เหลือเพียง 6 หลัก
+        handleChangeAddress({
+          ...e,
+          target: {
+            ...e.target,
+            value: value.slice(0, 5),
+          },
+        });
+      }
+    }}
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+  {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
+</div>
+
               </div>
               <div className="">
                 <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
@@ -1406,21 +1432,41 @@ export default function CreateApplicationInternalPage() {
                       </select>
                       {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
                     </div>
-                    <div>
-                      <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-                        รหัสไปรษณีย์
-                      </label>
-                      <input
-                        type="text"
-                        id="PostalCode"
-                        name="PostalCode"
-                        value={currentAddressData.PostalCode}
-                        onChange={handleChangeCurrentAddress}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      />
-                      {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
-                    </div>
+
+          <div>
+  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+    รหัสไปรษณีย์
+  </label>
+  <input
+    type="text"
+    id="PostalCode"
+    name="PostalCode"
+    value={currentAddressData.PostalCode}
+    onChange={(e) => {
+      const value = e.target.value;
+
+      // ดักแค่ตัวเลขและจำกัดความยาวไม่เกิน 5 ตัว
+      if (/^\d*$/.test(value) && value.length <= 5) {
+        handleChangeCurrentAddress(e); // อัปเดตค่าถ้าเป็นตัวเลขและไม่เกิน 5 หลัก
+      } else if (value.length > 5) {
+        // ตัดให้เหลือแค่ 5 หลัก
+        handleChangeCurrentAddress({
+          ...e,
+          target: {
+            ...e.target,
+            value: value.slice(0, 5),
+          },
+        });
+      }
+    }}
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+  {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
+</div>
+
+
                   </div>
+
                 </div>
               </div>
 
@@ -2509,22 +2555,23 @@ export default function CreateApplicationInternalPage() {
               </button>
             </div>
             {step === 5 && (
-              <div className="flex justify-end mt-6">
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
-                >
-                  Save
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Submit
-                </button>
-              </div>
-            )}
+  <div className="flex justify-center mt-6 text-center w-full">
+    <button
+      type="button"
+      onClick={handleSave}
+      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+    >
+      บันทึก
+    </button>
+    <button
+      type="submit"
+      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+    >
+      ส่ง
+    </button>
+  </div>
+)}
+
           </form>
         </div>
       </div>

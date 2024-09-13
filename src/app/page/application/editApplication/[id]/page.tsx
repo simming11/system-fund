@@ -8,6 +8,7 @@ import ApiApplicationUpdateInternalServices from '@/app/services/ApiApplicationI
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
+import ApiApplicationFileServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationFileServices';
 
 // Interfaces
 interface Students {
@@ -99,6 +100,7 @@ interface WorkExperiencesData {
 }
 
 interface ApplicationFilesData {
+    FileName: string;
     ApplicationID: string;
     DocumentName: string;
     DocumentType: string;
@@ -280,7 +282,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     ]);
 
     const [application_files, setApplicationFiles] = useState<ApplicationFilesData[]>([
-        { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '' },
+        { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' },
     ]);
 
     const [error, setError] = useState('');
@@ -782,40 +784,52 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         const file = e.target.files?.[0];
         if (file) {
             const updatedFiles = [...application_files];
-            updatedFiles[index].FilePath = file;
+            updatedFiles[index].FilePath = file;  // เก็บไฟล์ใน state
+            updatedFiles[index].FileName = file.name; // เก็บชื่อไฟล์ใน state เพื่อแสดงผล
             setApplicationFiles(updatedFiles);
         }
     };
 
     const addFileEntry = () => {
-        setApplicationFiles([...application_files, { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '' }]);
+        setApplicationFiles([
+            ...application_files,
+            { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' } // เพิ่มฟิลด์ FileName
+        ]);
+
     };
 
-
+    // ฟังก์ชันลบไฟล์
     const removeFileEntry = (index: number) => {
         const updatedFiles = application_files.filter((_, i) => i !== index);
         setApplicationFiles(updatedFiles);
+
+        // Log the updated files array after deletion
+        console.log('Updated files array:', JSON.stringify(updatedFiles, null, 2));
+
+        // ส่งข้อมูลไป backend
+        const filesDataToSend = JSON.stringify(updatedFiles);
+
     };
+
+
 
     // useEffect (() => {
     //     console.log("Id : ", params.id);
     //     }, [params.id]);
 
     // Ensure applicationID is used correctly when saving
-    const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault(); // Prevent the form from submitting
-    
+    const handleSave = async () => {
         try {
             if (!id) {
                 throw new Error('Application ID not found');
             }
-    
+
             // Update the application status before saving
             const updatedApplicationData = {
                 ...applicationData,
-                Status: 'รอประกาศผล',  // Update the status as required
+                Status: 'บันทึกแล้ว',  // Update the status as required
             };
-    
+
             // Validate that all required fields have values
             const requiredFields = [
                 'StudentID',
@@ -831,16 +845,16 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 'GPAYear3',
                 'AdvisorName'
             ];
-    
+
             for (const field of requiredFields) {
                 if (updatedApplicationData[field as keyof ApplicationInternalData] === undefined || updatedApplicationData[field as keyof ApplicationInternalData] === null) {
                     throw new Error(`The ${field} field is required.`);
                 }
             }
-    
+
             // Log application data to ensure everything is correctly set
             console.log("Application Data:", updatedApplicationData);
-    
+
             // Create JSON payload for application data
             const payload = {
                 ApplicationID: id,
@@ -858,16 +872,16 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 GPAYear3: updatedApplicationData.GPAYear3,
                 AdvisorName: updatedApplicationData.AdvisorName,
             };
-    
+
             console.log('JSON Payload being sent:', payload);
-    
+
             // Send the JSON payload to the API to update application data
             await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
-    
+
             // Handle address data update
             if (addressData.ApplicationID) {
                 console.log('Primary Address ApplicationID:', addressData.ApplicationID);
-    
+
                 if (
                     !addressData.AddressLine ||
                     !addressData.District ||
@@ -878,9 +892,9 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 ) {
                     throw new Error('Missing required fields in addressData');
                 }
-    
+
                 addressData.Type = 'ที่อยู่ตามบัตรประชาชน';
-    
+
                 const primaryAddressPayload = [
                     {
                         AddressLine: addressData.AddressLine,
@@ -892,12 +906,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                         ApplicationID: addressData.ApplicationID,
                     }
                 ];
-    
+
                 console.log('Primary address data being sent:', primaryAddressPayload);
-    
+
                 if (currentAddressData.ApplicationID) {
                     console.log('Current Address ApplicationID:', currentAddressData.ApplicationID);
-    
+
                     if (
                         !currentAddressData.AddressLine ||
                         !currentAddressData.District ||
@@ -908,9 +922,9 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     ) {
                         throw new Error('Missing required fields in currentAddressData');
                     }
-    
+
                     currentAddressData.Type = 'ที่อยู่ปัจจุบัน';
-    
+
                     const currentAddressPayload = [
                         {
                             AddressLine: currentAddressData.AddressLine,
@@ -922,36 +936,36 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                             ApplicationID: currentAddressData.ApplicationID,
                         }
                     ];
-    
+
                     console.log('Current address data being sent:', currentAddressPayload);
-    
+
                     const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
                         currentAddressData.ApplicationID,
                         primaryAddressPayload,
                         currentAddressPayload
                     );
-    
+
                     console.log('API Response:', result);
                     console.log('Address data updated successfully');
                 }
             }
-    
+
             // Handle guardians data update
             const guardiansPayload = [fatherData, motherData, caretakerData].filter(guardian => guardian.FirstName || guardian.LastName);
             console.log('Guardian data being sent:', guardiansPayload);
-    
+
             if (guardiansPayload.length > 0) {
                 await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
                 console.log('Guardians data updated successfully');
             }
-    
+
             // Handle siblings data update
             const siblingsPayload = siblingsData.filter(
                 (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
             );
-    
+
             console.log('Sibling data being sent:', JSON.stringify(siblingsPayload, null, 2));
-    
+
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
                 console.log('API Response:', response);
@@ -959,14 +973,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             } catch (error) {
                 console.error('Error updating siblings data:', error);
             }
-    
+
             // Handle activities data update
             const activitiesPayload = activities.filter(
                 (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
             );
-    
+
             console.log('Activity data being sent:', JSON.stringify(activitiesPayload, null, 2));
-    
+
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
                 console.log('API Response:', response);
@@ -974,14 +988,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             } catch (error) {
                 console.error('Error updating activities data:', error);
             }
-    
+
             // Handle scholarship histories update
             const scholarshipHistoriesPayload = scholarship_histories.filter(
                 (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
             );
-    
+
             console.log('Scholarship History data being sent:', JSON.stringify(scholarshipHistoriesPayload, null, 2));
-    
+
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
                 console.log('API Response:', response);
@@ -989,14 +1003,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             } catch (error) {
                 console.error('Error updating scholarship histories data:', error);
             }
-    
+
             // Handle work experiences update
             const workExperiencesPayload = work_experiences.filter(
                 (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
             );
-    
+
             console.log('Work Experience data being sent:', JSON.stringify(workExperiencesPayload, null, 2));
-    
+
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
                 console.log('API Response:', response);
@@ -1004,28 +1018,35 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             } catch (error) {
                 console.error('Error updating work experiences data:', error);
             }
-    
-            // Handle file uploads
-            for (const [index, fileData] of application_files.entries()) {
-                const formData = new FormData();
-                formData.append('ApplicationID', id);
-                formData.append('DocumentName', fileData.DocumentName);
-                formData.append('DocumentType', fileData.DocumentType);
-                if (fileData.FilePath instanceof File) {
-                    formData.append('FilePath', fileData.FilePath);
-                }
-                ApiApplicationCreateInternalServices.createApplicationFile(formData)
-                    .then(response => {
-                        console.log('File uploaded successfully:', response);
-                    })
-                    .catch(error => {
-                        console.error('Error uploading file:', error);
-                    });
-                console.log('File data sent:', formData);
-            }
-    
+            // Prepare the array for file details, using ApplicationID from the id provided
+            const ApplicationID = id;
+            const filesDataArray = application_files.map((fileData) => ({
+                DocumentName: fileData.DocumentName || null,
+                DocumentType: fileData.DocumentType || null,
+                FilePath: typeof fileData.FilePath === 'string' ? fileData.FilePath : fileData.FilePath?.name || '', // Use the file name if it's a file object
+                ApplicationID: ApplicationID,
+            }));
+
+            // If filesDataArray is empty, it will still send an empty array, and the backend will handle it.
+            console.log('Updated files array:', JSON.stringify(filesDataArray, null, 2));
+
+            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, filesDataArray)
+                .then(response => {
+                    console.log('Files updated successfully:', response);
+                })
+                .catch(error => {
+                    console.error('Error updating files:', error.response?.data || error.message);
+                });
+
+            // Log array of data being sent
+            console.log('File data sent:', filesDataArray.length > 0 ? filesDataArray : 'No files to send');
+
+
+
+
+            // Log other application update status
             console.log('Application, siblings, and other data updated successfully.');
-    
+
             // Clear sessionStorage after successful save
             sessionStorage.removeItem('EditStep');
             sessionStorage.removeItem('EditStudents');
@@ -1052,9 +1073,264 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             }
         }
     };
-    
-    
-    
+    const handleSubmit = async () => {
+        try {
+            if (!id) {
+                throw new Error('Application ID not found');
+            }
+
+            // Update the application status before saving
+            const updatedApplicationData = {
+                ...applicationData,
+                Status: 'รอประกาศผล',  // Update the status as required
+            };
+
+            // Validate that all required fields have values
+            const requiredFields = [
+                'StudentID',
+                'ScholarshipID',
+                'Status',
+                'MonthlyIncome',
+                'MonthlyExpenses',
+                'NumberOfSiblings',
+                'NumberOfSisters',
+                'NumberOfBrothers',
+                'GPAYear1',
+                'GPAYear2',
+                'GPAYear3',
+                'AdvisorName'
+            ];
+
+            for (const field of requiredFields) {
+                if (updatedApplicationData[field as keyof ApplicationInternalData] === undefined || updatedApplicationData[field as keyof ApplicationInternalData] === null) {
+                    throw new Error(`The ${field} field is required.`);
+                }
+            }
+
+            // Log application data to ensure everything is correctly set
+            console.log("Application Data:", updatedApplicationData);
+
+            // Create JSON payload for application data
+            const payload = {
+                ApplicationID: id,
+                StudentID: updatedApplicationData.StudentID,
+                ScholarshipID: updatedApplicationData.ScholarshipID,
+                ApplicationDate: updatedApplicationData.ApplicationDate,
+                Status: updatedApplicationData.Status,
+                MonthlyIncome: updatedApplicationData.MonthlyIncome,
+                MonthlyExpenses: updatedApplicationData.MonthlyExpenses,
+                NumberOfSiblings: updatedApplicationData.NumberOfSiblings,
+                NumberOfSisters: updatedApplicationData.NumberOfSisters,
+                NumberOfBrothers: updatedApplicationData.NumberOfBrothers,
+                GPAYear1: updatedApplicationData.GPAYear1,
+                GPAYear2: updatedApplicationData.GPAYear2,
+                GPAYear3: updatedApplicationData.GPAYear3,
+                AdvisorName: updatedApplicationData.AdvisorName,
+            };
+
+            console.log('JSON Payload being sent:', payload);
+
+            // Send the JSON payload to the API to update application data
+            await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
+
+            // Handle address data update
+            if (addressData.ApplicationID) {
+                console.log('Primary Address ApplicationID:', addressData.ApplicationID);
+
+                if (
+                    !addressData.AddressLine ||
+                    !addressData.District ||
+                    !addressData.PostalCode ||
+                    !addressData.Subdistrict ||
+                    !addressData.province ||
+                    !addressData.Type
+                ) {
+                    throw new Error('Missing required fields in addressData');
+                }
+
+                addressData.Type = 'ที่อยู่ตามบัตรประชาชน';
+
+                const primaryAddressPayload = [
+                    {
+                        AddressLine: addressData.AddressLine,
+                        Subdistrict: addressData.Subdistrict,
+                        province: addressData.province,
+                        District: addressData.District,
+                        PostalCode: addressData.PostalCode,
+                        Type: addressData.Type,
+                        ApplicationID: addressData.ApplicationID,
+                    }
+                ];
+
+                console.log('Primary address data being sent:', primaryAddressPayload);
+
+                if (currentAddressData.ApplicationID) {
+                    console.log('Current Address ApplicationID:', currentAddressData.ApplicationID);
+
+                    if (
+                        !currentAddressData.AddressLine ||
+                        !currentAddressData.District ||
+                        !currentAddressData.PostalCode ||
+                        !currentAddressData.Subdistrict ||
+                        !currentAddressData.province ||
+                        !currentAddressData.Type
+                    ) {
+                        throw new Error('Missing required fields in currentAddressData');
+                    }
+
+                    currentAddressData.Type = 'ที่อยู่ปัจจุบัน';
+
+                    const currentAddressPayload = [
+                        {
+                            AddressLine: currentAddressData.AddressLine,
+                            Subdistrict: currentAddressData.Subdistrict,
+                            province: currentAddressData.province,
+                            District: currentAddressData.District,
+                            PostalCode: currentAddressData.PostalCode,
+                            Type: currentAddressData.Type,
+                            ApplicationID: currentAddressData.ApplicationID,
+                        }
+                    ];
+
+                    console.log('Current address data being sent:', currentAddressPayload);
+
+                    const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
+                        currentAddressData.ApplicationID,
+                        primaryAddressPayload,
+                        currentAddressPayload
+                    );
+
+                    console.log('API Response:', result);
+                    console.log('Address data updated successfully');
+                }
+            }
+
+            // Handle guardians data update
+            const guardiansPayload = [fatherData, motherData, caretakerData].filter(guardian => guardian.FirstName || guardian.LastName);
+            console.log('Guardian data being sent:', guardiansPayload);
+
+            if (guardiansPayload.length > 0) {
+                await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
+                console.log('Guardians data updated successfully');
+            }
+
+            // Handle siblings data update
+            const siblingsPayload = siblingsData.filter(
+                (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
+            );
+
+            console.log('Sibling data being sent:', JSON.stringify(siblingsPayload, null, 2));
+
+            try {
+                const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
+                console.log('API Response:', response);
+                console.log('Siblings data updated successfully');
+            } catch (error) {
+                console.error('Error updating siblings data:', error);
+            }
+
+            // Handle activities data update
+            const activitiesPayload = activities.filter(
+                (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
+            );
+
+            console.log('Activity data being sent:', JSON.stringify(activitiesPayload, null, 2));
+
+            try {
+                const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
+                console.log('API Response:', response);
+                console.log('Activities data updated successfully');
+            } catch (error) {
+                console.error('Error updating activities data:', error);
+            }
+
+            // Handle scholarship histories update
+            const scholarshipHistoriesPayload = scholarship_histories.filter(
+                (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
+            );
+
+            console.log('Scholarship History data being sent:', JSON.stringify(scholarshipHistoriesPayload, null, 2));
+
+            try {
+                const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
+                console.log('API Response:', response);
+                console.log('Scholarship histories data updated successfully');
+            } catch (error) {
+                console.error('Error updating scholarship histories data:', error);
+            }
+
+            // Handle work experiences update
+            const workExperiencesPayload = work_experiences.filter(
+                (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
+            );
+
+            console.log('Work Experience data being sent:', JSON.stringify(workExperiencesPayload, null, 2));
+
+            try {
+                const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
+                console.log('API Response:', response);
+                console.log('Work experiences data updated successfully');
+            } catch (error) {
+                console.error('Error updating work experiences data:', error);
+            }
+            // Prepare the array for file details, using ApplicationID from the id provided
+            const ApplicationID = id;
+            const filesDataArray = application_files.map((fileData) => ({
+                DocumentName: fileData.DocumentName || null,
+                DocumentType: fileData.DocumentType || null,
+                FilePath: typeof fileData.FilePath === 'string' ? fileData.FilePath : fileData.FilePath?.name || '', // Use the file name if it's a file object
+                ApplicationID: ApplicationID,
+            }));
+
+            // If filesDataArray is empty, it will still send an empty array, and the backend will handle it.
+            console.log('Updated files array:', JSON.stringify(filesDataArray, null, 2));
+
+            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, filesDataArray)
+                .then(response => {
+                    console.log('Files updated successfully:', response);
+                })
+                .catch(error => {
+                    console.error('Error updating files:', error.response?.data || error.message);
+                });
+
+            // Log array of data being sent
+            console.log('File data sent:', filesDataArray.length > 0 ? filesDataArray : 'No files to send');
+
+
+
+
+            // Log other application update status
+            console.log('Application, siblings, and other data updated successfully.');
+
+            // Clear sessionStorage after successful save
+            sessionStorage.removeItem('EditStep');
+            sessionStorage.removeItem('EditStudents');
+            sessionStorage.removeItem('EditApplicationData');
+            sessionStorage.removeItem('EditGuardianData');
+            sessionStorage.removeItem('EditAddressData');
+            sessionStorage.removeItem('EditCurrentAddressData');
+            sessionStorage.removeItem('EditFatherData');
+            sessionStorage.removeItem('EditMotherData');
+            sessionStorage.removeItem('EditCaretakerData');
+            sessionStorage.removeItem('EditSiblingData');
+            sessionStorage.removeItem('EditNumberOfSiblings');
+            sessionStorage.removeItem('EditSiblingsData');
+            sessionStorage.clear();
+            // Redirect to history page
+            router.push(`/page/History-Application`);
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('API Error Response:', error.response?.data.errors);
+                setError('Validation error: ' + error.response?.data.message);
+            } else {
+                console.error('Unknown Error:', error);
+                setError('Error updating application. Please check the form fields and try again.');
+            }
+        }
+    };
+
+
+
 
     const renderStep = () => {
         switch (step) {
@@ -2376,9 +2652,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         type="file"
                                         id={`FilePath-${index}`}
                                         name="FilePath"
+
                                         onChange={(e) => handleFileUpload(index, e)}
                                         className="w-full p-3 border border-gray-300 rounded"
                                     />
+                                    {/* แสดงชื่อไฟล์ที่ถูกเลือก */}
+                                    {typeof file.FilePath === 'string' && (
+                                        <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
+                                    )}
                                 </div>
                                 <div className="flex items-end">
                                     <button
@@ -2492,16 +2773,26 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                 Next
                             </button>
                         </div>
+
                         {step === 5 && (
-                            <div className="flex justify-end mt-6">
+                            <div className="flex justify-center mt-6 text-center w-full">
                                 <button
-                                    type="submit"  // Ensure this is submit type for form submission
+                                    type="button" // This is for temporary saving, so use type="button"
+                                    onClick={handleSave}
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                                >
+                                    บันทึก
+                                </button>
+                                <button
+                                    type="button"  // Ensure this is submit type for form submission
+                                    onClick={handleSubmit}
                                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                 >
-                                    Save Changes
+                                    ส่ง
                                 </button>
                             </div>
                         )}
+
                     </form>
                 </div>
             </div>

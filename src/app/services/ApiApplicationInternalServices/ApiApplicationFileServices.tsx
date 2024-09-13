@@ -82,33 +82,46 @@ class ApiApplicationFileServices {
         }
     }
 
-    // อัปเดตข้อมูล application file ตาม ID
-    static async updateApplicationFile(fileId: number, fileData: any) {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await axios.post(`${API_URL}/application-files/${fileId}`, fileData, {
-                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
-            });
-            return response.data;
-        } catch (error) {
-            console.error(`Error updating application file with ID ${fileId}:`, error);
-            throw error;
-        }
+// Update application files by sending JSON array
+static async updateApplicationFiles(applicationID: string, filesDataArray: any[]): Promise<void> {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.post(`${API_URL}/application-files/${applicationID}`, {
+            application_files: filesDataArray
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Error updating application files for ApplicationID ${applicationID}:`, error);
+        throw error;
     }
+}
 
-    // ลบ application file ตาม ID
-    static async deleteApplicationFile(fileId: number) {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await axios.delete(`${API_URL}/application-files/${fileId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return response.data;
-        } catch (error) {
-            console.error(`Error deleting application file with ID ${fileId}:`, error);
-            throw error;
-        }
+
+
+
+// ฟังก์ชันลบไฟล์ตาม ID ใน back-end
+static async deleteApplicationFile(fileId: number) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.delete(`${API_URL}/application-files/${fileId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Error deleting application file with ID ${fileId}:`, error);
+        throw error;
     }
+}
+
+
+
+
+
 }
 
 export default ApiApplicationFileServices;

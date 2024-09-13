@@ -211,22 +211,22 @@ export default function ApplyScholarShipsPage() {
     <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา ####</h2>
     <div className="" ref={scrollRef}>
       <div className="flex flex-wrap justify-start">
-        {recommendedScholarships.map((scholarship) => (
-          <div
-            key={scholarship.ScholarshipID}
-            className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200"
-          >
-            <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-            <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-            <p className="text-gray-600">{scholarship.Description}</p>
-            <p className="text-gray-500 text-sm">Start Date:{' '}
-              {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
-            </p>
-            <p className="text-gray-500 text-sm">End Date:{' '}
-              {scholarship.EndDate ? new Date(scholarship.EndDate).toLocaleDateString() : 'N/A'}
-            </p>
-          </div>
-        ))}
+      {recommendedScholarships.map((scholarship) => (
+  <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+    <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+      <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+      <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+      <p className="text-gray-600">{scholarship.Description}</p>
+      <p className="text-gray-500 text-sm">
+        Start Date: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
+      </p>
+      <p className="text-gray-500 text-sm">
+        End Date: {scholarship.EndDate ? new Date(scholarship.EndDate).toLocaleDateString() : 'N/A'}
+      </p>
+    </a>
+  </Link>
+))}
+
       </div>
     </div>
   </div>
