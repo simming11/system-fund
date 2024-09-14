@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/components/header/Header';
@@ -6,6 +6,9 @@ import Footer from '@/app/components/footer/footer';
 import ApiApplicationInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
 import HeaderHome from '@/app/components/headerHome/headerHome';
+// Import FontAwesome for icons
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye } from '@fortawesome/free-solid-svg-icons';
 
 interface Application {
   ApplicationID: string;
@@ -55,6 +58,11 @@ export default function SubmissionHistoryPage() {
     router.push(`/page/application/editApplication/${applicationId}`);
   };
 
+  const handleView = (applicationId: string) => {
+    // Navigate to a view-only page for the application
+    router.push(`/page/application/viewApplication/${applicationId}`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <HeaderHome />
@@ -68,7 +76,7 @@ export default function SubmissionHistoryPage() {
                 <tr>
                   <th className="px-4 py-2 border border-gray-200">ชื่อทุน</th>
                   <th className="px-4 py-2 border border-gray-200">สถานะ</th>
-                  <th className="px-4 py-2 border border-gray-200">แก้ไข</th>
+                  <th className="px-4 py-2 border border-gray-200">การดำเนินการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,7 +97,13 @@ export default function SubmissionHistoryPage() {
                           แก้ไข
                         </button>
                       ) : (
-                        <span className="text-gray-500">ไม่สามารถแก้ไขได้</span>
+                        <button
+                          onClick={() => handleView(application.ApplicationID)}
+                          className="bg-gray-200 text-gray-500 px-4 py-2 rounded"
+                          title="View Application"
+                        >
+                          <FontAwesomeIcon icon={faEye} />
+                        </button>
                       )}
                     </td>
                   </tr>

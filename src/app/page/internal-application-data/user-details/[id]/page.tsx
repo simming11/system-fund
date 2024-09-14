@@ -110,9 +110,16 @@ export default function StudentInternalDetailsPage() {
     }
 
     if (!application) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p className="text-gray-600">No application details found for this student.</p>
+        return(
+            <div className="min-h-screen flex flex-col bg-gray-100">
+                            <HeaderHome />
+                            <AdminHeader />
+                            <div className="flex flex-row">
+                            <div className="bg-white w-1/8 p-4">
+                    <Sidebar />
+                </div>
+                <p className="text-gray-600">Scholarship not found or no students available.</p>
+                            </div>
             </div>
         );
     }
@@ -143,8 +150,24 @@ export default function StudentInternalDetailsPage() {
                                         {application.student?.FirstName} {application.student?.LastName}
                                     </td>
                                     <td className="border border-gray-300 p-2 text-center">
-                                        {application.student?.Year_Entry ? new Date().getFullYear() - application.student?.Year_Entry : 'N/A'}
-                                    </td>
+  {application.student?.Year_Entry 
+    ? (() => {
+        const currentYear = new Date().getFullYear();
+        const entryYear = application.student.Year_Entry;
+        
+        // กำหนดปีที่เข้าสู่ระบบไทย (เช่น 2567 = ปี 1)
+        const yearDifference = currentYear - (entryYear - 543); // ลบ 543 เพื่อเปลี่ยนจาก พ.ศ. เป็น ค.ศ.
+
+        if (yearDifference === 0) return 'ปี 1';
+        if (yearDifference === 1) return 'ปี 2';
+        if (yearDifference === 2) return 'ปี 3';
+        if (yearDifference === 3) return 'ปี 4';
+        if (yearDifference === 4) return 'ปี 5';
+
+        return 'จบการศึกษาแล้ว'; // กรณีปีมากกว่า 4 ปี
+    })()
+    : 'N/A'}
+</td>
                                     <td className="border border-gray-300 p-2 text-center">{application.student?.Course}</td>
                                 </tr>
                             </tbody>

@@ -12,7 +12,7 @@ interface Students {
   StudentID: string;
   PrefixName: string;
   Course: string;
-  YearLevel: string;
+  Year_Entry: Number;
   DOB: string;
 }
 
@@ -123,7 +123,7 @@ export default function CreateApplicationInternalPage() {
       StudentID: '',
       PrefixName: '',
       Course: '',
-      YearLevel: '',
+      Year_Entry: '',
       DOB: '',
     };
   });
@@ -135,8 +135,8 @@ export default function CreateApplicationInternalPage() {
       ScholarshipID: id || '',
       ApplicationDate: '',
       Status: 'รออนุมัติ',
-      MonthlyIncome: 0,
-      MonthlyExpenses: 0,
+      MonthlyIncome: '',
+      MonthlyExpenses: '',
       NumberOfSiblings: 0,
       NumberOfSisters: 0,
       NumberOfBrothers: 0,
@@ -384,7 +384,7 @@ export default function CreateApplicationInternalPage() {
             PrefixName: studentResponse.data.PrefixName,
             StudentID: studentResponse.data.StudentID,
             Course: studentResponse.data.Course,
-            YearLevel: studentResponse.data.YearLevel,
+            Year_Entry: studentResponse.data.Year_Entry,
             DOB: studentResponse.data.DOB,
           }));
         } catch (error) {
@@ -524,48 +524,81 @@ export default function CreateApplicationInternalPage() {
     }
   }, [currentAddressData.District]);
 
-  const handleChangeApplication = (
+
+// Application data handler
+const handleChangeApplication = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+) => {
+  const { name, value } = e.target;
+
+  setApplicationData({
+    ...applicationData,
+    [name]:
+      ['MonthlyIncome', 'MonthlyExpenses', 'NumberOfSiblings', 'NumberOfSisters', 'NumberOfBrothers'].includes(name)
+        ? Number(value) // Convert these fields to numbers
+        : value, // For other fields, use the value as-is
+  });
+};
+
+
+  const calculateAcademicYear = (yearEntry: number | null) => {
+    if (yearEntry === null) return 'N/A';
+    const currentYear = new Date().getFullYear();
+    const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
+    const yearDifference = currentYear - entryYear;
+
+    if (yearDifference === 0) return '1';
+    if (yearDifference === 1) return '2';
+    if (yearDifference === 2) return '3';
+    if (yearDifference === 3) return '4';
+    if (yearDifference === 4) return '5';
+
+    return 'จบการศึกษาแล้ว'; // For years more than 4
+};
+
+
+
+
+  const handleChangeMother = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setApplicationData({
-      ...applicationData,
-      [name]:
-        name === 'MonthlyIncome' ||
-          name === 'MonthlyExpenses' ||
-          name === 'NumberOfSiblings' ||
-          name === 'NumberOfSisters' ||
-          name === 'NumberOfBrothers'
-          ? Number(value)
-          : value,
-    });
-  };
-
-  const handleChangeMother = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     setMotherData(prevState => ({
       ...prevState,
-      [name === 'MotherStatus' ? 'Status' : name]: name === 'Income' || name === 'Age' ? Number(value) : value,
+      [name === 'MotherStatus' ? 'Status' : name]:
+        ['Income', 'Age'].includes(name)
+          ? Number(value)  // Convert fields like 'Income' and 'Age' to numbers
+          : value,          // Use the value directly for non-numeric fields
     }));
 
     setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
-    setIsParentEditing(true);  // Enable parent editing
+    setIsParentEditing(true);      // Enable parent editing
     console.log('Mother Status:', name === 'MotherStatus' ? value : motherData.Status);  // Log mother's status
   };
 
-  const handleChangeFather = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChangeFather = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
+
+    // Handle numeric-only input for 'Phone', 'Income', and 'Age' fields
+    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name)
+      ? value.replace(/\D/g, '') // Remove non-numeric characters for these fields
+      : value;
 
     setFatherData(prevState => ({
       ...prevState,
-      [name === 'FatherStatus' ? 'Status' : name]: name === 'Income' || name === 'Age' ? Number(value) : value,
+      [name === 'FatherStatus' ? 'Status' : name]:
+        ['Income', 'Age'].includes(name)
+          ? Number(sanitizedValue)  // Ensure numeric fields remain numbers
+          : sanitizedValue,          // Apply sanitized value to non-numeric fields
     }));
 
     setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
-    setIsParentEditing(true);  // Enable parent editing
-    console.log('Father Status:', name === 'FatherStatus' ? value : fatherData.Status);  // Log father's status
+    setIsParentEditing(true);      // Enable parent editing
   };
+
 
   const handleChangeCaretaker = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -584,8 +617,7 @@ export default function CreateApplicationInternalPage() {
     });
   };
 
-  const handleChangeSibling = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChangeSibling = (index: number, name: string, value: string | number) => {
     const newSiblingsData = [...siblingsData];
     newSiblingsData[index] = {
       ...newSiblingsData[index],
@@ -600,10 +632,11 @@ export default function CreateApplicationInternalPage() {
     sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
   };
 
+
   const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumberOfSiblings(value);
-
+  
     // Adjust the siblingsData array to match the number of siblings
     const newSiblingsData = [...siblingsData];
     if (value > siblingsData.length) {
@@ -625,14 +658,19 @@ export default function CreateApplicationInternalPage() {
       newSiblingsData.splice(value);
     }
     setSiblingsData(newSiblingsData);
-
+  
     // Log the updated siblings data
     console.log('Adjusted Sibling Data:', newSiblingsData);
-
+  
     // Save updated siblingsData to sessionStorage
     sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
+  
+    // Update the applicationData state
+    setApplicationData({
+      ...applicationData,
+      NumberOfSiblings: value, // Update the number of siblings in applicationData
+    });
   };
-
   const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setAddressData({
@@ -761,6 +799,20 @@ export default function CreateApplicationInternalPage() {
   const [currentAddressErrors, setCurrentAddressErrors] = useState<{ [key: string]: string }>({});
   const [applicationErrors, setApplicationErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false); // Initialize loading state
+  const [siblingsErrors, setSiblingsErrors] = useState<{
+    PrefixName?: string;
+    Fname?: string;
+    Lname?: string;
+    Occupation?: string;
+    EducationLevel?: string;
+    Income?: string;
+    Status?: string;
+  }[]>([]);
+  const [errors, setErrors] = useState({
+    MonthlyIncome: '',
+    MonthlyExpenses: ''
+  });
+
 
   if (loading) {
     return (
@@ -770,7 +822,7 @@ export default function CreateApplicationInternalPage() {
       </div>
     );
   }
-  
+
 
 
   const validateAddress = () => {
@@ -817,10 +869,62 @@ export default function CreateApplicationInternalPage() {
     return Object.keys(errors).length === 0;
   };
 
+
+  const validateSiblingsData = () => {
+    let isValid = true;
+    const errors = siblingsData.map((sibling) => {
+      const siblingErrors = {
+        PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
+        Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
+        Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
+        Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
+        EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
+        Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
+        Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
+      };
+
+      Object.values(siblingErrors).forEach((error) => {
+        if (error) {
+          isValid = false;
+        }
+      });
+
+      return siblingErrors;
+    });
+
+    setSiblingsErrors(errors); // Set errors in state
+    return isValid;
+  };
+
+  const validateApplicationData = () => {
+    let isValid = true;
+    
+    // Set validation errors based on conditions
+    const validationErrors = {
+      MonthlyIncome: applicationData.MonthlyIncome > 0 ? '' : 'กรุณากรอกรายได้ที่ถูกต้อง',
+      MonthlyExpenses: applicationData.MonthlyExpenses > 0 ? '' : 'กรุณากรอกรายจ่ายที่ถูกต้อง',
+    };
+  
+    // Check if any errors exist
+    Object.values(validationErrors).forEach((error) => {
+      if (error) {
+        isValid = false;
+      }
+    });
+  
+    setErrors(validationErrors); // Set errors in state to trigger UI updates
+    return isValid;
+  };
+
+
   const handleNextStep = () => {
     if (step === 1) {
       if (!validateAddress()) return;
       if (!validateCurrentAddress()) return;
+      if (!validateApplicationData()) return;
+    }
+    if (step === 2) {
+      if (!validateSiblingsData()) return;
     }
     if (step === 3) {
       if (!validateApplication()) return;
@@ -832,19 +936,19 @@ export default function CreateApplicationInternalPage() {
     // Add loading state
     try {
       setLoading(true); // Start loading
-  
+
       // Update the application data with the new status
       const updatedApplicationData = {
         ...applicationData,
         Status: 'บันทึกแล้ว',
       };
-  
+
       // Create the application and retrieve the ApplicationID
       const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
       const applicationID = applicationResponse.ApplicationID;
-  
+
       const tasks: Promise<any>[] = [];
-  
+
       // Update and submit caretakerData if it's filled out, or replace empty values with "-"
       const updatedCaretakerData = {
         ...caretakerData,
@@ -861,7 +965,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
       console.log('Caretaker data sent:', updatedCaretakerData);
-  
+
       // Update and submit fatherData if it's filled out, or replace empty values with "-"
       const updatedFatherData = {
         ...fatherData,
@@ -877,7 +981,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedFatherData));
       console.log('Father data sent:', updatedFatherData);
-  
+
       // Update and submit motherData if it's filled out, or replace empty values with "-"
       const updatedMotherData = {
         ...motherData,
@@ -893,7 +997,7 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
-  
+
       // Send all sibling data as an array to the API
       const updatedSiblingsData = siblingsData.map((sibling) => ({
         ...sibling,
@@ -901,7 +1005,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
       console.log('Siblings data sent:', updatedSiblingsData);
-  
+
       // Send all activities data as an array to the API
       const updatedActivities = activities.map((activity) => ({
         ...activity,
@@ -909,7 +1013,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
       console.log('Activities data sent:', updatedActivities);
-  
+
       // Send all scholarship history data as an array to the API
       const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
         ...scholarship,
@@ -917,7 +1021,7 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
       console.log('Scholarship history data sent:', updatedScholarshipHistory);
-  
+
       // Send all work experience data as an array to the API
       const updatedWorkExperiences = workExperiences.map((workExperience) => ({
         ...workExperience,
@@ -925,16 +1029,16 @@ export default function CreateApplicationInternalPage() {
       }));
       tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
       console.log('Work experience data sent:', updatedWorkExperiences);
-  
+
       // Submit the addressData and currentAddressData
       const updatedAddressData = { ...addressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
       console.log('Address data sent:', updatedAddressData);
-  
+
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
       console.log('Current address data sent:', updatedCurrentAddressData);
-            // Submit application files
+      // Submit application files
       if (applicationFiles.length > 0) {
         for (const fileData of applicationFiles) {
           const formData = new FormData();
@@ -949,9 +1053,9 @@ export default function CreateApplicationInternalPage() {
       }
       // Execute all tasks
       await Promise.all(tasks);
-  
+
       console.log('All data submitted successfully.');
-  
+
       // Clear sessionStorage after successful submission
       sessionStorage.removeItem('step');
       sessionStorage.removeItem('fatherData');
@@ -962,7 +1066,7 @@ export default function CreateApplicationInternalPage() {
       sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
       router.push(`/page/History-Application`);
-  
+
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('Validation error: ' + error.response?.data.message);
@@ -978,22 +1082,22 @@ export default function CreateApplicationInternalPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     setLoading(true); // Optionally, set loading state to disable the form or show a spinner
-  
+
     try {
       // Set the status to 'รอประกาศผล'
       const updatedApplicationData = {
         ...applicationData,
         Status: 'รอประกาศผล',
       };
-  
+
       // Create the application and retrieve the ApplicationID
       const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
       const applicationID = applicationResponse.ApplicationID;
-  
+
       const tasks: Promise<any>[] = [];
-  
+
       // Function to update guardian data (caretaker, father, mother)
       const createGuardian = (guardianData: GuardiansData) => {
         const updatedGuardianData = {
@@ -1010,12 +1114,12 @@ export default function CreateApplicationInternalPage() {
         };
         return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
       };
-  
+
       // Submit caretaker, father, and mother data
       tasks.push(createGuardian(caretakerData));
       tasks.push(createGuardian(fatherData));
       tasks.push(createGuardian(motherData));
-  
+
       // Submit siblings data
       if (siblingsData.length > 0) {
         const updatedSiblingsData = siblingsData.map((sibling) => ({
@@ -1024,7 +1128,7 @@ export default function CreateApplicationInternalPage() {
         }));
         tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
       }
-  
+
       // Submit activities data
       if (activities.length > 0) {
         const updatedActivities = activities.map((activity) => ({
@@ -1033,7 +1137,7 @@ export default function CreateApplicationInternalPage() {
         }));
         tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
       }
-  
+
       // Submit scholarship history data
       if (scholarshipHistory.length > 0) {
         const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
@@ -1042,7 +1146,7 @@ export default function CreateApplicationInternalPage() {
         }));
         tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
       }
-  
+
       // Submit work experience data
       if (workExperiences.length > 0) {
         const updatedWorkExperiences = workExperiences.map((workExperience) => ({
@@ -1051,14 +1155,14 @@ export default function CreateApplicationInternalPage() {
         }));
         tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
       }
-  
+
       // Submit address data
       const updatedAddressData = { ...addressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
-  
+
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
-  
+
       // Submit application files
       if (applicationFiles.length > 0) {
         for (const fileData of applicationFiles) {
@@ -1072,15 +1176,15 @@ export default function CreateApplicationInternalPage() {
           tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
         }
       }
-  
+
       // Execute all tasks in parallel
       await Promise.all(tasks);
-  
+
       console.log('All data submitted successfully.');
-  
+
       // Clear sessionStorage after successful submission
       sessionStorage.clear();
-  
+
       // Navigate to the application page with status=บันทึกแล้ว
       router.push(`/page/History-Application`);
     } catch (error) {
@@ -1094,8 +1198,8 @@ export default function CreateApplicationInternalPage() {
       setLoading(false); // Stop loading spinner or enable the form
     }
   };
-  
-  
+
+
 
   const renderStep = () => {
     switch (step) {
@@ -1116,6 +1220,7 @@ export default function CreateApplicationInternalPage() {
                     name="PrefixName"
                     value={userData?.PrefixName || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
@@ -1130,6 +1235,7 @@ export default function CreateApplicationInternalPage() {
                     name="FirstName"
                     value={userData?.FirstName || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
@@ -1143,6 +1249,7 @@ export default function CreateApplicationInternalPage() {
                     name="LastName"
                     value={userData?.LastName || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
@@ -1157,27 +1264,24 @@ export default function CreateApplicationInternalPage() {
                     name="Course"
                     value={userData?.Course || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
                 <div>
-                  <label htmlFor="YearLevel" className="block text-gray-700 mb-2">
-                    ชั้นปี
-                  </label>
-                  <select
-                    id="YearLevel"
-                    name="YearLevel"
-                    value={userData?.YearLevel || ''}
-                    onChange={handleChangeApplication}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  >
-                    <option value="">เลือกชั้นปี</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                  </select>
-                </div>
+  <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
+    ชั้นปี
+  </label>
+  <input
+    id="Year_Entry"
+    name="Year_Entry"
+    value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
+    onChange={handleChangeApplication}
+    disabled
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+</div>
+
                 <div>
                   <label htmlFor="StudentID" className="block text-gray-700 mb-2">
                     รหัสนิสิต
@@ -1202,6 +1306,7 @@ export default function CreateApplicationInternalPage() {
                     name="Phone"
                     value={userData?.Phone || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
@@ -1215,6 +1320,7 @@ export default function CreateApplicationInternalPage() {
                     name="Religion"
                     value={userData?.Religion || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
@@ -1229,10 +1335,13 @@ export default function CreateApplicationInternalPage() {
                     name="DOB"
                     value={userData?.DOB || ''}
                     onChange={handleChangeApplication}
+                    disabled
                     className="w-full p-3 border border-gray-300 rounded"
                   />
                 </div>
               </div>
+
+              
               <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
               <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
@@ -1310,34 +1419,34 @@ export default function CreateApplicationInternalPage() {
                   {addressErrors.Subdistrict && <p className="text-red-500">{addressErrors.Subdistrict}</p>}
                 </div>
                 <div>
-  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-    รหัสไปรษณีย์
-  </label>
-  <input
-    type="text"
-    id="PostalCode"
-    name="PostalCode"
-    value={addressData.PostalCode}
-    onChange={(e) => {
-      const value = e.target.value;
-      // ดักตัวเลขและจำกัดความยาวไม่เกิน 6 หลัก
-      if (/^\d*$/.test(value) && value.length <= 5) {
-        handleChangeAddress(e); // อัปเดตค่าเมื่อเป็นตัวเลขและไม่เกิน 6 หลัก
-      } else if (value.length > 5) {
-        // ตัดให้เหลือเพียง 6 หลัก
-        handleChangeAddress({
-          ...e,
-          target: {
-            ...e.target,
-            value: value.slice(0, 5),
-          },
-        });
-      }
-    }}
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-  {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
-</div>
+                  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                    รหัสไปรษณีย์
+                  </label>
+                  <input
+                    type="text"
+                    id="PostalCode"
+                    name="PostalCode"
+                    value={addressData.PostalCode}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // ดักตัวเลขและจำกัดความยาวไม่เกิน 6 หลัก
+                      if (/^\d*$/.test(value) && value.length <= 5) {
+                        handleChangeAddress(e); // อัปเดตค่าเมื่อเป็นตัวเลขและไม่เกิน 6 หลัก
+                      } else if (value.length > 5) {
+                        // ตัดให้เหลือเพียง 6 หลัก
+                        handleChangeAddress({
+                          ...e,
+                          target: {
+                            ...e.target,
+                            value: value.slice(0, 5),
+                          },
+                        });
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                  {addressErrors.PostalCode && <p className="text-red-500">{addressErrors.PostalCode}</p>}
+                </div>
 
               </div>
               <div className="">
@@ -1433,36 +1542,36 @@ export default function CreateApplicationInternalPage() {
                       {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
                     </div>
 
-          <div>
-  <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-    รหัสไปรษณีย์
-  </label>
-  <input
-    type="text"
-    id="PostalCode"
-    name="PostalCode"
-    value={currentAddressData.PostalCode}
-    onChange={(e) => {
-      const value = e.target.value;
+                    <div>
+                      <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                        รหัสไปรษณีย์
+                      </label>
+                      <input
+                        type="text"
+                        id="PostalCode"
+                        name="PostalCode"
+                        value={currentAddressData.PostalCode}
+                        onChange={(e) => {
+                          const value = e.target.value;
 
-      // ดักแค่ตัวเลขและจำกัดความยาวไม่เกิน 5 ตัว
-      if (/^\d*$/.test(value) && value.length <= 5) {
-        handleChangeCurrentAddress(e); // อัปเดตค่าถ้าเป็นตัวเลขและไม่เกิน 5 หลัก
-      } else if (value.length > 5) {
-        // ตัดให้เหลือแค่ 5 หลัก
-        handleChangeCurrentAddress({
-          ...e,
-          target: {
-            ...e.target,
-            value: value.slice(0, 5),
-          },
-        });
-      }
-    }}
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-  {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
-</div>
+                          // ดักแค่ตัวเลขและจำกัดความยาวไม่เกิน 5 ตัว
+                          if (/^\d*$/.test(value) && value.length <= 5) {
+                            handleChangeCurrentAddress(e); // อัปเดตค่าถ้าเป็นตัวเลขและไม่เกิน 5 หลัก
+                          } else if (value.length > 5) {
+                            // ตัดให้เหลือแค่ 5 หลัก
+                            handleChangeCurrentAddress({
+                              ...e,
+                              target: {
+                                ...e.target,
+                                value: value.slice(0, 5),
+                              },
+                            });
+                          }
+                        }}
+                        className="w-full p-3 border border-gray-300 rounded"
+                      />
+                      {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
+                    </div>
 
 
                   </div>
@@ -1485,11 +1594,13 @@ export default function CreateApplicationInternalPage() {
                       onChange={handleChangeApplication}
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-80 p-3 border border-gray-300 rounded"
+                      className={`w-80 p-3 border  border-gray-300 rounded`}
                     />
                     <span className="ml-2">บาท</span>
                   </div>
+                  {errors.MonthlyIncome && <p className="text-red-500">{errors.MonthlyIncome}</p>}
                 </div>
+
                 <div className="flex-1">
                   <label htmlFor="MonthlyExpenses" className="block text-gray-700 mb-2">
                     รายจ่ายของนิสิตเดือนละ
@@ -1503,11 +1614,14 @@ export default function CreateApplicationInternalPage() {
                       onChange={handleChangeApplication}
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-80 p-3 border border-gray-300 rounded"
+                      className={`w-80 p-3 border  border-gray-300 rounded`}
                     />
                     <span className="ml-2">บาท</span>
                   </div>
+                  {errors.MonthlyExpenses && <p className="text-red-500">{errors.MonthlyExpenses}</p>}
                 </div>
+
+
               </div>
             </div>
           </div>
@@ -1545,11 +1659,18 @@ export default function CreateApplicationInternalPage() {
                   id="FatherFirstName"
                   name="FirstName"
                   value={fatherData.FirstName}
-                  onChange={handleChangeFather}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only alphabetic characters and spaces
+                    if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+                      handleChangeFather(e); // Only call the handler if the input is valid
+                    }
+                  }}
                   className="w-full p-3 border border-gray-300 rounded"
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
               </div>
+
               <div className="">
                 <label htmlFor="FatherLastName" className="block text-gray-700 mb-2">
                   นามสกุล
@@ -1559,11 +1680,18 @@ export default function CreateApplicationInternalPage() {
                   id="FatherLastName"
                   name="LastName"
                   value={fatherData.LastName}
-                  onChange={handleChangeFather}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only alphabetic characters and spaces (supports English and Thai letters)
+                    if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+                      handleChangeFather(e); // Only call the handler if the input is valid
+                    }
+                  }}
                   className="w-full p-3 border border-gray-300 rounded"
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
               </div>
+
               <div className="">
                 <label htmlFor="FatherAge" className="block text-gray-700 mb-2">
                   อายุ
@@ -1573,11 +1701,19 @@ export default function CreateApplicationInternalPage() {
                   id="FatherAge"
                   name="Age"
                   value={fatherData.Age}
-                  onChange={handleChangeFather}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    // Ensure the age is greater than or equal to 1
+                    if (value >= 1 || e.target.value === "") {
+                      handleChangeFather(e); // Only call the handler if the input is valid
+                    }
+                  }}
                   className="w-20 p-3 border border-gray-300 rounded"
+                  min="1" // Ensure min attribute to block lower values from being manually set
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
               </div>
+
               <div>
                 <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">
                   สถานภาพ (พ่อ)
@@ -1591,6 +1727,8 @@ export default function CreateApplicationInternalPage() {
                     checked={fatherData.Status === 'มีชีวิต'}
                     onChange={handleChangeFather}
                     className="mr-2"
+                    disabled={isCaretakerEditing} // Disable if parent info is being edited
+
                   />{' '}
                   มีชีวิต
                   <input
@@ -1601,11 +1739,14 @@ export default function CreateApplicationInternalPage() {
                     checked={fatherData.Status === 'ไม่มีชีวิต'}
                     onChange={handleChangeFather}
                     className="ml-4 mr-2"
+                    disabled={isCaretakerEditing} // Disable if parent info is being edited
+
                   />{' '}
                   ไม่มีชีวิต
                 </div>
               </div>
 
+              {/* Disable fields if Father is deceased */}
               <div className="">
                 <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">
                   เบอร์โทร
@@ -1615,11 +1756,19 @@ export default function CreateApplicationInternalPage() {
                   id="FatherPhone"
                   name="Phone"
                   value={fatherData.Phone}
-                  onChange={handleChangeFather}
-                  className="w-70 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  onChange={(e) => {
+                    const onlyNumbers = e.target.value.replace(/\D/g, ''); // Remove non-numeric characters
+                    if (onlyNumbers.length <= 10) { // Restrict to 10 digits
+                      handleChangeFather(e);  // Pass the original event, no need to modify
+                    }
+                  }}
+                  className={`w-70 p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
+                  inputMode="numeric" // Helps to show a numeric keyboard on mobile devices
+                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
+
               <div className="">
                 <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">
                   อาชีพ
@@ -1629,11 +1778,17 @@ export default function CreateApplicationInternalPage() {
                   id="FatherOccupation"
                   name="Occupation"
                   value={fatherData.Occupation}
-                  onChange={handleChangeFather}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  onChange={(e) => {
+                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
+                    e.target.value = onlyLetters; // Modify the input value before passing the event
+                    handleChangeFather(e);  // Pass the original event
+                  }}
+                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
+                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
+
               <div className="">
                 <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">
                   รายได้ต่อเดือน
@@ -1644,10 +1799,11 @@ export default function CreateApplicationInternalPage() {
                   name="Income"
                   value={fatherData.Income}
                   onChange={handleChangeFather}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
+                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
               <div className="">
                 <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">
                   สถานที่ทำงาน
@@ -1658,10 +1814,11 @@ export default function CreateApplicationInternalPage() {
                   name="Workplace"
                   value={fatherData.Workplace}
                   onChange={handleChangeFather}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
+                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
             </div>
 
             {/* Mother's Information */}
@@ -1694,7 +1851,11 @@ export default function CreateApplicationInternalPage() {
                   id="MotherFirstName"
                   name="FirstName"
                   value={motherData.FirstName}
-                  onChange={handleChangeMother}
+                  onChange={(e) => {
+                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
+                    e.target.value = onlyLetters; // Modify the input value before passing the event
+                    handleChangeMother(e);  // Pass the original event
+                  }}
                   className="w-full p-3 border border-gray-300 rounded"
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
@@ -1708,11 +1869,16 @@ export default function CreateApplicationInternalPage() {
                   id="MotherLastName"
                   name="LastName"
                   value={motherData.LastName}
-                  onChange={handleChangeMother}
+                  onChange={(e) => {
+                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
+                    e.target.value = onlyLetters; // Modify the input value before passing the event
+                    handleChangeMother(e);  // Pass the original event
+                  }}
                   className="w-full p-3 border border-gray-300 rounded"
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
               </div>
+
               <div className="">
                 <label htmlFor="MotherAge" className="block text-gray-700 mb-2">
                   อายุ
@@ -1727,6 +1893,7 @@ export default function CreateApplicationInternalPage() {
                   disabled={isCaretakerEditing} // Disable if caretaker info is being edited
                 />
               </div>
+
               <div>
                 <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">
                   สถานภาพ (แม่)
@@ -1740,6 +1907,7 @@ export default function CreateApplicationInternalPage() {
                     checked={motherData.Status === 'มีชีวิต'}
                     onChange={handleChangeMother}
                     className="mr-2"
+                    disabled={isCaretakerEditing} // Disable if parent info is being edited
                   />{' '}
                   มีชีวิต
                   <input
@@ -1750,12 +1918,13 @@ export default function CreateApplicationInternalPage() {
                     checked={motherData.Status === 'ไม่มีชีวิต'}
                     onChange={handleChangeMother}
                     className="ml-4 mr-2"
+                    disabled={isCaretakerEditing} // Disable if parent info is being edited
                   />{' '}
                   ไม่มีชีวิต
                 </div>
               </div>
 
-
+              {/* Disable these fields if Mother is deceased */}
               <div className="">
                 <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">
                   เบอร์โทร
@@ -1766,10 +1935,14 @@ export default function CreateApplicationInternalPage() {
                   name="Phone"
                   value={motherData.Phone}
                   onChange={handleChangeMother}
-                  className="w-70 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-70 p-3 border ${motherData.Status === 'ไม่มีชีวิต'
+                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
+                    : 'border-gray-300'
+                    } rounded`}
+                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
               <div className="">
                 <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">
                   อาชีพ
@@ -1780,10 +1953,14 @@ export default function CreateApplicationInternalPage() {
                   name="Occupation"
                   value={motherData.Occupation}
                   onChange={handleChangeMother}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
+                    ? 'bg-gray-200 text-gray-900 font-bold ' // Darker and bold when disabled
+                    : 'border-gray-300'
+                    } rounded`}
+                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
               <div className="">
                 <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">
                   รายได้ต่อเดือน
@@ -1794,10 +1971,14 @@ export default function CreateApplicationInternalPage() {
                   name="Income"
                   value={motherData.Income}
                   onChange={handleChangeMother}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
+                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
+                    : 'border-gray-300'
+                    } rounded`}
+                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
               <div className="">
                 <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">
                   สถานที่ทำงาน
@@ -1808,10 +1989,16 @@ export default function CreateApplicationInternalPage() {
                   name="Workplace"
                   value={motherData.Workplace}
                   onChange={handleChangeMother}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
+                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
+                    : 'border-gray-300'
+                    } rounded`}
+                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
                 />
               </div>
+
+
+
             </div>
 
             {/* Caretaker Information */}
@@ -2041,13 +2228,14 @@ export default function CreateApplicationInternalPage() {
 
             {siblingsData.map((sibling, index) => (
               <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-7 gap-6">
+                {/* Prefix Name */}
                 <div>
                   <label htmlFor={`PrefixName-${index}`} className="block text-gray-700 mb-2">คำนำหน้า</label>
                   <select
                     id={`PrefixName-${index}`}
                     name="PrefixName"
                     value={sibling.PrefixName}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => handleChangeSibling(index, 'PrefixName', e.target.value)} // Corrected here
                     className="w-30 p-3 border border-gray-300 rounded"
                   >
                     <option value="">คำนำหน้า</option>
@@ -2055,7 +2243,10 @@ export default function CreateApplicationInternalPage() {
                     <option value="นาง">นาง</option>
                     <option value="นางสาว">นางสาว</option>
                   </select>
+                  {siblingsErrors[index]?.PrefixName && <p className="text-red-500">{siblingsErrors[index].PrefixName}</p>}
                 </div>
+
+                {/* First Name */}
                 <div>
                   <label htmlFor={`Fname-${index}`} className="block text-gray-700 mb-2">ชื่อ</label>
                   <input
@@ -2063,10 +2254,16 @@ export default function CreateApplicationInternalPage() {
                     id={`Fname-${index}`}
                     name="Fname"
                     value={sibling.Fname}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Only allow alphabetic and Thai characters
+                      handleChangeSibling(index, 'Fname', onlyLetters); // Corrected here
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {siblingsErrors[index]?.Fname && <p className="text-red-500">{siblingsErrors[index].Fname}</p>}
                 </div>
+
+                {/* Last Name */}
                 <div>
                   <label htmlFor={`Lname-${index}`} className="block text-gray-700 mb-2">นามสกุล</label>
                   <input
@@ -2074,10 +2271,16 @@ export default function CreateApplicationInternalPage() {
                     id={`Lname-${index}`}
                     name="Lname"
                     value={sibling.Lname}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Only allow alphabetic and Thai characters
+                      handleChangeSibling(index, 'Lname', onlyLetters); // Corrected here
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {siblingsErrors[index]?.Lname && <p className="text-red-500">{siblingsErrors[index].Lname}</p>}
                 </div>
+
+                {/* Occupation */}
                 <div>
                   <label htmlFor={`Occupation-${index}`} className="block text-gray-700 mb-2">อาชีพ</label>
                   <input
@@ -2085,21 +2288,37 @@ export default function CreateApplicationInternalPage() {
                     id={`Occupation-${index}`}
                     name="Occupation"
                     value={sibling.Occupation}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => handleChangeSibling(index, 'Occupation', e.target.value)} // Corrected here
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {siblingsErrors[index]?.Occupation && <p className="text-red-500">{siblingsErrors[index].Occupation}</p>}
                 </div>
+
+                {/* Education Level */}
                 <div>
                   <label htmlFor={`EducationLevel-${index}`} className="block text-gray-700 mb-2">ระดับการศึกษา</label>
-                  <input
-                    type="text"
+                  <select
                     id={`EducationLevel-${index}`}
                     name="EducationLevel"
                     value={sibling.EducationLevel}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => handleChangeSibling(index, 'EducationLevel', e.target.value)} // Corrected here
                     className="w-full p-3 border border-gray-300 rounded"
-                  />
+                  >
+                    <option value="">-- กรุณาเลือกระดับการศึกษา --</option>
+                    <option value="ก่อนอนุบาล">ก่อนอนุบาล</option>
+                    <option value="อนุบาล">อนุบาล</option>
+                    <option value="ประถมศึกษา">ประถมศึกษา</option>
+                    <option value="มัธยมศึกษาตอนต้น">มัธยมศึกษาตอนต้น</option>
+                    <option value="มัธยมศึกษาตอนปลาย">มัธยมศึกษาตอนปลาย</option>
+                    <option value="ปวช.">ปวช.</option>
+                    <option value="ปวส.">ปวส.</option>
+                    <option value="ปริญญาตรี">ปริญญาตรี</option>
+                    <option value="ปริญญาโท">ปริญญาโท</option>
+                  </select>
+                  {siblingsErrors[index]?.EducationLevel && <p className="text-red-500">{siblingsErrors[index].EducationLevel}</p>}
                 </div>
+
+                {/* Income */}
                 <div>
                   <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
                   <input
@@ -2107,26 +2326,33 @@ export default function CreateApplicationInternalPage() {
                     id={`Income-${index}`}
                     name="Income"
                     value={sibling.Income}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => handleChangeSibling(index, 'Income', e.target.value)} // Corrected here
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {siblingsErrors[index]?.Income && <p className="text-red-500">{siblingsErrors[index].Income}</p>}
                 </div>
+
+                {/* Status */}
                 <div>
                   <label htmlFor={`Status-${index}`} className="block text-gray-700 mb-2">สถานะ</label>
                   <select
                     id={`Status-${index}`}
                     name="Status"
                     value={sibling.Status}
-                    onChange={(e) => handleChangeSibling(index, e)}
+                    onChange={(e) => handleChangeSibling(index, 'Status', e.target.value)} // Corrected here
                     className="w-30 p-3 border border-gray-300 rounded"
                   >
                     <option value="">สถานะ</option>
                     <option value="โสด">โสด</option>
                     <option value="สมรส">สมรส</option>
                   </select>
+                  {siblingsErrors[index]?.Status && <p className="text-red-500">{siblingsErrors[index].Status}</p>}
                 </div>
               </div>
             ))}
+
+
+
           </div>
         );
 
@@ -2198,6 +2424,7 @@ export default function CreateApplicationInternalPage() {
               </div>
 
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
+
                 <div className="col-span-3">
                   <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
                     อาจารย์ที่ปรึกษา
@@ -2207,11 +2434,16 @@ export default function CreateApplicationInternalPage() {
                     id="AdvisorName"
                     name="AdvisorName"
                     value={applicationData.AdvisorName}
-                    onChange={handleChangeApplication}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and Thai characters
+                      e.target.value = onlyLetters; // Modify the input value directly
+                      handleChangeApplication(e); // Pass the actual event
+                    }}
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
                   {applicationErrors.AdvisorName && <p className="text-red-500">{applicationErrors.AdvisorName}</p>}
                 </div>
+
               </div>
 
             </div>
@@ -2433,9 +2665,13 @@ export default function CreateApplicationInternalPage() {
                     className="w-full p-3 border border-gray-300 rounded"
                   >
                     <option value="">เลือกประเภทไฟล์</option>
-                    <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
-                    <option value="ผลการเรียน">ผลการเรียน</option>
-                    <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
+                    <option value="รูปถ่ายหน้าตรง"> รูปถ่ายหน้าตรง</option>
+                    <option value="ใบสมัคร">ใบสมัคร</option>
+                    <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
+                    <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
+                    <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
+                    <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
+                    <option value="อื่น ๆ">อื่น ๆ</option>
                   </select>
                 </div>
                 <div>
@@ -2543,34 +2779,36 @@ export default function CreateApplicationInternalPage() {
                 className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={step === 1}
               >
-                Previous
+                ย้อนกลับ
               </button>
-              <button
-                type="button"
-                onClick={handleNextStep}
-                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={step === 5}
-              >
-                Next
-              </button>
+              {step !== 5 && (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  ถัดไป
+                </button>
+              )}
+
             </div>
             {step === 5 && (
-  <div className="flex justify-center mt-6 text-center w-full">
-    <button
-      type="button"
-      onClick={handleSave}
-      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
-    >
-      บันทึก
-    </button>
-    <button
-      type="submit"
-      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-    >
-      ส่ง
-    </button>
-  </div>
-)}
+              <div className="flex justify-center mt-6 text-center w-full">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                >
+                  บันทึก
+                </button>
+                <button
+                  type="submit"
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  ส่ง
+                </button>
+              </div>
+            )}
 
           </form>
         </div>

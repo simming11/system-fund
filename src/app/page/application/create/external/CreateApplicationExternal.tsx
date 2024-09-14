@@ -119,19 +119,36 @@ export default function CreateApplicationExternalPage() {
         const Application_EtID = applicationResponse.Application_EtID;
 
         const tasks: Promise<any>[] = [];
-        // Submit application files
-        for (const [index, fileData] of applicationFiles.entries()) {
-            const formData = new FormData();
-            formData.append('Application_EtID', Application_EtID);
-            formData.append('DocumentName', fileData.DocumentName);
-            formData.append('DocumentType', fileData.DocumentType);
-            if (fileData.FilePath instanceof File) {
-                formData.append('FilePath', fileData.FilePath);
-            }
-            tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
-            console.log('File data sent:', formData);
-        }
 
+// Submit application files
+if (applicationFiles.length > 0) {
+  for (const fileData of applicationFiles) {
+    const formData = new FormData();
+
+    // Log the Application_EtID and file data details
+    console.log('Submitting file for Application_EtID:', Application_EtID);
+    console.log('File Data:', {
+      DocumentName: fileData.DocumentName,
+      DocumentType: fileData.DocumentType,
+      FilePath: fileData.FilePath instanceof File ? fileData.FilePath.name : fileData.FilePath,
+      Application_EtID: Application_EtID  // Log the Application_EtID
+    });
+
+    // Append Application_EtID and file data to FormData
+    formData.append('Application_EtID', Application_EtID);  // Append ID here
+    formData.append('DocumentName', fileData.DocumentName);
+    formData.append('DocumentType', fileData.DocumentType);
+
+    if (fileData.FilePath instanceof File) {
+      formData.append('FilePath', fileData.FilePath);
+      console.log('Appending file:', fileData.FilePath.name);  // Log the file name being appended
+    }
+
+    // Push the task for file submission
+    tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
+    console.log('Task added for file submission');  // Log when the task is added
+  }
+      }
         // Execute all tasks
         await Promise.all(tasks);
 
@@ -139,7 +156,7 @@ export default function CreateApplicationExternalPage() {
 
         sessionStorage.clear();
         // Navigate to the application page with status=บันทึกแล้ว
-        router.push(`/page/History-Application`);
+        // router.push(`/page/History-Application`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             setError('Validation error: ' + error.response?.data.message);

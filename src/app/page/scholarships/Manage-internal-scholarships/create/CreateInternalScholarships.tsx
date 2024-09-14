@@ -20,7 +20,7 @@ export default function CreateInternalScholarshipPage() {
     Minimum_GPA: "",
     // Add other fields as needed
   });
-  
+
   const [formData, setFormData] = useState(() => {
     const savedFormData = sessionStorage.getItem('createInternalScholarshipForm');
     return savedFormData
@@ -157,11 +157,11 @@ export default function CreateInternalScholarshipPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-  
+
     // ถ้าเป็น Minimum_GPA ให้ตรวจสอบค่า
     if (name === "Minimum_GPA") {
       let gpa = parseFloat(value);
-  
+
       // ตรวจสอบค่ามากกว่าเท่ากับ 1 และน้อยกว่า 4
       if (gpa >= 1 && gpa < 4) {
         // ตรวจสอบทศนิยมไม่เกิน 2 ตำแหน่ง
@@ -182,7 +182,7 @@ export default function CreateInternalScholarshipPage() {
       });
     }
   };
-  
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files) {
@@ -226,69 +226,69 @@ export default function CreateInternalScholarshipPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     // Validate required fields before showing the loading spinner
     if (!formData.ScholarshipName) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชื่อทุนการศึกษา");
       return;
     }
-  
+
     if (formData.Major.length === 0) {
       setError("กรุณาเลือกอย่างน้อยหนึ่งสาขาวิชา");
       return;
     }
-  
+
     if (!formData.Year || isNaN(Number(formData.Year))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
       return;
     }
-  
+
     if (!formData.YearLevel || isNaN(Number(formData.YearLevel))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
       return;
     }
-  
+
     if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
       return;
     }
-  
+
     const minimumGPA = Number(formData.Minimum_GPA);
     if (!formData.Minimum_GPA || isNaN(minimumGPA) || minimumGPA < 1.00 || minimumGPA > 4.00) {
       setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
       return;
     }
-  
+
     if (formData.Description.length === 0 && !formData.otherQualificationText) {
       setError("กรุณาเพิ่มคุณสมบัติอย่างน้อยหนึ่งรายการ");
       return;
     }
-  
+
     if (formData.information.length === 0 && !formData.otherDocument) {
       setError("กรุณาเพิ่มเอกสารประกอบการสมัครอย่างน้อยหนึ่งรายการ");
       return;
     }
-  
+
     if (!formData.Image) {
       setError("กรุณาอัปโหลดรูปภาพประกอบการสมัคร");
       return;
     }
-  
+
     if (formData.Files.length === 0) {
       setError("กรุณาอัปโหลดไฟล์ประกอบการสมัครอย่างน้อยหนึ่งไฟล์");
       return;
     }
-  
+
     if (!formData.StartDate) {
       setError("กรุณากรอกข้อมูลในฟิลด์ วันที่เริ่ม");
       return;
     }
-  
+
     if (!formData.EndDate) {
       setError("กรุณากรอกข้อมูลในฟิลด์ วันที่สิ้นสุด");
       return;
     }
-  
+
     // Show loading spinner only after all validations have passed
     Swal.fire({
       title: "Processing your request!",
@@ -299,18 +299,18 @@ export default function CreateInternalScholarshipPage() {
         Swal.showLoading();
       },
     });
-  
+
     try {
       // Fetch all scholarships and check for duplicates
       const response = await ScholarshipService.getAllScholarships();
       const scholarships = response.data;
-  
+
       const duplicate = scholarships.find(
         (scholarship: any) =>
           scholarship.ScholarshipName.trim().toLowerCase() === formData.ScholarshipName.trim().toLowerCase() &&
           scholarship.Year === formData.Year
       );
-  
+
       if (duplicate) {
         Swal.fire({
           title: "Duplicate Scholarship",
@@ -319,14 +319,14 @@ export default function CreateInternalScholarshipPage() {
         });
         return;
       }
-  
+
       // Prepare the form data
       const submitFormData = {
         ...formData,
         information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
         Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
       };
-  
+
       const payload = new FormData();
       for (const [key, value] of Object.entries(submitFormData)) {
         if (Array.isArray(value)) {
@@ -339,10 +339,10 @@ export default function CreateInternalScholarshipPage() {
           payload.append(key, value as string);
         }
       }
-  
+
       // Create Scholarship
       const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-  
+
       // Send notification if lineToken exists
       if (lineToken) {
         const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
@@ -350,7 +350,7 @@ export default function CreateInternalScholarshipPage() {
       } else {
         console.error("LINE Notify token is null");
       }
-  
+
       // Create Courses
       if (formData.Major.length > 0) {
         await ApiAllcreateServiceScholarships.createCourses({
@@ -358,7 +358,7 @@ export default function CreateInternalScholarshipPage() {
           CourseName: formData.Major,
         });
       }
-  
+
       // Create Documents
       if (submitFormData.information.length > 0 || formData.otherDocument) {
         await ApiAllcreateServiceScholarships.createDocuments({
@@ -367,7 +367,7 @@ export default function CreateInternalScholarshipPage() {
           otherDocument: formData.otherDocument
         });
       }
-  
+
       // Create Qualifications
       if (submitFormData.Description.length > 0) {
         await ApiAllcreateServiceScholarships.createQualifications({
@@ -376,7 +376,7 @@ export default function CreateInternalScholarshipPage() {
           otherQualificationText: submitFormData.otherQualificationText
         });
       }
-  
+
       // Upload the image file
       if (formData.Image) {
         await ApiAllcreateServiceScholarships.createImage({
@@ -384,7 +384,7 @@ export default function CreateInternalScholarshipPage() {
           ImagePath: formData.Image,
         });
       }
-  
+
       // Upload other files
       for (const file of formData.Files) {
         if (file) {
@@ -395,18 +395,18 @@ export default function CreateInternalScholarshipPage() {
           });
         }
       }
-  
+
       // Success message
       Swal.fire({
         title: "Good job!",
         text: "Scholarship created successfully!",
         icon: "success"
       });
-  
+
       // Clear session storage and redirect
       sessionStorage.clear();
       router.push("/page/scholarships/Manage-internal-scholarships");
-  
+
     } catch (error: any) {
       // If there is a response with an error message, display it
       if (error.response && error.response.data && error.response.data.error) {
@@ -427,11 +427,6 @@ export default function CreateInternalScholarshipPage() {
       }
     }
   };
-  
-
-
-
-
 
 
 
@@ -450,7 +445,7 @@ export default function CreateInternalScholarshipPage() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <>
-                  <div className="mb-4">
+                  <div className="w-full md:w-1/1 px-4 mb-4">
                     <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
                     <input
                       type="text"
@@ -460,9 +455,96 @@ export default function CreateInternalScholarshipPage() {
                       onChange={handleChange}
                       className={`w-5/6 p-3 border rounded ${errors.ScholarshipName ? 'border-red-500' : 'border-gray-300'}`}
                     />
-                     {errors.ScholarshipName && <p className="text-red-500 text-sm">{errors.ScholarshipName}</p>}
+                    {errors.ScholarshipName && <p className="text-red-500 text-sm">{errors.ScholarshipName}</p>}
                   </div>
+                  <div className="flex flex-wrap">
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                        <select
+                          id="Year"
+                          name="Year"
+                          value={formData.Year}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        >
+                          <option value="" disabled>เลือกปีการศึกษา</option>
+                          <option value="2563">2563</option>
+                          <option value="2564">2564</option>
+                          <option value="2565">2565</option>
+                          <option value="2566">2566</option>
+                          <option value="2567">2567</option>
+                          <option value="2568">2568</option>
+                          <option value="2569">2569</option>
+                          <option value="2570">2570</option>
+                          <option value="2571">2571</option>
+                          <option value="2572">2572</option>
+                          <option value="2573">2573</option>
+                          <option value="2574">2574</option>
+                          <option value="2575">2575</option>
+                          <option value="2576">2576</option>
+                          <option value="2577">2577</option>
+                          <option value="2578">2578</option>
+                          <option value="2579">2579</option>
+                          <option value="2580">2580</option>
+                        </select>
+                      </div>
+                    </div>
 
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                        <select
+                          id="YearLevel"
+                          name="YearLevel"
+                          value={formData.YearLevel}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        >
+                          <option value="" disabled>เลือกชั้นปี</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="1-4">ทุกชั้นปี</option>
+                          <option value="2-4">2ขึ้นไป</option>
+                          <option value="3-4">3ขึ้นไป</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
+                        <input
+                          type="number"
+                          id="Num_scholarship"
+                          name="Num_scholarship"
+                          value={formData.Num_scholarship}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
+                        <input
+                          type="number"
+                          id="Minimum_GPA"
+                          name="Minimum_GPA"
+                          step="0.01" // Allow decimal inputs
+                          min="1" // Minimum value
+                          max="4" // Maximum value
+                          value={formData.Minimum_GPA}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"// เปลี่ยนสีขอบหากมีข้อผิดพลาด
+                        />
+                      </div>
+                    </div>
+
+                  </div>
                   <div className="mb-4">
                     <label className="block text-gray-700 mb-2">สาขาวิชา</label>
                     <div className="grid grid-cols-2 gap-4">
@@ -551,95 +633,6 @@ export default function CreateInternalScholarshipPage() {
                       </div>
 
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap">
-                    <div className="w-full md:w-1/2 px-4 mb-4">
-                      <div className="mb-4">
-                        <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
-                        <select
-                          id="Year"
-                          name="Year"
-                          value={formData.Year}
-                          onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"
-                        >
-                          <option value="" disabled>เลือกปีการศึกษา</option>
-                          <option value="2563">2563</option>
-                          <option value="2564">2564</option>
-                          <option value="2565">2565</option>
-                          <option value="2566">2566</option>
-                          <option value="2567">2567</option>
-                          <option value="2568">2568</option>
-                          <option value="2569">2569</option>
-                          <option value="2570">2570</option>
-                          <option value="2571">2571</option>
-                          <option value="2572">2572</option>
-                          <option value="2573">2573</option>
-                          <option value="2574">2574</option>
-                          <option value="2575">2575</option>
-                          <option value="2576">2576</option>
-                          <option value="2577">2577</option>
-                          <option value="2578">2578</option>
-                          <option value="2579">2579</option>
-                          <option value="2580">2580</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="w-full md:w-1/2 px-4 mb-4">
-                      <div className="mb-4">
-                        <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
-                        <select
-                          id="YearLevel"
-                          name="YearLevel"
-                          value={formData.YearLevel}
-                          onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"
-                        >
-                          <option value="" disabled>เลือกชั้นปี</option>
-                          <option value="1">1</option>
-                          <option value="2">2</option>
-                          <option value="3">3</option>
-                          <option value="4">4</option>
-                          <option value="1-4">ทุกชั้นปี</option>
-                          <option value="2-4">2ขึ้นไป</option>
-                          <option value="3-4">3ขึ้นไป</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="w-full md:w-1/2 px-4 mb-4">
-                      <div className="mb-4">
-                        <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
-                        <input
-                          type="number"
-                          id="Num_scholarship"
-                          name="Num_scholarship"
-                          value={formData.Num_scholarship}
-                          onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="w-full md:w-1/2 px-4 mb-4">
-    <div className="mb-4">
-      <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
-      <input
-        type="number"
-        id="Minimum_GPA"
-        name="Minimum_GPA"
-        step="0.01" // Allow decimal inputs
-        min="1" // Minimum value
-        max="4" // Maximum value
-        value={formData.Minimum_GPA}
-        onChange={handleChange}
-        className="w-full p-3 border border-gray-300 rounded"// เปลี่ยนสีขอบหากมีข้อผิดพลาด
-      />
-    </div>
-  </div>
-
                   </div>
 
 

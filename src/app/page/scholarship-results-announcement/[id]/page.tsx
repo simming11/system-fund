@@ -189,7 +189,21 @@ export default function ScholarshipResultsAnnouncementPage() {
         setFile(selectedFile);
     };
     
+    const calculateAcademicYear = (yearEntry: number | null) => {
+        if (yearEntry === null) return 'N/A';
+        const currentYear = new Date().getFullYear();
+        const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
+        const yearDifference = currentYear - entryYear;
 
+        if (yearDifference === 0) return 'ปี 1';
+        if (yearDifference === 1) return 'ปี 2';
+        if (yearDifference === 2) return 'ปี 3';
+        if (yearDifference === 3) return 'ปี 4';
+        if (yearDifference === 4) return 'ปี 5';
+
+        return 'จบการศึกษาแล้ว'; // For years more than 4
+    };
+    
 // Submit updates
 // Submit updates
 const handleSubmit = async () => {
@@ -291,6 +305,7 @@ const handleSubmit = async () => {
     } catch (error) {
         console.error('Error in handleSubmit:', error);
     }
+    router.push(`/page/scholarship-results-announcement`);
 };
 
 
@@ -350,33 +365,31 @@ const handleSubmit = async () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {applications.map((app, index) => {
-                                    const student = app.student;
-                                    const yearDifference = student?.Year_Entry
-                                        ? new Date().getFullYear() - student.Year_Entry
-                                        : 'N/A';
+    {applications.map((app, index) => {
+        const student = app.student;
+        const academicYear = calculateAcademicYear(student?.Year_Entry); // Use the function to calculate academic year
 
-                                    return (
-                                        <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
-                                            <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                            <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
-                                            <td className="border border-gray-300 p-2 text-center">{isNaN(yearDifference as any) ? 'N/A' : yearDifference}</td>
-                                            <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
-                                            <td className="border border-gray-300 p-2 text-center">
-                                                <select
-                                                    value={ApplicationINEX[index].Status || "เลือก"} // Default to "อนุมัติ" if Status is empty
-                                                    onChange={(e) => handleStatusChange(index, e)}
-                                                    className="p-2 border border-gray-300 rounded">
-                                                    <option value="">เลือก</option>
-                                                    <option value="อนุมัติ">อนุมัติ</option>
-                                                    <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
-                                                </select>
+        return (
+            <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
+                <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+                <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
+                <td className="border border-gray-300 p-2 text-center">{academicYear}</td> {/* Updated */}
+                <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
+                <td className="border border-gray-300 p-2 text-center">
+                    <select
+                        value={ApplicationINEX[index].Status || "เลือก"}
+                        onChange={(e) => handleStatusChange(index, e)}
+                        className="p-2 border border-gray-300 rounded">
+                        <option value="">เลือก</option>
+                        <option value="อนุมัติ">อนุมัติ</option>
+                        <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
+                    </select>
+                </td>
+            </tr>
+        );
+    })}
+</tbody>
 
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
                         </table>
                     </div>
 

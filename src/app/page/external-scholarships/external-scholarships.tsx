@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/app/components/header/Header';
@@ -9,6 +9,8 @@ import HeaderHome from '@/app/components/headerHome/headerHome';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
+import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices'; // Assuming you have this service
+import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices'; // Assuming you have this service
 
 interface Student {
   StudentID: string;
@@ -23,12 +25,12 @@ interface Scholarship {
   ScholarshipID: number;
   ScholarshipName: string;
   Minimum_GPA: number;
-  courses: { CourseName: string }[]; 
+  courses: { CourseName: string }[];
   StartDate: Date;
   EndDate: Date;
   Description: string;
   ImagePath: string;
-  TypeID: number;  // Assuming this field exists in the API response
+  TypeID: number; // Assuming this field exists in the API response
 }
 
 export default function ExternalScholarShipsPage() {
@@ -36,6 +38,7 @@ export default function ExternalScholarShipsPage() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Student | null>(null);
+  const [appliedScholarships, setAppliedScholarships] = useState<number[]>([]); // For storing applied scholarship IDs
 
   useEffect(() => {
     const fetchScholarshipsData = async () => {
@@ -97,6 +100,44 @@ export default function ExternalScholarShipsPage() {
     fetchStudentData();
   }, [router]);
 
+  useEffect(() => {
+    const fetchAppliedScholarships = async () => {
+      try {
+        const StudentID = localStorage.getItem('UserID');
+        if (StudentID) {
+          // Fetch internal and external applications simultaneously
+          const [internalApplications, externalApplications] = await Promise.all([
+            ApiApplicationServices.showByStudentId(StudentID), // API for internal applications
+            ApiApplicationExternalServices.showByStudent(StudentID) // API for external applications
+          ]);
+
+          // Collect ScholarshipIDs from both APIs
+          const appliedScholarshipIdsInternal = internalApplications.map((application: { ScholarshipID: any; }) => application.ScholarshipID);
+          const appliedScholarshipIdsExternal = externalApplications.map((application: { ScholarshipID: any; }) => application.ScholarshipID);
+
+          // Combine ScholarshipIDs from both sources
+          const allAppliedScholarshipIds = [...appliedScholarshipIdsInternal, ...appliedScholarshipIdsExternal];
+          console.log('Applied Scholarship IDs:', allAppliedScholarshipIds);
+
+          // Update state if there are applied ScholarshipIDs
+          if (allAppliedScholarshipIds.length > 0) {
+            setAppliedScholarships(allAppliedScholarshipIds); // Store applied scholarship IDs
+          } else {
+            console.warn('No applications found.');
+            setAppliedScholarships([]); // Set an empty array if no applications
+          }
+        } else {
+          console.warn('No StudentID found in localStorage');
+        }
+      } catch (error) {
+        console.error('Error fetching applied scholarships:', error);
+        setAppliedScholarships([]); // Set an empty array if there's an error
+      }
+    };
+
+    fetchAppliedScholarships();
+  }, []);
+
   const getStatus = (startDate?: Date, endDate?: Date): string => {
     const now = new Date();
     if (startDate && endDate) {
@@ -107,6 +148,11 @@ export default function ExternalScholarShipsPage() {
       }
     }
     return "ปิดรับแล้ว";
+  };
+
+  // Check if a scholarship has been applied
+  const hasApplied = (scholarshipID: number): boolean => {
+    return appliedScholarships.includes(scholarshipID);
   };
 
   if (loading) {
@@ -124,7 +170,7 @@ export default function ExternalScholarShipsPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <main className="flex-1">
-          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาภายนอก</h2>
+          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาภายใน</h2>
           <div className="flex flex-wrap justify-start">
             {scholarships.map((scholarship) => (
               <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
@@ -134,6 +180,11 @@ export default function ExternalScholarShipsPage() {
                   <p className="text-gray-600">{scholarship.Description}</p>
                   <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
                   <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+                  {hasApplied(scholarship.ScholarshipID) ? (
+                    <p className="text-green-500 font-semibold">สมัครแล้ว</p>
+                  ) : (
+                    ""
+                  )}
                 </a>
               </Link>
             ))}

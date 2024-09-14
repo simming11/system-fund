@@ -82,16 +82,15 @@ class ApiApplicationFileServices {
         }
     }
 
-// Update application files by sending JSON array
-static async updateApplicationFiles(applicationID: string, filesDataArray: any[]): Promise<void> {
+// Update application files by sending FormData for file upload
+static async updateApplicationFiles(applicationID: string, formData: FormData): Promise<void> {
     const token = localStorage.getItem('token');
+    
     try {
-        const response = await axios.post(`${API_URL}/application-files/${applicationID}`, {
-            application_files: filesDataArray
-        }, {
+        const response = await axios.post(`${API_URL}/application-files/${applicationID}`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'multipart/form-data', // Important for file uploads
             },
         });
         return response.data;
@@ -100,6 +99,7 @@ static async updateApplicationFiles(applicationID: string, filesDataArray: any[]
         throw error;
     }
 }
+
 
 
 

@@ -7,8 +7,9 @@ import Footer from '@/app/components/footer/footer';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import ApiGetALLfilesServiceScholarships from '@/app/services/scholarships/ApiServiceScholarshipsFiles';
-import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
-import Image from 'next/image'
+import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
+import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
+
 interface Scholarship {
   StartDate: Date;
   EndDate: Date;
@@ -26,6 +27,12 @@ interface Scholarship {
   qualifications: Qualification[];
   type: { TypeID: number; TypeName: string };
   creator: { AcademicID: string };
+  images: images[];
+}
+
+interface images {
+  ImageID: number;
+  ImagePath: string;
 }
 
 interface Course {
@@ -54,11 +61,6 @@ interface ScholarshipFileData {
   Description?: string;
 }
 
-interface ScholarshipImageData {
-  ScholarshipID: number;
-  ImagePath: File;
-}
-
 export default function ScholarshipDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,7 +68,8 @@ export default function ScholarshipDetailPage() {
   const [scholarship, setScholarship] = useState<Scholarship | null>(null);
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState<ScholarshipFileData[]>([]);
-  const [image, setImage] = useState<string | null>(null); // Update to use a string instead of an array
+  const [image, setImage] = useState<images[]>([]);
+  const [hasApplied, setHasApplied] = useState(false);
   const BASE_URL = process.env.NEXT_PUBLIC_API_Backend;
 
   useEffect(() => {
@@ -75,10 +78,25 @@ export default function ScholarshipDetailPage() {
         if (id) {
           const response = await ApiServiceScholarships.getScholarship(Number(id));
           setScholarship(response.data);
-          const getimages = response.data.images[0]?.ImagePath;
-          setImage(getimages || null);
+          const getimages = response.data.images;
+          setImage(getimages);
+          
+          
+
           const documentsResponse = await ApiGetALLfilesServiceScholarships.getScholarshipDocuments(Number(id));
           setDocuments(documentsResponse.data);
+
+          const StudentID = localStorage.getItem('UserID');
+          if (StudentID) {
+            const [internalApplications, externalApplications] = await Promise.all([
+              ApiApplicationServices.showByStudentId(StudentID),
+              ApiApplicationExternalServices.showByStudent(StudentID)
+            ]);
+
+            const appliedInternal = internalApplications.some((application: { ScholarshipID: number; }) => application.ScholarshipID === Number(id));
+            const appliedExternal = externalApplications.some((application: { ScholarshipID: number; }) => application.ScholarshipID === Number(id));
+            setHasApplied(appliedInternal || appliedExternal);
+          }
         }
       } catch (error) {
         console.error('Error fetching scholarship data:', error);
@@ -89,6 +107,9 @@ export default function ScholarshipDetailPage() {
 
     fetchScholarshipData();
   }, [id]);
+
+  // ประกาศตัวแปร imagePath ก่อนการนำไปใช้
+  const imagePath = image.length > 0 ? `${BASE_URL}/storage/${image[0].ImagePath}` : null;
 
   const handleDownloadFile = async (fileId: number, fileName: string) => {
     try {
@@ -124,84 +145,100 @@ export default function ScholarshipDetailPage() {
       <HeaderHome />
       <Header />
       <div className="container mx-auto px-4 py-8">
-        {scholarship ? (
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-4xl font-bold text-center break-words">{scholarship.ScholarshipName}</h2>
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
-              <ul className="list-disc list-inside text-gray-600">
-                {scholarship.qualifications.map((qualification, index) => (
-                  <li key={index}>{qualification.QualificationText}</li>
-                ))}
-              </ul>
-              <div className="mt-2">
-                <h3 className="text-lg font-semibold mb-1">สาขาที่ต้องการ:</h3>
-                <ul className="list-disc list-inside text-gray-600">
-                  {scholarship.courses.map((course, index) => (
-                    <li key={index}>{course.CourseName}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="mt-2">
-              <h3 className="text-lg font-semibold mb-1">เอกสารประกอบการสมัคร:</h3>
-              <ul className="list-disc list-inside text-gray-600">
-                {scholarship.documents.map((document, index) => (
-                  <li key={index}>{document.DocumentText}</li>
-                ))}
-              </ul>
-            </div>
-            {image && (
-              <div className="mt-4">
-                <div className="list-disc list-inside text-gray-600">
-                  <img
-                    src={`${BASE_URL}/storage/${image}`}
-                    alt="ไฟล์ประกอบการสมัคร"
-                    width={300}
-                    height={200}
-                  />
-                </div>
-              </div>
-            )}
-
-            {documents && documents.length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold mb-1">เอกสารอื่นๆ:</h3>
-                <ul className=" list-inside text-gray-600">
-                  {documents.map((file, index) => (
-                    <li key={index}>
-                      <a
-                        onClick={() => handleDownloadFile(file.FileID, file.FilePath.split('/').pop()!)}
-                        className="text-blue-500 underline cursor-pointer"
-                      >
-                        {file.FilePath.split('/').pop()} {/* Display the filename */}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="mt-10">
-              <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
-              <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
-              <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
-            </div>
-
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={handleApplyNow}
-                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4 ${isApplyDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={isApplyDisabled}
-              >
-                Apply Now
-              </button>
-            </div>
+                  {/* ตรวจสอบว่า scholarship มีค่าหรือไม่ ก่อนที่จะแสดงข้อมูล */}
+                  <h2 className="text-4xl font-bold text-center break-words">
+          {scholarship?.ScholarshipName ?? 'Scholarship not found'}
+        </h2>
+<div className="flex">
+  <div className="w-1/2 p-4"> {/* คอลัมน์ซ้าย */}
+    {scholarship ? (
+      <div className="">
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
+          <ul className="list-disc list-inside text-gray-600">
+            {scholarship.qualifications.map((qualification, index) => (
+              <li key={index}>{qualification.QualificationText}</li>
+            ))}
+          </ul>
+          <div className="mt-2">
+            <h3 className="text-lg font-semibold mb-1">สาขาที่ต้องการ:</h3>
+            <ul className="list-disc list-inside text-gray-600">
+              {scholarship.courses.map((course, index) => (
+                <li key={index}>{course.CourseName}</li>
+              ))}
+            </ul>
           </div>
-        ) : (
-          <p className="text-red-500">Scholarship not found</p>
+        </div>
+        <div className="mt-2">
+          <h3 className="text-lg font-semibold mb-1">เอกสารประกอบการสมัคร:</h3>
+          <ul className="list-disc list-inside text-gray-600">
+            {scholarship.documents.map((document, index) => (
+              <li key={index}>{document.DocumentText}</li>
+            ))}
+          </ul>
+        </div>
+        {documents && documents.length > 0 && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-1">เอกสารอื่นๆ:</h3>
+            <ul className=" list-inside text-gray-600">
+              {documents.map((file, index) => (
+                <li key={index}>
+                  <a
+                    onClick={() => handleDownloadFile(file.FileID, file.FilePath.split('/').pop()!)}
+                    className="text-blue-500 underline cursor-pointer"
+                  >
+                    {file.FilePath.split('/').pop()} {/* Display the filename */}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
+        <div className="mt-10">
+          <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
+          <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
+          <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
+        </div>
+
+     
       </div>
+    ) : (
+      <p className="text-red-500">Scholarship not found</p>
+    )}
+  </div>
+
+  <div className="w-1/2 p-4"> {/* คอลัมน์ขวา */}
+    {imagePath && (
+      <div className="flex justify-center items-start mt-10">
+        <div className="">
+          <img
+            src={imagePath}
+            alt="ไฟล์ประกอบการสมัคร"
+            width={400}
+            height={400}
+            className="rounded-lg shadow-lg"
+          />
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+<div className="mt-4 flex justify-center">
+          {hasApplied ? (
+            <p className="text-green-500 font-semibold text-2xl">สมัครแล้ว</p> 
+          ) : (
+            <button
+              onClick={handleApplyNow}
+              className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-4 ${isApplyDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isApplyDisabled}
+            >
+              Apply Now
+            </button>
+          )}
+        </div>
+        </div>
+
       <Footer />
     </div>
   );

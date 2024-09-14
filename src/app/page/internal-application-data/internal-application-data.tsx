@@ -7,6 +7,8 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; 
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 interface ScholarshipData {
     ScholarshipID: string;
@@ -79,19 +81,22 @@ export default function InternalApplicationDataPage() {
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ลำดับที่</th>
                                     <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
-                                    <th className="border border-gray-300 p-2">รายละเอียด</th>
+                                    <th className="border border-gray-300 p-2">ดำเนินการ</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {scholarships.map((scholarship, index) => (
-                                    <tr
-                                        key={scholarship.ScholarshipID}
-                                        className={`hover:bg-gray-100 cursor-pointer`}
-                                        onClick={() => handleRowClick(scholarship.ScholarshipID)}
-                                    >
+                                    <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
                                         <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                        <td className="border border-gray-300 p-2">{scholarship.ScholarshipName}</td>
-                                        <td className="border border-gray-300 p-2">{scholarship.Description}</td>
+                                        <td className="border border-gray-300 p-2 text-center ">{scholarship.ScholarshipName}</td>
+                                        <td className="border border-gray-300 p-2 text-center">
+                                            <button
+                                                onClick={() => handleRowClick(scholarship.ScholarshipID)}
+                                                className="text-blue-500 hover:text-blue-700"
+                                            >
+                                                <FontAwesomeIcon icon={faEye} size="lg" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

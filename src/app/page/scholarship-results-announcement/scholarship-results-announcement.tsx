@@ -7,12 +7,16 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 interface ScholarshipData {
     ScholarshipID: string;
     ScholarshipName: string;
     Description: string;
+    AnnouncementFile?: string | null; // Optional, as it may not exist
 }
+
 
 export default function ApplicationDataPage() {
     const [scholarships, setScholarships] = useState<ScholarshipData[]>([]);
@@ -38,7 +42,7 @@ export default function ApplicationDataPage() {
                 const scholarshipsWithTypeID1 = response.data
                 setScholarships(scholarshipsWithTypeID1);
                 console.log(scholarshipsWithTypeID1);
-                
+
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
             } finally {
@@ -79,20 +83,36 @@ export default function ApplicationDataPage() {
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
                                     <th className="border border-gray-300 p-2">สถานะ</th>
+                                    <th className="border border-gray-300 p-2">รายละเอียด</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {scholarships.map((scholarship, index) => (
-                                    <tr
-                                        key={scholarship.ScholarshipID}
-                                        className={`hover:bg-gray-100 cursor-pointer text-center`}
-                                        onClick={() => handleRowClick(scholarship.ScholarshipID)}
-                                    >
-                                        <td className="border border-gray-300 p-2">{scholarship.ScholarshipName}</td>
-                                        <td className="border border-gray-300 p-2">{scholarship.Description}</td>
+                                {scholarships.map((scholarship) => (
+                                    <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
+                                        <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName}</td>
+                                        <td className="border border-gray-300 p-2 text-center">
+                                            {scholarship.AnnouncementFile ? "ประกาศแล้ว" : "ยังไม่ประกาศ"}
+                                        </td>
+                                        <td className="border border-gray-300 p-2 text-center">
+                                            <button
+                                                onClick={() => {
+                                                    if (!scholarship.AnnouncementFile) {
+                                                        handleRowClick(scholarship.ScholarshipID);
+                                                    }
+                                                }}
+                                                className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                disabled={!!scholarship.AnnouncementFile} // Convert to boolean to avoid error
+                                            >
+                                                <FontAwesomeIcon icon={faEye} size="lg" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
+
+
+
+
                         </table>
                     </div>
                 </div>

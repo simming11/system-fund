@@ -6,7 +6,8 @@ import AdminHeader from '@/app/components/headerAdmin/headerAdmin';
 import Sidebar from '@/app/components/Sidebar/Sidebar';
 import Footer from '@/app/components/footer/footer';
 import ApiApplicationInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon
+import { faEye } from "@fortawesome/free-solid-svg-icons"; // Import the eye icon
 interface StudentData {
     StudentID: string;
     FirstName: string;
@@ -91,7 +92,21 @@ export default function ScholarshipInternalDetailsPage() {
         router.push(`/page/internal-application-data/user-details/${scholarshipId}?scholarshipId=${studentId}`);
     };
     
+    const calculateAcademicYear = (yearEntry: number | null) => {
+        if (yearEntry === null) return 'N/A';
+        const currentYear = new Date().getFullYear();
+        const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
+        const yearDifference = currentYear - entryYear;
 
+        if (yearDifference === 0) return 'ปี 1';
+        if (yearDifference === 1) return 'ปี 2';
+        if (yearDifference === 2) return 'ปี 3';
+        if (yearDifference === 3) return 'ปี 4';
+        if (yearDifference === 4) return 'ปี 5';
+
+        return 'จบการศึกษาแล้ว'; // For years more than 4
+    };
+    
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -103,11 +118,20 @@ export default function ScholarshipInternalDetailsPage() {
 
     if (!applications || applications.length === 0) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="min-h-screen flex flex-col bg-gray-100">
+                            <HeaderHome />
+                            <AdminHeader />
+                            <div className="flex flex-row">
+                            <div className="bg-white w-1/8 p-4">
+                    <Sidebar />
+                </div>
                 <p className="text-gray-600">Scholarship not found or no students available.</p>
+                            </div>
             </div>
         );
     }
+
+
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
@@ -118,9 +142,8 @@ export default function ScholarshipInternalDetailsPage() {
                     <Sidebar />
                 </div>
                 <div className="bg-white flex-1 w-7/8 p-6">
-                    {/* Display Scholarship Name */}
-                    <h2 className="text-2xl font-semibold mb-6 ">
-                        รายชื่อนิสิต{scholarshipName || 'No Scholarship Name Available'}
+                    <h2 className="text-2xl font-semibold mb-6">
+                        รายชื่อนิสิต {scholarshipName || 'No Scholarship Name Available'}
                     </h2>
 
                     <div className="overflow-x-auto">
@@ -131,53 +154,36 @@ export default function ScholarshipInternalDetailsPage() {
                                     <th className="border border-gray-300 p-2">ชื่อ-สกุล</th>
                                     <th className="border border-gray-300 p-2">ชั้นปี</th>
                                     <th className="border border-gray-300 p-2">สาขา</th>
+                                    <th className="border border-gray-300 p-2">ดูรายละเอียด</th> {/* New column for eye icon */}
                                 </tr>
                             </thead>
-                            {applications.map((app, index) => {
-                                const student = app.student;
+                            <tbody>
+                                {applications.map((app, index) => {
+                                    const student = app.student;
+                                    const scholarshipId = Array.isArray(id) ? id[0] : id;
 
-                                // Ensure the ID is a string by checking if it is an array
-                                const scholarshipId = Array.isArray(id) ? id[0] : id;
-
-                                const yearDifference = student?.Year_Entry
-                                    ? new Date().getFullYear() - student.Year_Entry
-                                    : 'N/A';
-
-                                return (
-                                    <tr
-                                        key={`${student.StudentID}-${index}`} // Use a combination of StudentID and index to ensure uniqueness
-                                        className="hover:bg-gray-100 cursor-pointer"
-                                        onClick={() => {
-                                            // Log the student ID to check if it's correctly retrieved
-                                            console.log('StudentID:', student.StudentID);
-
-                                            // Log the scholarship ID to check if it's correctly retrieved
-                                            console.log('ScholarshipId:', scholarshipId);
-
-                                            if (scholarshipId) {
-                                                // Log before triggering handleRowClick to ensure the values are correct
-                                                console.log('Calling handleRowClick with:', student.StudentID, scholarshipId);
-                                                handleRowClick(student.StudentID, scholarshipId); // Only pass if ScholarshipId exists
-                                            } else {
-                                                console.warn('ScholarshipId is undefined');
-                                            }
-                                        }}
-                                    >
-                                        <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                        <td className="border border-gray-300 p-2">
-                                            {student?.FirstName} {student?.LastName}
-                                        </td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                            {isNaN(yearDifference as any) ? 'N/A' : yearDifference}
-                                        </td>
-                                        <td className="border border-gray-300 p-2 text-center">{student?.Course}</td>
-                                    </tr>
-                                );
-                            })}
-
-
-
-
+                                    return (
+                                        <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
+                                            <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+                                            <td className="border border-gray-300 p-2">
+                                                {student?.FirstName} {student?.LastName}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                {calculateAcademicYear(student?.Year_Entry)}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-center">{student?.Course}</td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                {/* Eye Icon to trigger row click */}
+                                                <FontAwesomeIcon
+                                                    icon={faEye}
+                                                    className="text-blue-500 cursor-pointer"
+                                                    onClick={() => handleRowClick(student.StudentID, scholarshipId)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
                         </table>
                     </div>
                 </div>

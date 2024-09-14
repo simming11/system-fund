@@ -105,6 +105,7 @@ interface ApplicationFilesData {
     DocumentName: string;
     DocumentType: string;
     FilePath: string | File;
+    ExistingFilePath?: string; // เพิ่ม ExistingFilePath (อาจจะไม่มีในบางกรณี)
 }
 
 interface CurrentAddressData extends Address { }
@@ -633,6 +634,10 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         });
 
         sessionStorage.setItem('SetnumberOfSiblings', value.toString());
+        setApplicationData({
+            ...applicationData,
+            NumberOfSiblings: value, // Update the number of siblings in applicationData
+          });
     };
 
 
@@ -782,14 +787,21 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        const updatedFiles = [...application_files];
+    
         if (file) {
-            const updatedFiles = [...application_files];
-            updatedFiles[index].FilePath = file;  // เก็บไฟล์ใน state
-            updatedFiles[index].FileName = file.name; // เก็บชื่อไฟล์ใน state เพื่อแสดงผล
-            setApplicationFiles(updatedFiles);
+            // เก็บไฟล์ใหม่ใน state
+            updatedFiles[index].FilePath = file; 
+        } else {
+            // เก็บ path ไฟล์เดิมใน state
+            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath; 
+            // ใช้ path เดิมหากไม่มี ExistingFilePath
         }
+    
+        setApplicationFiles(updatedFiles);
     };
-
+    
+    
     const addFileEntry = () => {
         setApplicationFiles([
             ...application_files,
@@ -1018,28 +1030,42 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             } catch (error) {
                 console.error('Error updating work experiences data:', error);
             }
-            // Prepare the array for file details, using ApplicationID from the id provided
+
             const ApplicationID = id;
-            const filesDataArray = application_files.map((fileData) => ({
-                DocumentName: fileData.DocumentName || null,
-                DocumentType: fileData.DocumentType || null,
-                FilePath: typeof fileData.FilePath === 'string' ? fileData.FilePath : fileData.FilePath?.name || '', // Use the file name if it's a file object
-                ApplicationID: ApplicationID,
-            }));
 
-            // If filesDataArray is empty, it will still send an empty array, and the backend will handle it.
-            console.log('Updated files array:', JSON.stringify(filesDataArray, null, 2));
-
-            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, filesDataArray)
+            // Create FormData object
+            const formData = new FormData();
+            
+            application_files.forEach((fileData, index) => {
+                formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
+                formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
+                formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
+            
+                // If it's a new file, append it
+                if (fileData.FilePath instanceof File) {
+                    formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
+                } else if (fileData.FilePath) {
+                    // Append existing file path if no new file was uploaded
+                    formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
+                }
+            });
+            
+            // Log the content of the FormData for debugging
+            for (let pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
+            
+            // Update the files using the FormData method
+            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
                     console.log('Files updated successfully:', response);
                 })
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
                 });
+            
 
-            // Log array of data being sent
-            console.log('File data sent:', filesDataArray.length > 0 ? filesDataArray : 'No files to send');
+
 
 
 
@@ -1275,26 +1301,38 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             }
             // Prepare the array for file details, using ApplicationID from the id provided
             const ApplicationID = id;
-            const filesDataArray = application_files.map((fileData) => ({
-                DocumentName: fileData.DocumentName || null,
-                DocumentType: fileData.DocumentType || null,
-                FilePath: typeof fileData.FilePath === 'string' ? fileData.FilePath : fileData.FilePath?.name || '', // Use the file name if it's a file object
-                ApplicationID: ApplicationID,
-            }));
 
-            // If filesDataArray is empty, it will still send an empty array, and the backend will handle it.
-            console.log('Updated files array:', JSON.stringify(filesDataArray, null, 2));
-
-            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, filesDataArray)
+            // Create FormData object
+            const formData = new FormData();
+            
+            application_files.forEach((fileData, index) => {
+                formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
+                formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
+                formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
+            
+                // If it's a new file, append it
+                if (fileData.FilePath instanceof File) {
+                    formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
+                } else if (fileData.FilePath) {
+                    // Append existing file path if no new file was uploaded
+                    formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
+                }
+            });
+            
+            // Log the content of the FormData for debugging
+            for (let pair of formData.entries()) {
+                console.log(pair[0], pair[1]);
+            }
+            
+            // Update the files using the FormData method
+            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
                     console.log('Files updated successfully:', response);
                 })
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
                 });
-
-            // Log array of data being sent
-            console.log('File data sent:', filesDataArray.length > 0 ? filesDataArray : 'No files to send');
+            
 
 
 
@@ -2278,16 +2316,27 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor={`EducationLevel-${index}`} className="block text-gray-700 mb-2">ระดับการศึกษา</label>
-                                    <input
-                                        type="text"
-                                        id={`EducationLevel-${index}`}
-                                        name="EducationLevel"
-                                        value={sibling.EducationLevel}
-                                        onChange={(e) => handleChangeSibling(index, e)}
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
+  <label htmlFor={`EducationLevel-${index}`} className="block text-gray-700 mb-2">ระดับการศึกษา</label>
+  <select
+    id={`EducationLevel-${index}`}
+    name="EducationLevel"
+    value={sibling.EducationLevel}
+    onChange={(e) => handleChangeSibling(index, e)}
+    className="w-full p-3 border border-gray-300 rounded"
+  >
+    <option value="">-- กรุณาเลือกระดับการศึกษา --</option>
+    <option value="ก่อนอนุบาล">ก่อนอนุบาล</option>
+    <option value="อนุบาล">อนุบาล</option>
+    <option value="ประถมศึกษา">ประถมศึกษา</option>
+    <option value="มัธยมศึกษาตอนต้น">มัธยมศึกษาตอนต้น</option>
+    <option value="มัธยมศึกษาตอนปลาย">มัธยมศึกษาตอนปลาย</option>
+    <option value="ปวช.">ปวช.</option>
+    <option value="ปวส.">ปวส.</option>
+    <option value="ปริญญาตรี">ปริญญาตรี</option>
+    <option value="ปริญญาโท">ปริญญาโท</option>
+  </select>
+</div>
+
                                 <div>
                                     <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
                                     <input
@@ -2652,14 +2701,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         type="file"
                                         id={`FilePath-${index}`}
                                         name="FilePath"
-
                                         onChange={(e) => handleFileUpload(index, e)}
                                         className="w-full p-3 border border-gray-300 rounded"
                                     />
-                                    {/* แสดงชื่อไฟล์ที่ถูกเลือก */}
+                                    {/* แสดงชื่อไฟล์ที่ถูกเลือกหรือไฟล์เดิมที่มีอยู่ */}
                                     {typeof file.FilePath === 'string' && (
                                         <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
                                     )}
+
                                 </div>
                                 <div className="flex items-end">
                                     <button
@@ -2762,16 +2811,18 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                 className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 disabled={step === 1}
                             >
-                                Previous
+                                ย้อนกลับ
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setStep(step < 5 ? step + 1 : step)}
-                                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${step === 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                disabled={step === 5}
-                            >
-                                Next
-                            </button>
+                            {step < 5 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(step < 5 ? step + 1 : step)}
+                                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                >
+                                    ถัดไป
+                                </button>
+                            )}
+
                         </div>
 
                         {step === 5 && (
