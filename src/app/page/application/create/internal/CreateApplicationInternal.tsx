@@ -1045,12 +1045,21 @@ const handleChangeApplication = (
           formData.append('ApplicationID', applicationID);
           formData.append('DocumentName', fileData.DocumentName);
           formData.append('DocumentType', fileData.DocumentType);
+      
           if (fileData.FilePath instanceof File) {
             formData.append('FilePath', fileData.FilePath);
           }
+      
+          // Log the formData contents
+          for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+          }
+      
+          // Push the formData to the API service call
           tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
         }
       }
+      
       // Execute all tasks
       await Promise.all(tasks);
 
@@ -1065,7 +1074,7 @@ const handleChangeApplication = (
       sessionStorage.removeItem('currentAddressData');
       sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
-      router.push(`/page/History-Application`);
+      // router.push(`/page/History-Application`);
 
     } catch (error) {
       if (axios.isAxiosError(error)) {

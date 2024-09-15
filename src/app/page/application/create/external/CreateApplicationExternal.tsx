@@ -14,7 +14,7 @@ interface ApplicationExternaldata {
 }
 
 interface ApplicationFilesData {
-    Application_EtID: string;
+  Application_EtID: string;
   DocumentName: string;
   DocumentType: string;
   FilePath: string | File;
@@ -25,7 +25,7 @@ export default function CreateApplicationExternalPage() {
   const id = searchParams.get('scholarshipId');
   const idStudent = localStorage.getItem('UserID');
   console.log(idStudent);
-  
+
   const router = useRouter();
 
 
@@ -35,7 +35,7 @@ export default function CreateApplicationExternalPage() {
     ApplicationDate: '',
     Status: 'รออนุมัติ',
   });
-  
+
 
 
   const [applicationFiles, setApplicationFiles] = useState<ApplicationFilesData[]>([
@@ -100,7 +100,6 @@ export default function CreateApplicationExternalPage() {
     setApplicationFiles(updatedFiles);
   };
 
-  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -114,49 +113,43 @@ export default function CreateApplicationExternalPage() {
 
         // Create the application and retrieve the Application_EtID
         console.log(updatedApplicationData);
-        
+
         const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
         const Application_EtID = applicationResponse.Application_EtID;
 
         const tasks: Promise<any>[] = [];
+      
+        if (applicationFiles.length > 0) {
+            for (const fileData of applicationFiles) {
+                const formData = new FormData();
 
-// Submit application files
-if (applicationFiles.length > 0) {
-  for (const fileData of applicationFiles) {
-    const formData = new FormData();
+                // Append the Application_EtID
+                formData.append('Application_EtID', Application_EtID); // Ensure the backend expects Application_EtID
 
-    // Log the Application_EtID and file data details
-    console.log('Submitting file for Application_EtID:', Application_EtID);
-    console.log('File Data:', {
-      DocumentName: fileData.DocumentName,
-      DocumentType: fileData.DocumentType,
-      FilePath: fileData.FilePath instanceof File ? fileData.FilePath.name : fileData.FilePath,
-      Application_EtID: Application_EtID  // Log the Application_EtID
-    });
+                // Append Document details
+                formData.append('DocumentName', fileData.DocumentName);
+                formData.append('DocumentType', fileData.DocumentType);
 
-    // Append Application_EtID and file data to FormData
-    formData.append('Application_EtID', Application_EtID);  // Append ID here
-    formData.append('DocumentName', fileData.DocumentName);
-    formData.append('DocumentType', fileData.DocumentType);
+                // Append the file
+                if (fileData.FilePath instanceof File) {
+                    formData.append('FilePath', fileData.FilePath);
+                }
 
-    if (fileData.FilePath instanceof File) {
-      formData.append('FilePath', fileData.FilePath);
-      console.log('Appending file:', fileData.FilePath.name);  // Log the file name being appended
-    }
+                // Log the FormData contents for debugging
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
 
-    // Push the task for file submission
-    tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
-    console.log('Task added for file submission');  // Log when the task is added
-  }
-      }
+                // Send the formData using your API service
+                tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
+            }
+        }
+
         // Execute all tasks
         await Promise.all(tasks);
 
         console.log('All data submitted successfully.');
-
         sessionStorage.clear();
-        // Navigate to the application page with status=บันทึกแล้ว
-        // router.push(`/page/History-Application`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             setError('Validation error: ' + error.response?.data.message);
@@ -168,80 +161,81 @@ if (applicationFiles.length > 0) {
 };
 
 
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <div className="flex-1 container mx-auto px-4 py-8">
-      <div>
-            {applicationFiles.map((file, index) => (
-              <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
-                <div>
-                  <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
-                  <select
-                    id={`DocumentType-${index}`}
-                    name="DocumentType"
-                    value={file.DocumentType}
-                    onChange={(e) => handleFileChange(index, e)}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  >
-                    <option value="">เลือกประเภทไฟล์</option>
-                    <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
-                    <option value="ผลการเรียน">ผลการเรียน</option>
-                    <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
-                  <input
-                    type="text"
-                    id={`DocumentName-${index}`}
-                    name="DocumentName"
-                    value={file.DocumentName}
-                    onChange={(e) => handleFileChange(index, e)}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
-                  <input
-                    type="file"
-                    id={`FilePath-${index}`}
-                    name="FilePath"
-                    onChange={(e) => handleFileUpload(index, e)}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={() => removeFileEntry(index)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                  >
-                    ลบ
-                  </button>
-                </div>
+        <div>
+          {applicationFiles.map((file, index) => (
+            <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
+              <div>
+                <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
+                <select
+                  id={`DocumentType-${index}`}
+                  name="DocumentType"
+                  value={file.DocumentType}
+                  onChange={(e) => handleFileChange(index, e)}
+                  className="w-full p-3 border border-gray-300 rounded"
+                >
+                  <option value="">เลือกประเภทไฟล์</option>
+                  <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
+                  <option value="ผลการเรียน">ผลการเรียน</option>
+                  <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
+                </select>
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={addFileEntry}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              เพิ่มไฟล์
-            </button>
-          </div>
+              <div>
+                <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
+                <input
+                  type="text"
+                  id={`DocumentName-${index}`}
+                  name="DocumentName"
+                  value={file.DocumentName}
+                  onChange={(e) => handleFileChange(index, e)}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
+              <div>
+                <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+                <input
+                  type="file"
+                  id={`FilePath-${index}`}
+                  name="FilePath"
+                  onChange={(e) => handleFileUpload(index, e)}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => removeFileEntry(index)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  ลบ
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addFileEntry}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            เพิ่มไฟล์
+          </button>
+        </div>
         <div className="bg-white shadow-md rounded-lg p-6">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <form onSubmit={handleSubmit}>
 
-              <div className="flex justify-end mt-6">
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                  Submit
-                </button>
-              </div>
+            <div className="flex justify-end mt-6">
+              <button
+                type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                Submit
+              </button>
+            </div>
 
 
           </form>

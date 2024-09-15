@@ -57,6 +57,22 @@ export default function StudentDataPage() {
         router.push(`/page/student-data/${studentId}`);
     };
 
+    const calculateAcademicYear = (yearEntry: number | null) => {
+        if (yearEntry === null) return 'N/A';
+        const currentYear = new Date().getFullYear();
+        const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
+        const yearDifference = currentYear - entryYear;
+
+        if (yearDifference === 0) return 'ปี 1';
+        if (yearDifference === 1) return 'ปี 2';
+        if (yearDifference === 2) return 'ปี 3';
+        if (yearDifference === 3) return 'ปี 4';
+        if (yearDifference === 4) return 'ปี 5';
+
+        return 'จบการศึกษาแล้ว'; // For years more than 4
+    };
+
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -94,8 +110,8 @@ export default function StudentDataPage() {
                                         <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
                                         <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
                                         <td className="border border-gray-300 p-2 text-center">
-                                            {new Date().getFullYear() - student.Year_Entry }
-                                        </td>
+                                                {calculateAcademicYear(student?.Year_Entry)}
+                                            </td>
                                         <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             <button

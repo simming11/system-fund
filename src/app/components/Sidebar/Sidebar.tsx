@@ -138,7 +138,7 @@ const Sidebar = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/scholarship-summary-report" className="text-gray-700 hover:text-blue-500">
+                <Link href="/page/scholarship-summary-report" className="text-gray-700 hover:text-blue-500">
                   รายงานสรุปทุนการศึกษา
                 </Link>
               </li>

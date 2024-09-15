@@ -381,8 +381,8 @@ const handleSubmit = async () => {
                         onChange={(e) => handleStatusChange(index, e)}
                         className="p-2 border border-gray-300 rounded">
                         <option value="">เลือก</option>
-                        <option value="อนุมัติ">อนุมัติ</option>
-                        <option value="ไม่อนุมัติ">ไม่อนุมัติ</option>
+                        <option value="ได้รับทุน">ได้รับทุน</option>
+                        <option value="ไม่ได้รับทุน">ไม่ได้รับทุน</option>
                     </select>
                 </td>
             </tr>
