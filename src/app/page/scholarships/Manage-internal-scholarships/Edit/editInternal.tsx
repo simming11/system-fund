@@ -428,7 +428,7 @@ export default function EditInternalScholarshipPage() {
               <div className="mb-4">
               
                   <>
-                    <div className="mb-4">
+                    <div className="w-full md:w-1/1 px-4 mb-4">
                       <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
                       <input
                         type="text"
@@ -438,6 +438,79 @@ export default function EditInternalScholarshipPage() {
                         onChange={handleChange}
                         className="w-5/6 p-3 border border-gray-300 rounded"
                       />
+                    </div>
+
+                    <div className="flex flex-wrap">
+                      <div className="w-full md:w-1/2 px-4 mb-4">
+                        <div className="mb-4">
+                          <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                          <select
+                            id="Year"
+                            name="Year"
+                            value={formData.Year}
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded"
+                          >
+                            {Array.from({ length: 18 }, (_, i) => (
+                              <option key={2563 + i} value={2563 + i}>
+                                {2563 + i}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-1/2 px-4 mb-4">
+                        <div className="mb-4">
+                          <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                          <select
+                            id="YearLevel"
+                            name="YearLevel"
+                            value={formData.YearLevel}
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded"
+                          >
+                            {[
+                              { value: "1", label: "ปี 1" },
+                              { value: "2", label: "ปี 2" },
+                              { value: "3", label: "ปี 3" },
+                              { value: "1-4", label: "ทุกชั้นปี" },
+                              { value: "2-4", label: "2ขึ้นไป" },
+                              { value: "3-4", label: "3ขึ้นไป" },
+
+                            ].map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="w-full md:w-1/2 px-4 mb-4">
+                        <div className="mb-4">
+                          <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
+                          <input
+                            type="number"
+                            id="Num_scholarship"
+                            name="Num_scholarship"
+                            value={formData.Num_scholarship}
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
+                      <div className="w-full md:w-1/2 px-4 mb-4">
+                        <div className="mb-4">
+                          <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
+                          <input
+                            type="number"
+                            id="Minimum_GPA"
+                            name="Minimum_GPA"
+                            value={formData.Minimum_GPA}
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div className="mb-4">
@@ -530,78 +603,7 @@ export default function EditInternalScholarshipPage() {
                       </div>
                     </div>
 
-                    <div className="flex">
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
-                          <select
-                            id="Year"
-                            name="Year"
-                            value={formData.Year}
-                            onChange={handleChange}
-                            className="w-2/5 p-3 border border-gray-300 rounded"
-                          >
-                            {Array.from({ length: 18 }, (_, i) => (
-                              <option key={2563 + i} value={2563 + i}>
-                                {2563 + i}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
-                          <select
-                            id="YearLevel"
-                            name="YearLevel"
-                            value={formData.YearLevel}
-                            onChange={handleChange}
-                            className="w-2/5 p-3 border border-gray-300 rounded"
-                          >
-                            {[
-                              { value: "1", label: "ปี 1" },
-                              { value: "2", label: "ปี 2" },
-                              { value: "3", label: "ปี 3" },
-                              { value: "1-4", label: "ทุกชั้นปี" },
-                              { value: "2-4", label: "2ขึ้นไป" },
-                              { value: "3-4", label: "3ขึ้นไป" },
 
-                            ].map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
-                          <input
-                            type="number"
-                            id="Num_scholarship"
-                            name="Num_scholarship"
-                            value={formData.Num_scholarship}
-                            onChange={handleChange}
-                            className="w-1/5 p-3 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
-                          <input
-                            type="number"
-                            id="Minimum_GPA"
-                            name="Minimum_GPA"
-                            value={formData.Minimum_GPA}
-                            onChange={handleChange}
-                            className="w-1/5 p-3 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="mb-4">
                       <label className="block text-gray-700 mb-2">คุณสมบัติ</label>

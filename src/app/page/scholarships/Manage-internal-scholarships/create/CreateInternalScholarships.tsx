@@ -17,7 +17,6 @@ export default function CreateInternalScholarshipPage() {
     Year: "",
     YearLevel: "",
     Num_scholarship: "",
-    Minimum_GPA: "",
     // Add other fields as needed
   });
 
@@ -53,7 +52,8 @@ export default function CreateInternalScholarshipPage() {
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
   const [error, setError] = useState("");
-
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
+  const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
@@ -96,7 +96,7 @@ export default function CreateInternalScholarshipPage() {
         });
       }
 
-      console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+     
     } catch (error) {
       console.error('Error fetching line notifies:', error);
     }
@@ -157,70 +157,138 @@ export default function CreateInternalScholarshipPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    // ถ้าเป็น Minimum_GPA ให้ตรวจสอบค่า
+  
+    // If the field is "Minimum_GPA", validate it
     if (name === "Minimum_GPA") {
+      // Allow users to type and see validation immediately without truncating their input
       let gpa = parseFloat(value);
-
-      // ตรวจสอบค่ามากกว่าเท่ากับ 1 และน้อยกว่า 4
-      if (gpa >= 1 && gpa < 4) {
-        // ตรวจสอบทศนิยมไม่เกิน 2 ตำแหน่ง
-        const truncatedGPA = Math.floor(gpa * 100) / 100; // ตัดทศนิยมเกิน 2 ตำแหน่ง
+  
+      // Allow any value input, but show an error if it's out of the valid range
+      if (!isNaN(gpa)) {
+        if (gpa < 1 || gpa > 4) {
+          setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
+        } else {
+          setError(""); // Clear error when value is valid
+  
+          // Truncate GPA to 2 decimal places without rounding
+          const truncatedGPA = Math.floor(gpa * 100) / 100; // Truncate to 2 decimal places
+          setFormData({
+            ...formData,
+            [name]: truncatedGPA.toString(),
+          });
+        }
+      } else if (value === "") {
+        setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00"); // Handle empty input
         setFormData({
           ...formData,
-          [name]: truncatedGPA.toString(),
+          [name]: "", // Allow the user to clear the input
         });
-        setError(""); // ล้างข้อความแจ้งเตือนเมื่อกรอกค่าถูกต้อง
-      } else {
-        // หากไม่ผ่านเงื่อนไข จะแจ้งข้อผิดพลาดหรือไม่อัพเดตค่า
-        setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
       }
     } else {
+      // Update form data for other fields
       setFormData({
         ...formData,
         [name]: value,
       });
     }
   };
+  
+  
 
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    if (e.target.files) {
-      const newFiles = [...formData.Files];
-      newFiles[index] = e.target.files[0];
-      setFormData({
-        ...formData,
-        Files: newFiles,
-      });
+ // Handle file selection
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  if (e.target.files && e.target.files.length > 0) {
+    const file = e.target.files[0];
+    
+    // Check if the file is a PDF
+    if (file.type !== 'application/pdf') {
+      const newErrors = [...fileErrors];
+      newErrors[index] = 'กรุณาอัพโหลดเฉพาะไฟล์ PDF';
+      setFileErrors(newErrors);
+      return;
     }
-  };
+
+    // Check if file size is less than 20MB
+    const fileSizeInMB = file.size / 1024 / 1024;
+    if (fileSizeInMB > 20) {
+      const newErrors = [...fileErrors];
+      newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
+      setFileErrors(newErrors);
+      return;
+    }
+
+    // If no error, clear any existing errors for this index
+    const newErrors = [...fileErrors];
+    newErrors[index] = ''; // Clear error
+    setFileErrors(newErrors);
+
+    // Update file in form data
+    const newFiles = [...formData.Files];
+    newFiles[index] = file; // Update the selected file at the given index
+    setFormData({
+      ...formData,
+      Files: newFiles,  // Update the form data with the new file array
+    });
+  }
+};
+
+// Add a new file input
+const handleAddFileInput = () => {
+  setFileInputs([...fileInputs, fileInputs.length]); // Add a new index for a new file input
+  setFileErrors([...fileErrors, '']); // Add a blank error message slot for the new file
+};
+
+// Remove an existing file input
+const handleRemoveFileInput = (index: number) => {
+  const newFileInputs = fileInputs.filter((_, i) => i !== index); // Remove the file input at the given index
+  const newFiles = formData.Files.filter((_: any, i: number) => i !== index);  // Remove the corresponding file in the form data
+  const newErrors = fileErrors.filter((_, i) => i !== index); // Remove the corresponding error message
+  setFileInputs(newFileInputs); // Update the file inputs
+  setFileErrors(newErrors); // Update the errors
+  setFormData({
+    ...formData,
+    Files: newFiles,  // Update the form data without the removed file
+  });
+};
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const imageFile = e.target.files[0];
+
+      // Check file size (limit to 20MB)
+      const fileSizeInMB = imageFile.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 20MB"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // Check file type (image)
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!validImageTypes.includes(imageFile.type)) {
+        setErrorMessage("กรุณาอัพโหลดเฉพาะไฟล์รูปภาพ (JPEG, PNG, GIF)"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // If no error, clear the error message and store the image
+      setErrorMessage(null);
+
+      // Store the image file directly in formData
       setFormData((prevFormData: any) => ({
         ...prevFormData,
-        Image: imageFile,  // เก็บไฟล์รูปภาพโดยตรงใน formData ไม่ใช่ในรูปแบบ array
+        Image: imageFile, // Store the image file directly
       }));
+
+      console.log("Image file selected:", imageFile);
     }
   };
 
 
 
 
-  const handleAddFileInput = () => {
-    setFileInputs([...fileInputs, fileInputs.length]);
-  };
 
-  const handleRemoveFileInput = (index: number) => {
-    const newFileInputs = fileInputs.filter((_, i) => i !== index);
-    const newFiles = formData.Files.filter((_: any, i: number) => i !== index);
-    setFileInputs(newFileInputs);
-    setFormData({
-      ...formData,
-      Files: newFiles,
-    });
-  };
+
 
 
 
@@ -254,7 +322,7 @@ export default function CreateInternalScholarshipPage() {
     }
 
     const minimumGPA = Number(formData.Minimum_GPA);
-    if (!formData.Minimum_GPA || isNaN(minimumGPA) || minimumGPA < 1.00 || minimumGPA > 4.00) {
+    if (!formData.Minimum_GPA || isNaN(minimumGPA) || minimumGPA < 1.00 || minimumGPA >= 4.00) {
       setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
       return;
     }
@@ -446,7 +514,7 @@ export default function CreateInternalScholarshipPage() {
               <div className="mb-4">
                 <>
                   <div className="w-full md:w-1/1 px-4 mb-4">
-                    <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
+                    <label htmlFor="ScholarshipName" className="block  mb-2">ชื่อทุนการศึกษา</label>
                     <input
                       type="text"
                       id="ScholarshipName"
@@ -460,7 +528,7 @@ export default function CreateInternalScholarshipPage() {
                   <div className="flex flex-wrap">
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                        <label htmlFor="Year" className="block  mb-2">ปีการศึกษา</label>
                         <select
                           id="Year"
                           name="Year"
@@ -493,13 +561,13 @@ export default function CreateInternalScholarshipPage() {
 
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                        <label htmlFor="YearLevel" className="block  mb-2">ชั้นปี</label>
                         <select
                           id="YearLevel"
                           name="YearLevel"
                           value={formData.YearLevel}
                           onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"
+                          className="w-full p-3 border border-gray-300  rounded"
                         >
                           <option value="" disabled>เลือกชั้นปี</option>
                           <option value="1">1</option>
@@ -515,7 +583,7 @@ export default function CreateInternalScholarshipPage() {
 
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
+                        <label htmlFor="Num_scholarship" className="block  mb-2">จำนวนทุน</label>
                         <input
                           type="number"
                           id="Num_scholarship"
@@ -528,25 +596,27 @@ export default function CreateInternalScholarshipPage() {
                     </div>
 
                     <div className="w-full md:w-1/2 px-4 mb-4">
-                      <div className="mb-4">
-                        <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
-                        <input
-                          type="number"
-                          id="Minimum_GPA"
-                          name="Minimum_GPA"
-                          step="0.01" // Allow decimal inputs
-                          min="1" // Minimum value
-                          max="4" // Maximum value
-                          value={formData.Minimum_GPA}
-                          onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"// เปลี่ยนสีขอบหากมีข้อผิดพลาด
-                        />
-                      </div>
-                    </div>
+    <div className="mb-4">
+      <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
+      <input
+        type="number"
+        id="Minimum_GPA"
+        name="Minimum_GPA"
+        step="0.01"
+        min="1"
+        max="4"
+        value={formData.Minimum_GPA}
+        onChange={handleChange}
+        className="w-full p-3 border border-gray-300 rounded"
+      />
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>} {/* Display error message if there's an error */}
+    </div>
+  </div>
 
                   </div>
+
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">สาขาวิชา</label>
+                    <label className="block  mb-2">สาขาวิชา</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -637,7 +707,7 @@ export default function CreateInternalScholarshipPage() {
 
 
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">คุณสมบัติ</label>
+                    <label className="block  mb-2">คุณสมบัติ</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -724,7 +794,7 @@ export default function CreateInternalScholarshipPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">เอกสารประกอบการสมัคร</label>
+                    <label className="block  mb-2">เอกสารประกอบการสมัคร</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -811,59 +881,69 @@ export default function CreateInternalScholarshipPage() {
                   </div>
 
                   <div className="flex ...">
-                    <div className="w-1/2 ...">
-                      <div className="mb-4">
-                        {showSection.files && (
-                          <>
-                            {fileInputs.map((_, index) => (
-                              <div className="mb-4" key={index}>
-                                <label htmlFor={`Files-${index}`} className="block text-gray-700 mb-2">อัพโหลดไฟล์</label>
-                                <input
-                                  type="file"
-                                  id={`Files-${index}`}
-                                  name="Files"
-                                  onChange={(e) => handleFileChange(e, index)}
-                                  className="w-1/3 p-3 border border-gray-300 rounded"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveFileInput(index)}
-                                  className="bg-red-500 text-white px-2 py-1 rounded ml-2"
-                                >
-                                  ลบ
-                                </button>
-                              </div>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={handleAddFileInput}
-                              className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-600 mt-2"
-                            >
-                              เพิ่มอัพโหลดไฟล์
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                  <div className="w-1/2">
+    <div className="mb-4">
+      {showSection.files && (
+        <>
+          {fileInputs.map((_, index) => (
+            <div className="mb-4" key={index}>
+              <label htmlFor={`Files-${index}`} className="block mb-2">
+                อัพโหลดไฟล์ {index + 1}
+              </label>
+              <input
+                type="file"
+                id={`Files-${index}`}
+                name="Files"
+                accept="application/pdf" // Allow only PDF files
+                onChange={(e) => handleFileChange(e, index)}
+                className="w-1/3 p-3 border border-gray-300 rounded"
+              />
+              {fileErrors[index] && (
+                <p className="text-red-500 text-sm mt-1">{fileErrors[index]}</p> // Display error message if exists
+              )}
+              <button
+                type="button"
+                onClick={() => handleRemoveFileInput(index)}
+                className="bg-red-500 text-white px-2 py-1 rounded ml-2"
+              >
+                ลบ
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddFileInput}
+            className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-600 mt-2"
+          >
+            เพิ่มอัพโหลดไฟล์
+          </button>
+        </>
+      )}
+    </div>
+  </div>
 
-                    <div className="w-1/2 ...">
+                    <div className="w-1/2">
                       <div className="mb-4">
-                        <label htmlFor="Image" className="block text-gray-700 mb-2">อัพโหลดรูปภาพ</label>
+                        <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
                         <input
                           type="file"
                           id="Image"
                           name="Image"
+                          accept="image/*" // Only allow image types
                           onChange={handleImageChange}
                           className="w-1/3 p-3 border border-gray-300 rounded"
                         />
+                        {/* Display error message */}
+                        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
                       </div>
                     </div>
+
                   </div>
 
                   <div className="flex ...">
                     <div className="w-1/2 ...">
                       <div className="mb-4">
-                        <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
+                        <label htmlFor="StartDate" className="block  mb-2">วันที่เริ่ม</label>
                         <input
                           type="date"
                           id="StartDate"
@@ -877,7 +957,7 @@ export default function CreateInternalScholarshipPage() {
 
                     <div className="w-1/2 ...">
                       <div className="mb-4">
-                        <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                        <label htmlFor="EndDate" className="block  mb-2">วันที่สิ้นสุด</label>
                         <input
                           type="date"
                           id="EndDate"
