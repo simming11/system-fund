@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ApiAuthService from '@/app/services/auth/ApiAuth';
+import Swal from 'sweetalert2';  // Import SweetAlert2
 
 const Sidebar = () => {
   const [isScholarshipOpen, setScholarshipOpen] = useState(true);
   const [isApplicationOpen, setApplicationOpen] = useState(true);
-  const [showLogoutModal, setShowLogoutModal] = useState(false); // Modal for logout confirmation
   const [hasToken, setHasToken] = useState(false);
   const [hasUserRole, setUserRole] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false); // State for mobile sidebar toggle
@@ -21,7 +21,6 @@ const Sidebar = () => {
     }
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Check if the sidebarRef.current exists and if the click was outside the sidebar
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setSidebarOpen(false);
       }
@@ -33,35 +32,41 @@ const Sidebar = () => {
     };
   }, []);
 
-  // Function to confirm logout
-  const confirmLogout = async () => {
-    try {
-      await ApiAuthService.logout();
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        router.push('/page/control');
-      }
-      setHasToken(false);
-      setShowLogoutModal(false); // Close modal after logout
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-  };
-
-  // Cancel the logout action and close the modal
-  const cancelLogout = () => {
-    setShowLogoutModal(false);
-  };
-
-  // Show the logout modal when logout button is clicked
+  // Function to confirm logout using SweetAlert
   const handleLogoutClick = () => {
-    setShowLogoutModal(true);
+    Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถยกเลิกการกระทำนี้ได้!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "ใช่, ออกจากระบบ!",
+      cancelButtonText: "ยกเลิก"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await ApiAuthService.logout();
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            router.push('/page/control');
+          }
+          Swal.fire({
+            title: "ออกจากระบบเรียบร้อย!",
+            text: "คุณได้ออกจากระบบเรียบร้อยแล้ว.",
+            icon: "success"
+          });
+        } catch (error) {
+          console.error('ออกจากระบบล้มเหลว', error);
+        }
+      }
+    });
   };
+  
 
   return (
     <div className=" ">
       <div className="flex flex-col h-screen">
-
         <div className="lg:hidden p-4 bg-white shadow-md">
           <button
             className="text-gray-700 hover:text-blue-500"
@@ -73,7 +78,7 @@ const Sidebar = () => {
 
         <div
           ref={sidebarRef}
-          className={`lg:static lg:w-64 lg:flex lg:flex-col lg:bg-white  lg:rounded-md transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 w-64 p-6 bg-white  z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`lg:static lg:w-64 lg:flex lg:flex-col lg:bg-white lg:rounded-md transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 w-64 p-6 bg-white z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0`}
         >
           <div>
@@ -161,29 +166,6 @@ const Sidebar = () => {
             ออกจากระบบ
           </button>
         </div>
-
-        {/* Logout Confirmation Modal */}
-        {showLogoutModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
-            <div className="bg-white p-6 rounded-md shadow-md text-center">
-              <h2 className="text-lg font-semibold mb-4">ยืนยันการออกจากระบบ?</h2>
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={confirmLogout}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                >
-                  ยืนยัน
-                </button>
-                <button
-                  onClick={cancelLogout}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                >
-                  ยกเลิก
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

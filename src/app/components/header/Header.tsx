@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ApiService from '@/app/services/auth/ApiAuth';
 import { UserIcon } from '@heroicons/react/16/solid';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
+import Swal from 'sweetalert2';
 
 interface User {
   StudentID?: string;
@@ -23,6 +24,7 @@ const Header = () => {
   const scholarshipDropdownRef = useRef<HTMLDivElement>(null); // For the scholarship dropdown
   const router = useRouter();
   const [userData, setUserData] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // New loading state
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,7 +44,11 @@ const Header = () => {
             setUser({ ...response.data, role: 'student' });
           } catch (error) {
             console.error('Error fetching user data', error);
+          } finally {
+            setLoading(false); // Set loading to false after fetching user data
           }
+        } else {
+          setLoading(false); // Set loading to false if no token or userRole
         }
       }
     };
@@ -73,9 +79,43 @@ const Header = () => {
   };
 
   const handleLogoutClick = () => {
-    setShowLogoutModal(true);
+    Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถยกเลิกการกระทำนี้ได้!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "ใช่, ออกจากระบบ!",
+      cancelButtonText: "ยกเลิก"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await ApiService.logout();  // ใช้ ApiService แทน ApiAuthService ในโค้ดนี้
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+            router.push('/');
+          }
+          Swal.fire({
+            title: "ออกจากระบบเรียบร้อย!",
+            text: "คุณได้ออกจากระบบเรียบร้อยแล้ว.",
+            icon: "success"
+          });
+        } catch (error) {
+          console.error('ออกจากระบบล้มเหลว', error);
+        }
+      }
+    });
   };
-
+  
+  if (loading) {
+    return (
+      <header className="bg-white p-4 flex justify-center items-center fixed w-full">
+        <div className="loader border-t-4 border-blue-500 rounded-full w-8 h-8 animate-spin"></div>
+      </header>
+    );
+  }
   const confirmLogout = async () => {
     try {
       await ApiService.logout();
@@ -94,7 +134,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-md p-4 flex justify-between items-center relative">
+    <header className="bg-white  p-4 flex justify-between items-center  fixed relative">
       <div className="flex items-center">
         <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
         <nav className="hidden md:flex space-x-4">

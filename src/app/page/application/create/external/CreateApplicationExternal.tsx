@@ -150,6 +150,7 @@ export default function CreateApplicationExternalPage() {
 
         console.log('All data submitted successfully.');
         sessionStorage.clear();
+        router.push(`/page/History-Application`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             setError('Validation error: ' + error.response?.data.message);

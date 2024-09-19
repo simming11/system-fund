@@ -38,7 +38,7 @@ export default function AdminPage() {
             <h1 className="text-4xl font-bold">จัดการทุนการศึกษา</h1>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-full">
-            <Link href="/page/scholarships/Manage-internal-scholarships">
+            <Link href="scholarships/Manage-internal-scholarships">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
                   src="/images/internal-scholarship.png"
@@ -50,7 +50,7 @@ export default function AdminPage() {
                 <h3 className="text-md font-semibold text-center mt-2">จัดการทุนการศึกษาภายใน</h3>
               </div>
             </Link>
-            <Link href="/page/scholarships/Manage-external-scholarships">
+            <Link href="scholarships/Manage-external-scholarships">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
                   src="/images/external-scholarship.png"
@@ -62,7 +62,7 @@ export default function AdminPage() {
                 <h3 className="text-md font-semibold text-center mt-2">จัดการทุนการศึกษาภายนอก</h3>
               </div>
             </Link>
-            <Link href="/scholarship-results-announcement">
+            <Link href="scholarship-results-announcement">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
                   src="/images/results.png"
@@ -74,7 +74,7 @@ export default function AdminPage() {
                 <h3 className="text-md font-semibold text-center mt-2">ประกาศผลทุนการศึกษา</h3>
               </div>
             </Link>
-            <Link href="/student-data">
+            <Link href="student-data">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
                   src="/images/student-data.png"
@@ -86,7 +86,7 @@ export default function AdminPage() {
                 <h3 className="text-md font-semibold text-center mt-2">ข้อมูลนิสิต</h3>
               </div>
             </Link>
-            <Link href="/scholarship-summary-report">
+            <Link href="scholarship-summary-report">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
                   src="/images/report.png"

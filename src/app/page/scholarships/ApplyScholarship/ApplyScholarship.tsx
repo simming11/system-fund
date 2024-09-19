@@ -9,8 +9,9 @@ import HeaderHome from '@/app/components/headerHome/headerHome';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
-import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices'; // New: Check if student applied for scholarships
+import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices'; 
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
+import styles from './ApplyScholarships.module.css'; // Import styles
 
 interface Student {
   StudentID: string;
@@ -40,10 +41,10 @@ export default function ApplyScholarShipsPage() {
   const [appliedScholarships, setAppliedScholarships] = useState<number[]>([]); // New: Track applied scholarships
   const [loading, setLoading] = useState(true); // Ensure loading state is properly managed
   const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [openScholarships, setOpenScholarships] = useState<Scholarship[]>([]);
   const [closedScholarships, setClosedScholarships] = useState<Scholarship[]>([]);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Fetch all scholarships and student applications
   useEffect(() => {
@@ -84,10 +85,9 @@ export default function ApplyScholarShipsPage() {
           return now < start || now > end;
         });
 
-
         setScholarships(updatedScholarships);
         setOpenScholarships(openScholarships);
-        setClosedScholarships(closedScholarships)
+        setClosedScholarships(closedScholarships);
         setRecommendedScholarships(updatedScholarships.slice(0, 1)); // Recommend the first scholarship
         setAllScholarships(updatedScholarships); // Initialize all scholarships
       } catch (error) {
@@ -101,39 +101,42 @@ export default function ApplyScholarShipsPage() {
       try {
         const StudentID = localStorage.getItem('UserID');
         if (StudentID) {
-          // เรียก API ภายในและภายนอกพร้อมกันโดยใช้ Promise.all
           const [internalApplications, externalApplications] = await Promise.all([
             ApiApplicationServices.showByStudentId(StudentID),  // API สำหรับภายใน
             ApiApplicationExternalServices.showByStudent(StudentID)  // API สำหรับภายนอก
           ]);
-    
-          // รวบรวม ScholarshipID จากทั้งสอง API
+
           const appliedScholarshipIdsInternal = internalApplications.map((application: { ScholarshipID: any; }) => application.ScholarshipID);
           const appliedScholarshipIdsExternal = externalApplications.map((application: { ScholarshipID: any; }) => application.ScholarshipID);
-    
-          // รวม ScholarshipID จากทั้งสองแหล่งข้อมูล
+
           const allAppliedScholarshipIds = [...appliedScholarshipIdsInternal, ...appliedScholarshipIdsExternal];
-          console.log('Applied Scholarship IDs:', allAppliedScholarshipIds);
-    
-          // อัปเดต state ถ้ามี ScholarshipID ที่พบ
-          if (allAppliedScholarshipIds.length > 0) {
-            setAppliedScholarships(allAppliedScholarshipIds); // เก็บ IDs ของทุนการศึกษาที่สมัครแล้ว
-          } else {
-            console.warn('No applications found.');
-            setAppliedScholarships([]); // ตั้งค่าเป็นอาเรย์ว่างถ้าไม่มีการสมัคร
-          }
+          setAppliedScholarships(allAppliedScholarshipIds);
         } else {
           console.warn('No StudentID found in localStorage');
         }
       } catch (error) {
         console.error('Error fetching applied scholarships:', error);
-        setAppliedScholarships([]); // ตั้งค่าเป็นอาเรย์ว่างในกรณีที่เกิดข้อผิดพลาด
+        setAppliedScholarships([]);
       }
     };
-    
 
     fetchScholarshipsData();
     fetchAppliedScholarships();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // Fetch student data by ID and set student state
@@ -158,7 +161,6 @@ export default function ApplyScholarShipsPage() {
     fetchStudentData();
   }, [router]);
 
-  // Function to check if a scholarship is already applied
   const hasApplied = (scholarshipID: number) => {
     return appliedScholarships.includes(scholarshipID);
   };
@@ -187,7 +189,9 @@ export default function ApplyScholarShipsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <HeaderHome />
-      <Header />
+      <div className={isScrolled ? styles.scrolledHeader : ''}>
+        <Header />
+      </div>
       <div className="container mx-auto px-4 py-8">
         <main className="flex-1">
           {localStorage.getItem('UserID') && recommendedScholarships.length > 0 && (
@@ -222,7 +226,6 @@ export default function ApplyScholarShipsPage() {
                   <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
                   <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
 
-                  {/* Conditionally display "สมัครแล้ว" if the student has already applied */}
                   {hasApplied(scholarship.ScholarshipID) ? (
                     <p className="text-green-500 font-semibold">สมัครแล้ว</p>
                   ) : (
@@ -232,53 +235,54 @@ export default function ApplyScholarShipsPage() {
               </Link>
             ))}
           </div>
+
           <main className="flex-1">
-          {openScholarships.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่เปิดรับอยู่</h2>
-              <div className="flex flex-wrap justify-start">
-                {openScholarships.map((scholarship) => (
-                  <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
-                    <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-                    <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                  <p className="text-gray-600">{scholarship.Description}</p>
-                  <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+            {openScholarships.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่เปิดรับอยู่</h2>
+                <div className="flex flex-wrap justify-start">
+                  {openScholarships.map((scholarship) => (
+                    <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                      <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                        <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+                        <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                        <p className="text-gray-600">{scholarship.Description}</p>
+                        <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
+                        <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
 
-                      {hasApplied(scholarship.ScholarshipID) ? (
-                        <p className="text-green-500 font-semibold">สมัครแล้ว</p>
-                      ) : ""}
-                    </a>
-                  </Link>
-                ))}
+                        {hasApplied(scholarship.ScholarshipID) ? (
+                          <p className="text-green-500 font-semibold">สมัครแล้ว</p>
+                        ) : ""}
+                      </a>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {closedScholarships.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่ปิดรับแล้ว</h2>
-              <div className="flex flex-wrap justify-start">
-                {closedScholarships.map((scholarship) => (
-                  <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
-                    <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-                    <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                  <p className="text-gray-600">{scholarship.Description}</p>
-                  <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+            {closedScholarships.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่ปิดรับแล้ว</h2>
+                <div className="flex flex-wrap justify-start">
+                  {closedScholarships.map((scholarship) => (
+                    <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                      <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                        <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+                        <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                        <p className="text-gray-600">{scholarship.Description}</p>
+                        <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
+                        <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
 
-                      {hasApplied(scholarship.ScholarshipID) ? (
-                        <p className="text-green-500 font-semibold">สมัครแล้ว</p>
-                      ) : ""}
-                    </a>
-                  </Link>
-                ))}
+                        {hasApplied(scholarship.ScholarshipID) ? (
+                          <p className="text-green-500 font-semibold">สมัครแล้ว</p>
+                        ) : ""}
+                      </a>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
         </main>
       </div>
       <Footer />

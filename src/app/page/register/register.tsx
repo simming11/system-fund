@@ -10,6 +10,7 @@ import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import th from "date-fns/locale/th";
 import { format, Locale } from "date-fns";
+import Swal from "sweetalert2";
 
 // Register Thai locale
 registerLocale("th", th as unknown as Locale);
@@ -55,7 +56,7 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     let validationErrors = { ...errors };
     let hasErrors = false;
-
+  
     // Reset all previous errors
     validationErrors = {
       StudentID: "",
@@ -72,84 +73,81 @@ export default function RegisterPage() {
       Religion: "",
       form: ""
     };
-
+  
     // ตรวจสอบความถูกต้องของแต่ละฟิลด์ก่อนทำการลงทะเบียน
     if (!StudentID || StudentID.length < 7) {
       validationErrors.StudentID = "รหัสนักศึกษาต้องมีความยาวอย่างน้อย 7 ตัวอักษร";
       hasErrors = true;
     }
-
+  
     if (!PrefixName) {
       validationErrors.PrefixName = "คำนำหน้าชื่อเป็นข้อมูลที่จำเป็น";
       hasErrors = true;
     }
-
+  
     if (!FirstName || !/^[A-Za-zก-๙]+$/.test(FirstName)) {
       validationErrors.FirstName = "ชื่อจริงต้องประกอบด้วยตัวอักษรเท่านั้น";
       hasErrors = true;
     }
-
+  
     if (!LastName || !/^[A-Za-zก-๙]+$/.test(LastName)) {
       validationErrors.LastName = "นามสกุลต้องประกอบด้วยตัวอักษรเท่านั้น";
       hasErrors = true;
     }
-
+  
     if (!Email || !/^[^\s@]+@(tsu\.ac\.th|TSU\.AC\.TH)$/.test(Email)) {
       validationErrors.Email = "กรุณากรอกอีเมลที่ลงท้ายด้วย @tsu.ac.th หรือ @TSU.AC.TH เท่านั้น";
       hasErrors = true;
     }
-
+  
     if (!Phone || !/^\d{10}$/.test(Phone)) {
       validationErrors.Phone = "หมายเลขโทรศัพท์ต้องมีความยาว 10 หลักและเป็นตัวเลขเท่านั้น";
       hasErrors = true;
     }
-
+  
     if (Password.length < 6 || /[^\x00-\x7F]/.test(Password)) {
       validationErrors.Password = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร และต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น";
       hasErrors = true;
     }
-
+  
     if (!Year_Entry) {
       validationErrors.Year_Entry = "ปีที่เข้าศึกษาเป็นข้อมูลที่จำเป็น";
       hasErrors = true;
     }
-
+  
     if (!Course) {
       validationErrors.Course = "สาขาวิชาเป็นข้อมูลที่จำเป็น";
       hasErrors = true;
     }
-
+  
     if (!GPA || isNaN(Number(GPA)) || Number(GPA) < 1.00 || Number(GPA) > 4.00) {
       validationErrors.GPA = "เกรดเฉลี่ย (GPA) ต้องเป็นค่าระหว่าง 1.00 ถึง 4.00";
       hasErrors = true;
     }
-
+  
     if (!Religion) {
       validationErrors.Religion = "ศาสนาเป็นข้อมูลที่จำเป็น";
       hasErrors = true;
     }
-
+  
     if (!DOB) {
       validationErrors.DOB = "วันเกิดเป็นข้อมูลที่จำเป็น";
       hasErrors = true;
     }
-
+  
     // อัปเดตสถานะด้วยข้อผิดพลาดในการตรวจสอบความถูกต้อง
     setErrors(validationErrors);
-
+  
     // หากมีข้อผิดพลาดในการตรวจสอบความถูกต้อง ให้ป้องกันการส่งฟอร์ม
     if (hasErrors) {
       setErrors({ ...validationErrors, form: "กรุณาแก้ไขข้อผิดพลาดด้านล่างและลองอีกครั้ง" });
       return;
     }
-
-    // Convert Year_Entry to a number before sending it to the API
+  
     const yearEntryNumber = parseInt(Year_Entry, 10);
     const gpaNumber = parseFloat(GPA);
-
-    // Format DOB to d/m/y format for submission
     const formattedDOB = DOB ? format(DOB, 'dd/MM/yyyy') : "";
-
+  
     try {
       const response = await ApiAuthService.registerStudent(
         StudentID,
@@ -161,11 +159,11 @@ export default function RegisterPage() {
         Phone,
         yearEntryNumber,
         Course,
-        formattedDOB,  // Send formatted DOB
+        formattedDOB,
         gpaNumber,
         Religion
       );
-
+  
       console.log("Registration successful", response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -175,40 +173,63 @@ export default function RegisterPage() {
       localStorage.setItem("FirstName", FirstName);
       localStorage.setItem("LastName", LastName);
       localStorage.setItem("Email", Email);
-
+  
+      // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนสำเร็จ
+      Swal.fire({
+        icon: "success",
+        title: "ลงทะเบียนเรียบร้อยแล้ว",
+        showConfirmButton: false,
+        timer: 1500
+      });
+  
       // Redirect to the login page
       router.push("/page/scholarships/ApplyScholarship");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-          const errorResponse = error.response?.data.errors;
-          
-          // ตรวจสอบและเก็บข้อผิดพลาดทั้งหมด
-          let errorMessages = [];
+        const errorResponse = error.response?.data.errors;
+        let errorMessages = [];
   
-          if (errorResponse?.Email) {
-              errorMessages.push(`อีเมลถูกใช้งานแล้วถูกใช้งานแล้ว`);
-          }
-          if (errorResponse?.Password) {
-              errorMessages.push(`Password: ${errorResponse.Password[0]}`);
-          }
-          if (errorResponse?.StudentID) {
-              errorMessages.push(`รหัสนิสิตถูกใช้งานแล้ว `);
-          }
+        if (errorResponse?.Email) {
+          errorMessages.push("อีเมลถูกใช้งานแล้ว");
+        }
+        if (errorResponse?.Password) {
+          errorMessages.push(`Password: ${errorResponse.Password[0]}`);
+        }
+        if (errorResponse?.StudentID) {
+          errorMessages.push("รหัสนิสิตถูกใช้งานแล้ว");
+        }
   
-          // รวมข้อความข้อผิดพลาดทั้งหมดเป็นสตริงเดียว
-          const fullErrorMessage = errorMessages.join(', ');
-          setErrors({ ...errors, form: fullErrorMessage });
-          
-          
+        const fullErrorMessage = errorMessages.join(', ');
+        setErrors({ ...errors, form: fullErrorMessage });
+  
+        // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนล้มเหลว
+        Swal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "การลงทะเบียนล้มเหลว",
+          text: fullErrorMessage,
+          showConfirmButton: false,
+          timer: 1500
+        });
+  
       } else {
-          const unknownError = "An unknown error occurred during registration";
-          setErrors({ ...errors, form: unknownError });
+        const unknownError = "An unknown error occurred during registration";
+        setErrors({ ...errors, form: unknownError });
+  
+        // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนล้มเหลว
+        Swal.fire({
+          position: "top-end",
+          icon: "error",
+          title: "การลงทะเบียนล้มเหลว",
+          text: "เกิดข้อผิดพลาดที่ไม่รู้จัก",
+          showConfirmButton: false,
+          timer: 1500
+        });
       }
       console.error("Registration failed", error);
-  }
-  
-  
+    }
   };
+  
 
   const handleStudentIDChange = (e: { target: { value: any; }; }) => {
     const value = e.target.value;

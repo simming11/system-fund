@@ -45,4 +45,12 @@
   .section-familyInfo {
     background-color: #e6f7ff;
   }
-  
+  .fixedheader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* ให้อยู่ด้านบนสุด */
+    background-color: white; /* กำหนดสีพื้นหลัง */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* เงาใต้ header */
+  }

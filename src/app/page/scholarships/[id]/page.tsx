@@ -239,7 +239,7 @@ export default function ScholarshipDetailPage() {
         </div>
         </div>
 
-      <Footer />
+     
     </div>
   );
 }

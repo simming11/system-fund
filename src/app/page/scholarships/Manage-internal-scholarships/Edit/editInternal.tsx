@@ -14,17 +14,17 @@ export default function EditInternalScholarshipPage() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
-  //   useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const token = localStorage.getItem('token');
-  //     const Role = localStorage.getItem('UserRole');
+    useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
 
-  //     if (!token || Role?.trim().toLowerCase() !== 'admin') {
-  //       console.error('Unauthorized access or missing token. Redirecting to login.');
-  //       router.push('/page/control');
-  //     }
-  //   }
-  // }, [router]);
+      if (!token || Role?.trim().toLowerCase() !== 'admin') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/control');
+      }
+    }
+  }, [router]);
 
 
 
@@ -57,6 +57,9 @@ export default function EditInternalScholarshipPage() {
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);  // Loading state
+  const [errorGpa, setErrorGpa] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
+  const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
@@ -218,45 +221,130 @@ export default function EditInternalScholarshipPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    if (e.target.files) {
-      const newFiles = [...formData.Files];
-      newFiles[index] = { file: e.target.files[0], existing: false }; // Mark as new file
+    // If the field is "Minimum_GPA", validate it
+    if (name === "Minimum_GPA") {
+      // Allow users to type and see validation immediately without truncating their input
+      let gpa = parseFloat(value);
+
+      // Allow any value input, but show an error if it's out of the valid range
+      if (!isNaN(gpa)) {
+        if (gpa < 1 || gpa > 4) {
+          setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
+        } else {
+          setErrorGpa(""); // Clear error when value is valid
+
+          // Truncate GPA to 2 decimal places without rounding
+          const truncatedGPA = Math.floor(gpa * 100) / 100; // Truncate to 2 decimal places
+          setFormData({
+            ...formData,
+            [name]: truncatedGPA.toString(),
+          });
+        }
+      } else if (value === "") {
+        setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00"); // Handle empty input
+        setFormData({
+          ...formData,
+          [name]: "", // Allow the user to clear the input
+        });
+      }
+    } else {
+      // Update form data for other fields
       setFormData({
         ...formData,
-        Files: newFiles,
+        [name]: value,
       });
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const imageFile = e.target.files[0];
-      setFormData((prevFormData: any) => ({
-        ...prevFormData,
-        Image: imageFile,
-      }));
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+
+      // Check if the file is a PDF
+      if (file.type !== 'application/pdf') {
+        const newErrors = [...fileErrors];
+        newErrors[index] = 'กรุณาอัพโหลดเฉพาะไฟล์ PDF';
+        setFileErrors(newErrors);
+        return;
+      }
+
+      // Check if file size is less than 20MB
+      const fileSizeInMB = file.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        const newErrors = [...fileErrors];
+        newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
+        setFileErrors(newErrors);
+        return;
+      }
+
+      // If no error, clear any existing errors for this index
+      const newErrors = [...fileErrors];
+      newErrors[index] = ''; // Clear error
+      setFileErrors(newErrors);
+
+      // Update file in form data
+      const newFiles = [...formData.Files];
+      newFiles[index] = file; // Update the selected file at the given index
+      setFormData({
+        ...formData,
+        Files: newFiles,  // Update the form data with the new file array
+      });
     }
   };
 
+  // Add a new file input
   const handleAddFileInput = () => {
-    setFileInputs([...fileInputs, fileInputs.length]);
+    setFileInputs([...fileInputs, fileInputs.length]); // Add a new index for a new file input
+    setFileErrors([...fileErrors, '']); // Add a blank error message slot for the new file
   };
 
+  // Remove an existing file input
   const handleRemoveFileInput = (index: number) => {
-    const newFileInputs = fileInputs.filter((_, i) => i !== index);
-    const newFiles = formData.Files.filter((_: any, i: number) => i !== index);
-    setFileInputs(newFileInputs);
+    const newFileInputs = fileInputs.filter((_, i) => i !== index); // Remove the file input at the given index
+    const newFiles = formData.Files.filter((_: any, i: number) => i !== index);  // Remove the corresponding file in the form data
+    const newErrors = fileErrors.filter((_, i) => i !== index); // Remove the corresponding error message
+    setFileInputs(newFileInputs); // Update the file inputs
+    setFileErrors(newErrors); // Update the errors
     setFormData({
       ...formData,
-      Files: newFiles,
+      Files: newFiles,  // Update the form data without the removed file
     });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const imageFile = e.target.files[0];
+
+      // Check file size (limit to 20MB)
+      const fileSizeInMB = imageFile.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 20MB"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // Check file type (image)
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!validImageTypes.includes(imageFile.type)) {
+        setErrorMessage("กรุณาอัพโหลดเฉพาะไฟล์รูปภาพ (JPEG, PNG, GIF)"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // If no error, clear the error message and store the image
+      setErrorMessage(null);
+
+      // Store the image file directly in formData
+      setFormData((prevFormData: any) => ({
+        ...prevFormData,
+        Image: imageFile, // Store the image file directly
+      }));
+
+      console.log("Image file selected:", imageFile);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -282,9 +370,9 @@ export default function EditInternalScholarshipPage() {
 
     let timerInterval: string | number | NodeJS.Timeout | undefined;
     Swal.fire({
-      title: "Processing your request!",
-      html: "This will close in <b></b> milliseconds.",
-      timer: 2500,
+      title: "กำลังดำเนินการคำขอของคุณ!",
+      html: "หน้าต่างนี้จะปิดใน <b></b> มิลลิวินาที.",
+      timer: 4000,
       timerProgressBar: true,
       didOpen: () => {
         Swal.showLoading();
@@ -377,12 +465,12 @@ export default function EditInternalScholarshipPage() {
             await ApiUpdateServiceScholarships.updateFiles(scholarshipID, filesToUpdate, scholarshipID);
           }
 
-          // Success message
           Swal.fire({
-            title: "Good job!",
-            text: "Scholarship updated successfully!",
+            title: "",
+            text: "อัปเดตทุนการศึกษาเรียบร้อยแล้ว!",
             icon: "success"
           });
+          
 
           // Clear session storage and redirect
           sessionStorage.clear();
@@ -499,18 +587,22 @@ export default function EditInternalScholarshipPage() {
                         </div>
                       </div>
                       <div className="w-full md:w-1/2 px-4 mb-4">
-                        <div className="mb-4">
-                          <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
-                          <input
-                            type="number"
-                            id="Minimum_GPA"
-                            name="Minimum_GPA"
-                            value={formData.Minimum_GPA}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded"
-                          />
-                        </div>
+                      <div className="mb-4">
+                        <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
+                        <input
+                          type="number"
+                          id="Minimum_GPA"
+                          name="Minimum_GPA"
+                          step="0.01"
+                          min="1"
+                          max="4"
+                          value={formData.Minimum_GPA}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        />
+                        {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>} {/* Display error message if there's an error */}
                       </div>
+                    </div>
                     </div>
 
                     <div className="mb-4">
@@ -692,53 +784,62 @@ export default function EditInternalScholarshipPage() {
                     </div>
 
                     <div className="flex">
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          {showSection.files && (
-                            <>
-                              {fileInputs.map((_, index) => (
-                                <div className="mb-4" key={index}>
-                                  <label htmlFor={`Files-${index}`} className="block text-gray-700 mb-2">อัพโหลดไฟล์</label>
-                                  <input
-                                    type="file"
-                                    id={`Files-${index}`}
-                                    name="Files"
-                                    onChange={(e) => handleFileChange(e, index)}
-                                    className="w-1/3 p-3 border border-gray-300 rounded"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveFileInput(index)}
-                                    className="bg-red-500 text-white px-2 py-1 rounded ml-2"
-                                  >
-                                    ลบ
-                                  </button>
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={handleAddFileInput}
-                                className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-600 mt-2"
-                              >
-                                เพิ่มไฟล์
-                              </button>
-                            </>
-                          )}
-                        </div>
+                    <div className="w-1/2">
+                      <div className="mb-4">
+                        {showSection.files && (
+                          <>
+                            {fileInputs.map((_, index) => (
+                              <div className="mb-4" key={index}>
+                                <label htmlFor={`Files-${index}`} className="block mb-2">
+                                  อัพโหลดไฟล์ {index + 1}
+                                </label>
+                                <input
+                                  type="file"
+                                  id={`Files-${index}`}
+                                  name="Files"
+                                  accept="application/pdf" // Allow only PDF files
+                                  onChange={(e) => handleFileChange(e, index)}
+                                  className="w-1/3 p-3 border border-gray-300 rounded"
+                                />
+                                {fileErrors[index] && (
+                                  <p className="text-red-500 text-sm mt-1">{fileErrors[index]}</p> // Display error message if exists
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveFileInput(index)}
+                                  className="bg-red-500 text-white px-2 py-1 rounded ml-2"
+                                >
+                                  ลบ
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={handleAddFileInput}
+                              className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-600 mt-2"
+                            >
+                              เพิ่มอัพโหลดไฟล์
+                            </button>
+                          </>
+                        )}
                       </div>
-
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="Image" className="block text-gray-700 mb-2">อัพโหลดรูปภาพ</label>
-                          <input
-                            type="file"
-                            id="Image"
-                            name="Image"
-                            onChange={handleImageChange}
-                            className="w-1/3 p-3 border border-gray-300 rounded"
-                          />
-                        </div>
+                    </div>
+   <div className="w-1/2">
+                      <div className="mb-4">
+                        <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
+                        <input
+                          type="file"
+                          id="Image"
+                          name="Image"
+                          accept="image/*" // Only allow image types
+                          onChange={handleImageChange}
+                          className="w-1/3 p-3 border border-gray-300 rounded"
+                        />
+                        {/* Display error message */}
+                        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
                       </div>
+                    </div>
+                   
                     </div>
 
                     <div className="flex">

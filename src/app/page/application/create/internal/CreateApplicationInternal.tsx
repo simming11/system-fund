@@ -7,7 +7,7 @@ import ApiServiceLocations from '@/app/services/location/apiLocations';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import styles from './createApplication.module.css';
 interface Students {
   StudentID: string;
   PrefixName: string;
@@ -95,6 +95,7 @@ interface ApplicationFilesData {
   DocumentName: string;
   DocumentType: string;
   FilePath: string | File;
+  error?: string; // Add this property to handle errors
 }
 
 
@@ -525,20 +526,20 @@ export default function CreateApplicationInternalPage() {
   }, [currentAddressData.District]);
 
 
-// Application data handler
-const handleChangeApplication = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-) => {
-  const { name, value } = e.target;
+  // Application data handler
+  const handleChangeApplication = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
 
-  setApplicationData({
-    ...applicationData,
-    [name]:
-      ['MonthlyIncome', 'MonthlyExpenses', 'NumberOfSiblings', 'NumberOfSisters', 'NumberOfBrothers'].includes(name)
-        ? Number(value) // Convert these fields to numbers
-        : value, // For other fields, use the value as-is
-  });
-};
+    setApplicationData({
+      ...applicationData,
+      [name]:
+        ['MonthlyIncome', 'MonthlyExpenses', 'NumberOfSiblings', 'NumberOfSisters', 'NumberOfBrothers'].includes(name)
+          ? Number(value) // Convert these fields to numbers
+          : value, // For other fields, use the value as-is
+    });
+  };
 
 
   const calculateAcademicYear = (yearEntry: number | null) => {
@@ -554,7 +555,7 @@ const handleChangeApplication = (
     if (yearDifference === 4) return '5';
 
     return 'จบการศึกษาแล้ว'; // For years more than 4
-};
+  };
 
 
 
@@ -636,7 +637,7 @@ const handleChangeApplication = (
   const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setNumberOfSiblings(value);
-  
+
     // Adjust the siblingsData array to match the number of siblings
     const newSiblingsData = [...siblingsData];
     if (value > siblingsData.length) {
@@ -658,13 +659,13 @@ const handleChangeApplication = (
       newSiblingsData.splice(value);
     }
     setSiblingsData(newSiblingsData);
-  
+
     // Log the updated siblings data
     console.log('Adjusted Sibling Data:', newSiblingsData);
-  
+
     // Save updated siblingsData to sessionStorage
     sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
-  
+
     // Update the applicationData state
     setApplicationData({
       ...applicationData,
@@ -777,12 +778,26 @@ const handleChangeApplication = (
   // Handle file upload
   const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const updatedFiles = [...applicationFiles];
+
     if (file) {
-      const updatedFiles = [...applicationFiles];
+      const fileType = file.type;
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+
+      // Validate file type
+      if (!allowedTypes.includes(fileType)) {
+        updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
+        setApplicationFiles(updatedFiles);
+        return;
+      }
+
+      // If valid, set the file and clear any error messages
       updatedFiles[index].FilePath = file;
+      updatedFiles[index].error = ''; // Clear error if successful upload
       setApplicationFiles(updatedFiles);
     }
   };
+
 
   // Add a new file entry
   const addFileEntry = () => {
@@ -898,20 +913,20 @@ const handleChangeApplication = (
 
   const validateApplicationData = () => {
     let isValid = true;
-    
+
     // Set validation errors based on conditions
     const validationErrors = {
       MonthlyIncome: applicationData.MonthlyIncome > 0 ? '' : 'กรุณากรอกรายได้ที่ถูกต้อง',
       MonthlyExpenses: applicationData.MonthlyExpenses > 0 ? '' : 'กรุณากรอกรายจ่ายที่ถูกต้อง',
     };
-  
+
     // Check if any errors exist
     Object.values(validationErrors).forEach((error) => {
       if (error) {
         isValid = false;
       }
     });
-  
+
     setErrors(validationErrors); // Set errors in state to trigger UI updates
     return isValid;
   };
@@ -1045,21 +1060,21 @@ const handleChangeApplication = (
           formData.append('ApplicationID', applicationID);
           formData.append('DocumentName', fileData.DocumentName);
           formData.append('DocumentType', fileData.DocumentType);
-      
+
           if (fileData.FilePath instanceof File) {
             formData.append('FilePath', fileData.FilePath);
           }
-      
+
           // Log the formData contents
           for (let [key, value] of formData.entries()) {
             console.log(`${key}:`, value);
           }
-      
+
           // Push the formData to the API service call
           tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
         }
       }
-      
+
       // Execute all tasks
       await Promise.all(tasks);
 
@@ -1074,7 +1089,7 @@ const handleChangeApplication = (
       sessionStorage.removeItem('currentAddressData');
       sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
-      // router.push(`/page/History-Application`);
+      router.push(`/page/History-Application`);
 
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -1190,8 +1205,14 @@ const handleChangeApplication = (
       await Promise.all(tasks);
 
       console.log('All data submitted successfully.');
-
       // Clear sessionStorage after successful submission
+      sessionStorage.removeItem('step');
+      sessionStorage.removeItem('fatherData');
+      sessionStorage.removeItem('motherData');
+      sessionStorage.removeItem('caretakerData');
+      sessionStorage.removeItem('addressData');
+      sessionStorage.removeItem('currentAddressData');
+      sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
 
       // Navigate to the application page with status=บันทึกแล้ว
@@ -1278,18 +1299,18 @@ const handleChangeApplication = (
                   />
                 </div>
                 <div>
-  <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
-    ชั้นปี
-  </label>
-  <input
-    id="Year_Entry"
-    name="Year_Entry"
-    value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
-    onChange={handleChangeApplication}
-    disabled
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-</div>
+                  <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
+                    ชั้นปี
+                  </label>
+                  <input
+                    id="Year_Entry"
+                    name="Year_Entry"
+                    value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
+                    onChange={handleChangeApplication}
+                    disabled
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
 
                 <div>
                   <label htmlFor="StudentID" className="block text-gray-700 mb-2">
@@ -1350,7 +1371,7 @@ const handleChangeApplication = (
                 </div>
               </div>
 
-              
+
               <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
               <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div>
@@ -2700,9 +2721,12 @@ const handleChangeApplication = (
                     type="file"
                     id={`FilePath-${index}`}
                     name="FilePath"
+                    accept="application/pdf, image/jpeg, image/png" // Allow only PDF, JPEG, and PNG files
                     onChange={(e) => handleFileUpload(index, e)}
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {/* แจ้งเตือนข้อผิดพลาดใต้กล่องอัปโหลด */}
+                  {file.error && <p className="text-red-500 mt-1">{file.error}</p>}
                 </div>
                 <div className="flex items-end">
                   <button
@@ -2733,8 +2757,11 @@ const handleChangeApplication = (
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <div className="flex-1 container mx-auto px-4 py-8">
+      <div className={styles.fixedheader}>
+        <Header />
+
+      </div>
+      <div className="flex-1 container mx-auto px-4 py-20">
         <div className="bg-white shadow-md rounded-lg p-6">
           <div className="flex justify-center mb-6">
             <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>

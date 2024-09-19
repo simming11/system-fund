@@ -15,7 +15,7 @@ interface Students {
     StudentID: string;
     PrefixName: string;
     Course: string;
-    YearLevel: string;
+    Year_Entry: string;
     DOB: string;
 }
 
@@ -123,7 +123,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const id = params.id;
     const idStudent = localStorage.getItem('UserID');
     const token = localStorage.getItem('token');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Use one global loading state for all data fetching or individual ones if needed
 
     // State declarations
     const [step, setStep] = useState<number>(() => {
@@ -137,7 +137,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             StudentID: '',
             PrefixName: '',
             Course: '',
-            YearLevel: '',
+            Year_Entry: '',
             DOB: '',
         };
     });
@@ -315,6 +315,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
         if (idStudent) {
             const fetchStudentData = async () => {
+                setLoading(true); // Show loading spinner
                 try {
                     const studentResponse = await ApiStudentServices.getStudent(idStudent);
                     setUserData(studentResponse.data);
@@ -323,7 +324,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                         PrefixName: studentResponse.data.PrefixName,
                         StudentID: studentResponse.data.StudentID,
                         Course: studentResponse.data.Course,
-                        YearLevel: studentResponse.data.YearLevel,
+                        Year_Entry: studentResponse.data.Year_Entry,
                         DOB: studentResponse.data.DOB,
                     }));
                 } catch (error) {
@@ -336,6 +337,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     useEffect(() => {
         const fetchApplicationData = async () => {
+            setLoading(true); // Show loading spinner
             try {
                 if (!id) {
                     throw new Error('Application ID not found');
@@ -533,6 +535,18 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         }
     }, [currentAddressData.District]);
 
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
+                <p className="ml-4 text-gray-600">Loading...</p>
+            </div>
+        );
+    }
+
+
+
     const handleChangeApplication = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
@@ -590,6 +604,23 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             [name]: name === 'Income' || name === 'Age' ? Number(value) : value,
         });
     };
+ 
+    const calculateAcademicYear = (yearEntry: number | null) => {
+        if (yearEntry === null) return 'N/A';
+        const currentYear = new Date().getFullYear();
+        const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
+        const yearDifference = currentYear - entryYear;
+    
+        if (yearDifference === 0) return '1';
+        if (yearDifference === 1) return '2';
+        if (yearDifference === 2) return '3';
+        if (yearDifference === 3) return '4';
+        if (yearDifference === 4) return '5';
+    
+        return 'จบการศึกษาแล้ว'; // For years more than 4
+      };
+    
+
 
     const handleChangeSibling = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -1434,23 +1465,18 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="YearLevel" className="block text-gray-700 mb-2">
-                                        ชั้นปี
-                                    </label>
-                                    <select
-                                        id="YearLevel"
-                                        name="YearLevel"
-                                        value={userData?.YearLevel || ''}
-                                        onChange={handleChangeApplication}
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                    >
-                                        <option value="">เลือกชั้นปี</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                    </select>
-                                </div>
+                  <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
+                    ชั้นปี
+                  </label>
+                  <input
+                    id="Year_Entry"
+                    name="Year_Entry"
+                    value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
+                    onChange={handleChangeApplication}
+                    disabled
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
                                 <div>
                                     <label htmlFor="StudentID" className="block text-gray-700 mb-2">
                                         รหัสนิสิต

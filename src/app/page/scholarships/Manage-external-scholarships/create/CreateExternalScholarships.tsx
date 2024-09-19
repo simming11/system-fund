@@ -8,10 +8,17 @@ import Footer from "@/app/components/footer/footer";
 import Swal from "sweetalert2";
 import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createScholarship";
 import ApiLineNotifyServices from "@/app/services/line-notifies/line";
+import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; // Adjust the path accordingly
 const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function CreateExternalScholarshipPage() {
   const router = useRouter();
-
+  const [errors, setErrors] = useState({
+    ScholarshipName: "",
+    Year: "",
+    YearLevel: "",
+    Num_scholarship: "",
+    // Add other fields as needed
+  });
   const [formData, setFormData] = useState(() => {
     const savedFormData = sessionStorage.getItem(' createExternalScholarshipForm');
     return savedFormData
@@ -39,7 +46,10 @@ export default function CreateExternalScholarshipPage() {
   const [fileInputs, setFileInputs] = useState([0]);
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
+  const [errorGpa, setErrorGpa] = useState("");
   const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
+  const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
 
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
@@ -47,25 +57,26 @@ export default function CreateExternalScholarshipPage() {
     files: true,
   });
 
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const token = localStorage.getItem('token');
-  //     const Role = localStorage.getItem('UserRole');
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
 
-  //     if (!token || Role?.trim().toLowerCase() !== 'admin') {
-  //       console.error('Unauthorized access or missing token. Redirecting to login.');
-  //       router.push('/page/control');
-  //     }
-  //   }
-  // }, [router]);
-  const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
-  const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+      if (!token || Role?.trim().toLowerCase() !== 'admin') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/control');
+      }
+    }
+  }, [router]);
+
+  const AcademicID = localStorage.getItem('AcademicID') ?? ''; 
+  const [lineToken, setLineToken] = useState<string | null>(null); 
   const fetchLineNotifies = async () => {
     try {
       if (!AcademicID) {
         throw new Error('AcademicID is missing');
       }
-      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); 
 
       if (response.length > 0) {
         // Extract client_secret, notify_client_id, and LineToken from the response
@@ -82,14 +93,24 @@ export default function CreateExternalScholarshipPage() {
         });
       }
 
-      console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+
     } catch (error) {
       console.error('Error fetching line notifies:', error);
     }
   };
 
+  const fetchScholarship = async () => {
+    try {
+      const Scholarship = await ScholarshipService.getAllScholarships();
+      console.log("Fetched applications:", Scholarship);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+    }
+  };
+
   useEffect(() => {
     fetchLineNotifies()
+    fetchScholarship();
     sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
   }, [formData]);
 
@@ -133,56 +154,162 @@ export default function CreateExternalScholarshipPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    if (e.target.files) {
-      const newFiles = [...formData.Files];
-      newFiles[index] = e.target.files[0];
+    // If the field is "Minimum_GPA", validate it
+    if (name === "Minimum_GPA") {
+      // Allow users to type and see validation immediately without truncating their input
+      let gpa = parseFloat(value);
+
+      // Allow any value input, but show an error if it's out of the valid range
+      if (!isNaN(gpa)) {
+        if (gpa < 1 || gpa > 4) {
+          setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
+        } else {
+          setErrorGpa(""); // Clear error when value is valid
+
+          // Truncate GPA to 2 decimal places without rounding
+          const truncatedGPA = Math.floor(gpa * 100) / 100; // Truncate to 2 decimal places
+          setFormData({
+            ...formData,
+            [name]: truncatedGPA.toString(),
+          });
+        }
+      } else if (value === "") {
+        setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00"); // Handle empty input
+        setFormData({
+          ...formData,
+          [name]: "", // Allow the user to clear the input
+        });
+      }
+    } else {
+      // Update form data for other fields
       setFormData({
         ...formData,
-        Files: newFiles,
+        [name]: value,
       });
     }
+  };
+
+
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+
+      // Check if the file is a PDF
+      if (file.type !== 'application/pdf') {
+        const newErrors = [...fileErrors];
+        newErrors[index] = 'กรุณาอัพโหลดเฉพาะไฟล์ PDF';
+        setFileErrors(newErrors);
+        return;
+      }
+
+      // Check if file size is less than 20MB
+      const fileSizeInMB = file.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        const newErrors = [...fileErrors];
+        newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
+        setFileErrors(newErrors);
+        return;
+      }
+
+      // If no error, clear any existing errors for this index
+      const newErrors = [...fileErrors];
+      newErrors[index] = ''; // Clear error
+      setFileErrors(newErrors);
+
+      // Update file in form data
+      const newFiles = [...formData.Files];
+      newFiles[index] = file; // Update the selected file at the given index
+      setFormData({
+        ...formData,
+        Files: newFiles,  // Update the form data with the new file array
+      });
+    }
+  };
+
+  // Add a new file input
+  const handleAddFileInput = () => {
+    setFileInputs([...fileInputs, fileInputs.length]); // Add a new index for a new file input
+    setFileErrors([...fileErrors, '']); // Add a blank error message slot for the new file
+  };
+
+  // Remove an existing file input
+  const handleRemoveFileInput = (index: number) => {
+    const newFileInputs = fileInputs.filter((_, i) => i !== index); // Remove the file input at the given index
+    const newFiles = formData.Files.filter((_: any, i: number) => i !== index);  // Remove the corresponding file in the form data
+    const newErrors = fileErrors.filter((_, i) => i !== index); // Remove the corresponding error message
+    setFileInputs(newFileInputs); // Update the file inputs
+    setFileErrors(newErrors); // Update the errors
+    setFormData({
+      ...formData,
+      Files: newFiles,  // Update the form data without the removed file
+    });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const imageFile = e.target.files[0];
+
+      // Check file size (limit to 20MB)
+      const fileSizeInMB = imageFile.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 20MB"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // Check file type (image)
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!validImageTypes.includes(imageFile.type)) {
+        setErrorMessage("กรุณาอัพโหลดเฉพาะไฟล์รูปภาพ (JPEG, PNG, GIF)"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
+
+      // If no error, clear the error message and store the image
+      setErrorMessage(null);
+
+      // Store the image file directly in formData
       setFormData((prevFormData: any) => ({
         ...prevFormData,
-        Image: imageFile,  // เก็บไฟล์รูปภาพโดยตรงใน formData ไม่ใช่ในรูปแบบ array
+        Image: imageFile, // Store the image file directly
       }));
+
+      console.log("Image file selected:", imageFile);
     }
   };
 
 
 
-
-  const handleAddFileInput = () => {
-    setFileInputs([...fileInputs, fileInputs.length]);
-  };
-
-  const handleRemoveFileInput = (index: number) => {
-    const newFileInputs = fileInputs.filter((_, i) => i !== index);
-    const newFiles = formData.Files.filter((_: any, i: number) => i !== index);
-    setFileInputs(newFileInputs);
-    setFormData({
-      ...formData,
-      Files: newFiles,
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // ตรวจสอบฟิลด์ที่จำเป็นต้องกรอกทีละอัน
+    // Validate required fields before showing the loading spinner
     if (!formData.ScholarshipName) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชื่อทุนการศึกษา");
+      return;
+    }
+
+    if (!formData.Year || isNaN(Number(formData.Year))) {
+      setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
+      return;
+    }
+
+    if (!formData.YearLevel || isNaN(Number(formData.YearLevel))) {
+      setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
+      return;
+    }
+
+    if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
+      setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
+      return;
+    }
+
+    const minimumGPA = Number(formData.Minimum_GPA);
+    if (!formData.Minimum_GPA || isNaN(minimumGPA) || minimumGPA < 1.00 || minimumGPA >= 4.00) {
+      setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
       return;
     }
 
@@ -191,25 +318,7 @@ export default function CreateExternalScholarshipPage() {
       return;
     }
 
-    if (!formData.Year) {
-      setError("กรุณากรอกข้อมูลในฟิลด์ ปีการศึกษา");
-      return;
-    }
 
-    if (!formData.YearLevel) {
-      setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
-      return;
-    }
-
-    if (!formData.Num_scholarship) {
-      setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
-      return;
-    }
-
-    if (!formData.Minimum_GPA || Number(formData.Minimum_GPA) < 1.00 || Number(formData.Minimum_GPA) > 4.00) {
-      setError("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
-      return;
-    }
 
     if (formData.Description.length === 0 && !formData.otherQualificationText) {
       setError("กรุณาเพิ่มคุณสมบัติอย่างน้อยหนึ่งรายการ");
@@ -221,13 +330,11 @@ export default function CreateExternalScholarshipPage() {
       return;
     }
 
-    // ตรวจสอบการอัปโหลดรูปภาพ
     if (!formData.Image) {
       setError("กรุณาอัปโหลดรูปภาพประกอบการสมัคร");
       return;
     }
 
-    // ตรวจสอบการอัปโหลดไฟล์
     if (formData.Files.length === 0) {
       setError("กรุณาอัปโหลดไฟล์ประกอบการสมัครอย่างน้อยหนึ่งไฟล์");
       return;
@@ -243,126 +350,147 @@ export default function CreateExternalScholarshipPage() {
       return;
     }
 
-
-
-    // Prepare the form data, ensuring to exclude 'อื่น ๆ' and include otherDocument
-    const submitFormData = {
-      ...formData,
-      information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
-      Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
-    };
-
-    console.log("Form data after processing:", submitFormData);
+    // Show loading spinner only after all validations have passed
+    Swal.fire({
+      title: "กำลังดำเนินการคำขอของคุณ!",
+      html: "หน้าต่างนี้จะปิดใน <b></b> มิลลิวินาที.",
+      timer: 4000,
+      timerProgressBar: true,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
 
     try {
+      // Fetch all scholarships and check for duplicates
+      const response = await ScholarshipService.getAllScholarships();
+      const scholarships = response.data;
+
+      const duplicate = scholarships.find(
+        (scholarship: any) =>
+          scholarship.ScholarshipName.trim().toLowerCase() === formData.ScholarshipName.trim().toLowerCase() &&
+          scholarship.Year === formData.Year
+      );
+
+
+      if (duplicate) {
+        Swal.fire({
+          title: "พบทุนการศึกษาที่ซ้ำกัน",
+          text: "พบทุนการศึกษาที่ซ้ำกัน ทุนการศึกษาชื่อนี้มีอยู่แล้วในปีเดียวกัน",
+          icon: "error"
+        });
+        return;
+      }
+
+      // Prepare the form data
+      const submitFormData = {
+        ...formData,
+        information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
+        Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
+      };
+
       const payload = new FormData();
       for (const [key, value] of Object.entries(submitFormData)) {
         if (Array.isArray(value)) {
           value.forEach((item: string) => {
             payload.append(`${key}[]`, item);
-            console.log(`Appending array item to payload: key=${key}[], value=${item}`);
           });
+        } else if (value instanceof Blob) {
+          payload.append(key, value);
         } else {
-          payload.append(key, value as string | Blob);
-          console.log(`Appending to payload: key=${key}, value=${value}`);
+          payload.append(key, value as string);
         }
       }
 
       // Create Scholarship
-      console.log("Payload before scholarship creation:", payload);
       const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-      console.log("Scholarship created with ID:", scholarshipID);
 
+      // Send notification if lineToken exists
       if (lineToken) {
         const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
-        await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
+        await ApiLineNotifyServices.sendLineNotify(message, lineToken);
       } else {
         console.error("LINE Notify token is null");
       }
 
       // Create Courses
       if (formData.Major.length > 0) {
-        console.log("Creating courses for majors:", formData.Major);
         await ApiAllcreateServiceScholarships.createCourses({
           ScholarshipID: scholarshipID,
           CourseName: formData.Major,
         });
-        console.log("Courses created successfully.");
       }
 
       // Create Documents
       if (submitFormData.information.length > 0 || formData.otherDocument) {
-        console.log("Creating documents with information:", submitFormData.information);
         await ApiAllcreateServiceScholarships.createDocuments({
           ScholarshipID: scholarshipID,
           documents: submitFormData.information,
           otherDocument: formData.otherDocument
         });
-        console.log("Documents created successfully.");
       }
 
       // Create Qualifications
       if (submitFormData.Description.length > 0) {
-        console.log("Creating qualifications with descriptions:", submitFormData.Description);
         await ApiAllcreateServiceScholarships.createQualifications({
           ScholarshipID: scholarshipID,
           qualifications: submitFormData.Description,
           otherQualificationText: submitFormData.otherQualificationText
         });
-        console.log("Qualifications created successfully.");
       }
 
+      // Upload the image file
       if (formData.Image) {
-        // Upload the image file
-        console.log("Uploading image:", formData.Image);
         await ApiAllcreateServiceScholarships.createImage({
           ScholarshipID: scholarshipID,
           ImagePath: formData.Image,
         });
-        console.log("Image uploaded successfully:", formData.Image.name);
       }
 
       // Upload other files
       for (const file of formData.Files) {
         if (file) {
-          console.log("Uploading file:", file);
           await ApiAllcreateServiceScholarships.createFile({
             ScholarshipID: scholarshipID,
             FileType: "ไฟล์",
             FilePath: file,
           });
-          console.log("File uploaded successfully:", file.name);
         }
       }
 
       // Success message
       Swal.fire({
-        title: "Good job!",
-        text: "Scholarship created successfully!",
+        title: "",
+        text: "สร้างทุนการศึกษาเรียบร้อยแล้ว!",
         icon: "success"
       });
 
       // Clear session storage and redirect
-      console.log("Clearing session storage and redirecting...");
       sessionStorage.clear();
       router.push("/page/scholarships/Manage-external-scholarships");
 
-    } catch (error) {
-      // Set error message and log the error for debugging
-      setError("Failed to create scholarship. Please try again.");
-      console.error("Error creating scholarship:", error);
+    } catch (error: any) {
+      // If there is a response with an error message, display it
+      if (error.response && error.response.data && error.response.data.error) {
+        Swal.fire({
+          title: "Error",
+          text: error.response.data.error,
+          icon: "error",
+        });
+      } else {
+        // Fallback for any other errors
+        setError("Failed to create scholarship. Please try again.");
+        console.error("Error creating scholarship:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Failed to create scholarship. Please try again.",
+          icon: "error",
+        });
+      }
     }
   };
 
 
-
-
-  const toggleSection = (section: keyof typeof showSection) => {
-    setShowSection((prevShowSection) => ({
-      ...prevShowSection,
-      [section]: !prevShowSection[section],
-    }));
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -378,24 +506,23 @@ export default function CreateExternalScholarshipPage() {
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-
                 <>
                   <div className="w-full md:w-1/1 px-4 mb-4">
-                    <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
+                    <label htmlFor="ScholarshipName" className="block  mb-2">ชื่อทุนการศึกษา</label>
                     <input
                       type="text"
                       id="ScholarshipName"
                       name="ScholarshipName"
                       value={formData.ScholarshipName}
                       onChange={handleChange}
-                      className="w-5/6 p-3 border border-gray-300 rounded"
+                      className={`w-5/6 p-3 border rounded ${errors.ScholarshipName ? 'border-red-500' : 'border-gray-300'}`}
                     />
+                    {errors.ScholarshipName && <p className="text-red-500 text-sm">{errors.ScholarshipName}</p>}
                   </div>
-
                   <div className="flex flex-wrap">
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                        <label htmlFor="Year" className="block  mb-2">ปีการศึกษา</label>
                         <select
                           id="Year"
                           name="Year"
@@ -422,39 +549,35 @@ export default function CreateExternalScholarshipPage() {
                           <option value="2578">2578</option>
                           <option value="2579">2579</option>
                           <option value="2580">2580</option>
-
-
                         </select>
-
                       </div>
                     </div>
 
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                        <label htmlFor="YearLevel" className="block  mb-2">ชั้นปี</label>
                         <select
                           id="YearLevel"
                           name="YearLevel"
                           value={formData.YearLevel}
                           onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded"
+                          className="w-full p-3 border border-gray-300  rounded"
                         >
                           <option value="" disabled>เลือกชั้นปี</option>
                           <option value="1">1</option>
                           <option value="2">2</option>
                           <option value="3">3</option>
                           <option value="4">4</option>
-                          <option value="1-2">1-2</option>
-                          <option value="1-3">1-3</option>
-                          <option value="1-4">1-4</option>
-                          <option value="2-3">2-3</option>
-                          <option value="3-4">3-4</option>
+                          <option value="1-4">ทุกชั้นปี</option>
+                          <option value="2-4">2ขึ้นไป</option>
+                          <option value="3-4">3ขึ้นไป</option>
                         </select>
                       </div>
                     </div>
+
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
+                        <label htmlFor="Num_scholarship" className="block  mb-2">จำนวนทุน</label>
                         <input
                           type="number"
                           id="Num_scholarship"
@@ -465,24 +588,29 @@ export default function CreateExternalScholarshipPage() {
                         />
                       </div>
                     </div>
+
                     <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Minimum_GPA" className="block text-gray-700 mb-2">เกรดเฉลี่ย</label>
+                        <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
                         <input
                           type="number"
                           id="Minimum_GPA"
                           name="Minimum_GPA"
+                          step="0.01"
+                          min="1"
+                          max="4"
                           value={formData.Minimum_GPA}
                           onChange={handleChange}
                           className="w-full p-3 border border-gray-300 rounded"
                         />
+                        {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>} {/* Display error message if there's an error */}
                       </div>
                     </div>
 
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">สาขาวิชา</label>
+                    <label className="block  mb-2">สาขาวิชา</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -572,9 +700,8 @@ export default function CreateExternalScholarshipPage() {
                   </div>
 
 
-
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">คุณสมบัติ</label>
+                    <label className="block  mb-2">คุณสมบัติ</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -653,7 +780,7 @@ export default function CreateExternalScholarshipPage() {
                             value={formData.otherQualificationText}
                             onChange={handleChange}
                             className="ml-4 p-2 border border-gray-300 rounded"
-                            placeholder="ระบุเอกสารอื่น ๆ"
+                            placeholder="อื่น ๆ"
                           />
                         )}
                       </div>
@@ -661,7 +788,7 @@ export default function CreateExternalScholarshipPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">เอกสารประกอบการสมัคร</label>
+                    <label className="block  mb-2">เอกสารประกอบการสมัคร</label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <input
@@ -748,20 +875,26 @@ export default function CreateExternalScholarshipPage() {
                   </div>
 
                   <div className="flex ...">
-                    <div className="w-1/2 ...">
+                    <div className="w-1/2">
                       <div className="mb-4">
                         {showSection.files && (
                           <>
                             {fileInputs.map((_, index) => (
                               <div className="mb-4" key={index}>
-                                <label htmlFor={`Files-${index}`} className="block text-gray-700 mb-2">อัพโหลดไฟล์</label>
+                                <label htmlFor={`Files-${index}`} className="block mb-2">
+                                  อัพโหลดไฟล์ {index + 1}
+                                </label>
                                 <input
                                   type="file"
                                   id={`Files-${index}`}
                                   name="Files"
+                                  accept="application/pdf" // Allow only PDF files
                                   onChange={(e) => handleFileChange(e, index)}
                                   className="w-1/3 p-3 border border-gray-300 rounded"
                                 />
+                                {fileErrors[index] && (
+                                  <p className="text-red-500 text-sm mt-1">{fileErrors[index]}</p> // Display error message if exists
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveFileInput(index)}
@@ -783,24 +916,28 @@ export default function CreateExternalScholarshipPage() {
                       </div>
                     </div>
 
-                    <div className="w-1/2 ...">
+                    <div className="w-1/2">
                       <div className="mb-4">
-                        <label htmlFor="Image" className="block text-gray-700 mb-2">อัพโหลดรูปภาพ</label>
+                        <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
                         <input
                           type="file"
                           id="Image"
                           name="Image"
+                          accept="image/*" // Only allow image types
                           onChange={handleImageChange}
                           className="w-1/3 p-3 border border-gray-300 rounded"
                         />
+                        {/* Display error message */}
+                        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
                       </div>
                     </div>
+
                   </div>
 
                   <div className="flex ...">
                     <div className="w-1/2 ...">
                       <div className="mb-4">
-                        <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
+                        <label htmlFor="StartDate" className="block  mb-2">วันที่เริ่ม</label>
                         <input
                           type="date"
                           id="StartDate"
@@ -814,7 +951,7 @@ export default function CreateExternalScholarshipPage() {
 
                     <div className="w-1/2 ...">
                       <div className="mb-4">
-                        <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                        <label htmlFor="EndDate" className="block  mb-2">วันที่สิ้นสุด</label>
                         <input
                           type="date"
                           id="EndDate"

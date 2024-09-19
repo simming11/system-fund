@@ -8,6 +8,7 @@ import ApiService from '@/app/services/scholarships/ApiScholarShips';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import Header from '@/app/components/header/Header';
 import Sidebar from '@/app/components/Sidebar/Sidebar';
+import Swal from 'sweetalert2';
 
 interface User {
   StudentID:  string;
@@ -66,7 +67,7 @@ export default function LoginPage() {
     try {
       const response = await ApiAuthService.loginStudent(identifier, password);
       console.log('Login successful', response.data);
-
+  
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('UserRole', 'student');
@@ -78,6 +79,15 @@ export default function LoginPage() {
         localStorage.removeItem('savedIdentifier');
         localStorage.removeItem('savedPassword');
       }
+  
+      // แสดงข้อความแจ้งเตือนเมื่อเข้าสู่ระบบสำเร็จ
+      Swal.fire({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        showConfirmButton: false,
+      });
+  
+      // Redirect หลังจากเข้าสู่ระบบสำเร็จ
       router.push('./scholarships/ApplyScholarship');
     } catch (error) {
       if (axios.isAxiosError(error)) {
