@@ -18,7 +18,14 @@ interface ScholarshipData {
 export default function AnnouncementOfScholarships() {
     const [scholarships, setScholarships] = useState<ScholarshipData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentYear, setCurrentYear] = useState<number>(0);
     const router = useRouter();
+
+    useEffect(() => {
+        // Calculate current year in Buddhist calendar
+        const currentYearInBuddhistCalendar = new Date().getFullYear() + 543;
+        setCurrentYear(currentYearInBuddhistCalendar);
+    }, []);
 
     useEffect(() => {
         const fetchScholarships = async () => {
@@ -27,7 +34,6 @@ export default function AnnouncementOfScholarships() {
                 const scholarshipsWithTypeID1 = response.data;
                 setScholarships(scholarshipsWithTypeID1);
                 console.log(scholarshipsWithTypeID1);
-                
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
             } finally {
@@ -57,7 +63,10 @@ export default function AnnouncementOfScholarships() {
             <HeaderHome />
             <Header />
             <div className="flex flex-col flex-1 p-6 bg-gray-100">
-                <h2 className="text-3xl font-semibold text-blue-700 mb-4">ประกาศผลทุนการศึกษา</h2>
+                {/* Add the current Buddhist year (พ.ศ.) dynamically */}
+                <h2 className="text-3xl font-semibold text-blue-700 mb-4">
+                    ประกาศผลทุนการศึกษา {currentYear}
+                </h2>
                 <div className="space-y-4">
                     {scholarships.map((scholarship) => (
                         <div

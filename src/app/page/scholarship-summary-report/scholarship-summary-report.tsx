@@ -19,14 +19,14 @@ const ScholarshipStats = () => {
     const [studentApplicationCount, setStudentApplicationCount] = useState<number>(0);
 
     const [INorEX, setINorEX] = useState<string>('2');
-    const [yearApplied, setYearApplied] = useState<string>('2575');
+    const [yearApplied, setYearApplied] = useState<string>('2565');
 
     const [showScholarshipChart, setShowScholarshipChart] = useState<boolean>(true);
     const [showAppliedChart, setShowAppliedChart] = useState<boolean>(false);
-    const [showScholarshipTypeYearChart, setShowScholarshipTypeYearChart] = useState<boolean>(false); // New chart toggle
+    const [showScholarshipTypeYearChart, setShowScholarshipTypeYearChart] = useState<boolean>(false);
 
     // Declare scholarshipCountMap in a higher scope
-    let scholarshipCountMap: { [key: string]: number } = {};
+    const [scholarshipCountMap, setScholarshipCountMap] = useState<{ [key: string]: number }>({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -34,107 +34,72 @@ const ScholarshipStats = () => {
                 const internalResponse = await ApiApplicationInternalServices.getAllApplications();
                 const externalResponse = await ApiApplicationExternalServices.getAllApplications();
                 const scholarshipsResponse = await ApiServiceScholarships.getAllScholarships();
-
                 const combinedApplications = [...internalResponse, ...externalResponse];
 
-                if (combinedApplications && combinedApplications.length > 0) {
+                if (combinedApplications.length > 0) {
                     console.log(combinedApplications[0]);
 
                     // Filtering internal and external applications where Status is 'ได้รับทุน'
                     const filteredInternalApplications = internalResponse.filter(
-                        (application: any) => {
-                            const statusMatch = application.Status === 'ได้รับทุน';
-                            console.log(statusMatch, 'statusMatch');
-
-                            if (statusMatch) {
-                                console.log(`Internal application matched: ${application.id}, Status: ${application.Status}`);
-                            }
-                            return statusMatch && application.scholarship && application.scholarship.Year == yearApplied;
-                        }
+                        (application: any) => application.Status === 'ได้รับทุน' && application.scholarship.Year == yearApplied
                     );
 
                     const filteredExternalApplications = externalResponse.filter(
-                        (application: any) => {
-                            const statusMatch = application.Status === 'ได้รับทุน';
-                            console.log(statusMatch, 'statusMatch2');
-
-                            if (statusMatch) {
-                                console.log(`External application matched: ${application.id}, Status: ${application.Status}`);
-                            }
-                            return statusMatch && application.scholarship && application.scholarship.Year == yearApplied;
-                        }
+                        (application: any) => application.Status === 'ได้รับทุน' && application.scholarship.Year == yearApplied
                     );
 
                     const totalFilteredApplications = filteredInternalApplications.length + filteredExternalApplications.length;
-                    console.log(totalFilteredApplications, 'totalFilteredApplications');
                     setFilteredDataCount(totalFilteredApplications);
 
                     // Filtered applications for students who didn't receive scholarships
                     const filteredsInternalApplications = internalResponse.filter(
-                        (application: any) =>
-                            application.Status !== 'ได้รับทุน' &&
-                            application.scholarship &&
-                            application.scholarship.Year == yearApplied
+                        (application: any) => application.Status !== 'ได้รับทุน' && application.scholarship.Year == yearApplied
                     );
                     const filteredsExternalApplications = externalResponse.filter(
-                        (application: any) =>
-                            application.Status !== 'ได้รับทุน' &&
-                            application.scholarship &&
-                            application.scholarship.Year == yearApplied
+                        (application: any) => application.Status !== 'ได้รับทุน' && application.scholarship.Year == yearApplied
                     );
 
                     const totalStudentApplications = filteredsInternalApplications.length + filteredsExternalApplications.length;
-                    console.log(totalStudentApplications, 'totalStudentApplications');
                     setStudentApplicationCount(totalStudentApplications);
 
                     // Group by scholarship name and count how many students received each scholarship
-                    const filteredInternalApplicationsAnDyear = internalResponse.filter((application: any) => {
-                        const StatusINorEXyearAppliedMatchs =
-                            application.Status === 'ได้รับทุน' &&
-                            application.scholarship.TypeID == INorEX &&
-                            application.scholarship.Year == yearApplied;
+                    const filteredApplicationsByYear = [...filteredInternalApplications, ...filteredExternalApplications].filter(
+                        (application: any) => application.scholarship.TypeID == INorEX && application.scholarship.Year == yearApplied
+                    );
 
-                        if (StatusINorEXyearAppliedMatchs) {
-                            console.log(`Internal application matched: ${application.scholarship.ScholarshipName}, Status: ${application.Status}`);
-                        }
-
-                        return StatusINorEXyearAppliedMatchs; // Filter condition
-                    });
-
-                    const filteredExternalApplicationsAnDyear = externalResponse.filter((application: any) => {
-                        const statusINorEXyearAppliedMatchs =
-                            application.Status === 'ได้รับทุน' &&
-                            application.scholarship.TypeID == INorEX &&
-                            application.scholarship.Year == yearApplied;
-
-                        if (statusINorEXyearAppliedMatchs) {
-                            console.log(`External application matched: ${application.scholarship.ScholarshipName}, Status: ${application.Status}`);
-                        }
-
-                        return statusINorEXyearAppliedMatchs; // Filter condition
-                    });
-
-                    const totalFilteredApplicationsAnDyear = [...filteredInternalApplicationsAnDyear, ...filteredExternalApplicationsAnDyear];
-                    console.log(totalFilteredApplicationsAnDyear, 'totalFilteredApplicationsAnDyear');
-
-                    // Populate scholarshipCountMap for third chart
-                    scholarshipCountMap = totalFilteredApplicationsAnDyear.reduce((acc: any, application: any) => {
+                    const scholarshipCountMapTemp = filteredApplicationsByYear.reduce((acc: any, application: any) => {
                         const scholarshipName = application.scholarship.ScholarshipName;
 
                         if (!acc[scholarshipName]) {
                             acc[scholarshipName] = 0;
                         }
 
-                        acc[scholarshipName] += 1; // Increment count for the scholarship
-
+                        acc[scholarshipName] += 1;
                         return acc;
                     }, {});
 
+                    setScholarshipCountMap(scholarshipCountMapTemp);
+
                     // Log scholarship names and how many students received each scholarship
-                    for (const [scholarshipName, count] of Object.entries(scholarshipCountMap)) {
+                    for (const [scholarshipName, count] of Object.entries(scholarshipCountMapTemp)) {
                         console.log(`Scholarship Name: ${scholarshipName}, Number of Students Received: ${count}`);
                     }
-
+                }
+                if (scholarshipsResponse && scholarshipsResponse.data) {
+                    const internalScholarships = scholarshipsResponse.data.filter(
+                        (scholarshipInternal: any) =>
+                            scholarshipInternal.TypeID === 1 &&
+                            scholarshipInternal.Year &&  // Check that Year exists
+                            scholarshipInternal.Year == yearApplied // Filter by year
+                    );
+                    const externalScholarships = scholarshipsResponse.data.filter(
+                        (scholarshipExternal: any) =>
+                            scholarshipExternal.TypeID === 2 &&
+                            scholarshipExternal.Year &&  // Check that Year exists
+                            scholarshipExternal.Year == yearApplied // Filter by year
+                    );
+                    setInternalCount(internalScholarships.length);
+                    setExternalCount(externalScholarships.length);
                 }
             } catch (error) {
                 console.error('Error fetching application data:', error);
@@ -205,52 +170,59 @@ const ScholarshipStats = () => {
             return <Pie data={scholarshipTypeData} options={options} />;
         } else if (showAppliedChart) {
             return <Pie data={appliedScholarshipsData} options={options} />;
-        } else if (showScholarshipTypeYearChart) {
+        } else if (showScholarshipTypeYearChart && Object.keys(scholarshipCountMap)) {
             return <Pie data={scholarshipTypeYearData} options={options} />;
+        } else {
+            return <p>No data available for the selected criteria.</p>;
         }
     };
 
     return (
-        <div className='min-h-screen flex flex-col bg-gray-100'>
+        <div className='min-h-screen flex flex-col bg-gray-100 bg-white'>
             <HeaderHome />
             <AdminHeader />
             <div className='flex flex-row'>
                 <div className="bg-white w-1/8 p-4">
                     <Sidebar />
                 </div>
-                <div className="flex-1 flex flex-col justify-center">
-                    <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-6xl mb-8">
-                        <h2 className="text-2xl font-semibold mb-4 text-center">สถิติทุนการศึกษา</h2>
+                <div className="flex-1 bg-white flex flex-col justify-center mb-60">
+                    <div className="bg-white p-4 md:p-5 lg:p-6 rounded-lg w-full max-w-5xl mb-4 md:mb-50 lg:mb-6 ">
+                        <h2 className="text-lg md:text-xl lg:text-2xl font-semibold mb-4 text-center">สถิติทุนการศึกษา</h2>
 
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col md:flex-row md:justify-center md:items-center">
                             {/* Display selected chart */}
-                            <div className="w-1/2">
+                            <div className="w-full md:w-1/2">
                                 {renderChart()}
                             </div>
 
                             {/* Dropdown for selecting academic year */}
-                            <div className="ml-4">
-                                <label className="text-lg">ปีการศึกษาที่เลือก: </label>
+                            <div className="ml-0 md:ml-4 mt-4 md:mt-0 w-full md:w-auto">
+                                <label className="text-sm md:text-base">ปีการศึกษาที่เลือก:</label>
                                 <select
                                     value={yearApplied}
                                     onChange={(e) => setYearApplied(e.target.value)}
-                                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className="block w-full px-2 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                 >
-                                    <option value="2575">2575</option>
-                                    <option value="2566">2566</option>
-                                    <option value="2565">2565</option>
-                                    <option value="2564">2564</option>
+                                    {[...Array(16)].map((_, i) => {
+                                        const year = 2565 + i; // Start from 2565 to 2580
+                                        return (
+                                            <option key={year} value={year}>
+                                                {year}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
+
                             </div>
 
                             {/* Show only if showing scholarshipTypeYearChart */}
                             {showScholarshipTypeYearChart && (
-                                <div className="ml-4">
-                                    <label className="text-lg">ทุนที่เลือก: </label>
+                                <div className="ml-0 md:ml-4 mt-4 md:mt-0 w-full md:w-auto">
+                                    <label className="text-sm md:text-base">ทุนที่เลือก:</label>
                                     <select
                                         value={INorEX}
                                         onChange={(e) => setINorEX(e.target.value)}
-                                        className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="block w-full px-2 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                         <option value="1">ภายใน</option>
                                         <option value="2">ภายนอก</option>
@@ -260,14 +232,14 @@ const ScholarshipStats = () => {
                         </div>
 
                         {/* Buttons to select chart */}
-                        <div className="flex justify-center space-x-4 mt-8">
+                        <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
                             <button
                                 onClick={() => {
                                     setShowScholarshipChart(true);
                                     setShowAppliedChart(false);
                                     setShowScholarshipTypeYearChart(false);
                                 }}
-                                className={`px-4 py-2 rounded ${showScholarshipChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                className={`px-3 py-2 rounded text-sm md:text-base ${showScholarshipChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                             >
                                 ทุนภายในและภายนอก
                             </button>
@@ -277,7 +249,7 @@ const ScholarshipStats = () => {
                                     setShowAppliedChart(true);
                                     setShowScholarshipTypeYearChart(false);
                                 }}
-                                className={`px-4 py-2 rounded ${showAppliedChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                className={`px-3 py-2 rounded text-sm md:text-base ${showAppliedChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                             >
                                 นิสิตที่สมัครทุนการศึกษาและนิสิตที่ได้รับ
                             </button>
@@ -287,13 +259,15 @@ const ScholarshipStats = () => {
                                     setShowAppliedChart(false);
                                     setShowScholarshipTypeYearChart(true);
                                 }}
-                                className={`px-4 py-2 rounded ${showScholarshipTypeYearChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                className={`px-3 py-2 rounded text-sm md:text-base ${showScholarshipTypeYearChart ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
                             >
                                 แสดงจำนวนทุนที่นิสิตได้รับแต่ละประเภทตามปี
                             </button>
                         </div>
                     </div>
                 </div>
+
+
             </div>
         </div>
     );

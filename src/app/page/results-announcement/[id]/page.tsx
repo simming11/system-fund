@@ -43,23 +43,23 @@ export default function ResultsAnnouncementPage() {
                 if (scholarshipId) {
                     console.log(`Fetching data for ScholarshipID: ${scholarshipId}`);
                     let response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
-
+    
                     if (!response || response.length === 0) {
                         console.log('No data found in Internal API, fetching from External API.');
                         response = await ApiApplicationExternalServices.getStudentsByScholarshipId(scholarshipId);
                     }
-
+    
                     if (response && response.length > 0) {
                         console.log('All fetched applications:', response);
-                        const filteredApplications = response.filter((app: Application) => app.Status === 'อนุมัติ');
+                        const filteredApplications = response.filter((app: Application) => app.Status === 'ได้รับทุน');
                         
                         console.log('Filtered applications with status "อนุมัติ":', filteredApplications);
                         setApplications(filteredApplications);
-
+    
                         if (filteredApplications.length > 0) {
                             setHasApprovedApplications(true);
                         }
-
+    
                         const scholarshipname = response[0].scholarship.ScholarshipName || 'Unknown';
                         console.log(scholarshipname);
                         
@@ -77,7 +77,7 @@ export default function ResultsAnnouncementPage() {
                 setLoading(false);
             }
         };
-
+    
         fetchScholarshipDetails();
     }, [id]);
 
@@ -143,20 +143,20 @@ export default function ResultsAnnouncementPage() {
                         <p className="text-gray-600">ยังไม่ประกาศ</p> // Message for no approved applications
                     )}
 
-                    <div className="mt-4">
-                        <p className="text-gray-500 text-sm">ดาวน์โหลดประกาศผล: 
-                            {scholarship?.AnnouncementFile ? (
-                                <a
-                                    onClick={handleDownload}
-                                    className="text-blue-500 underline ml-2 cursor-pointer"
-                                >
-                                    {scholarship.AnnouncementFile.split('/').pop()}
-                                </a>
-                            ) : (
-                                <span className="ml-2 text-gray-400">ไม่มีไฟล์ประกาศ</span>
-                            )}
-                        </p>
-                    </div>
+<div className="mt-4">   
+{hasApprovedApplications && scholarship?.AnnouncementFile && (
+    <div className="mt-4">   
+        <p className="text-gray-500 text-sm">ดาวน์โหลดประกาศผล:</p>
+        <a
+            onClick={handleDownload}
+            className="text-blue-500 underline ml-2 cursor-pointer"
+        >
+            {scholarship.AnnouncementFile.split('/').pop()}
+        </a>
+    </div>
+)}
+
+</div>
                 </div>
 
                 <button
@@ -168,7 +168,7 @@ export default function ResultsAnnouncementPage() {
                     </svg>
                 </button>
             </div>
-            <Footer />
+          
         </div>
     );
 }

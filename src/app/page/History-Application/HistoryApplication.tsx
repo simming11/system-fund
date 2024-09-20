@@ -8,16 +8,15 @@ import ApiApplicationExternalServices from '@/app/services/ApiApplicationExterna
 import HeaderHome from '@/app/components/headerHome/headerHome';
 // Import FontAwesome for icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { faEye } from '@fortawesome/free-solid-svg-icons'; // Import the eye icon
 
 interface Application {
-  ApplicationID: string;
+  ApplicationID?: string; // Internal Application ID
+  Application_EtID?: string; // External Application ID
   Status: string;
-  AdvisorName?: string;
   scholarship?: {
     ScholarshipName: string;
   };
-  // Add more fields as necessary
 }
 
 export default function SubmissionHistoryPage() {
@@ -34,7 +33,6 @@ export default function SubmissionHistoryPage() {
         if (studentId) {
           const internalResponse = await ApiApplicationInternalServices.showByStudentId(studentId);
           const externalResponse = await ApiApplicationExternalServices.showByStudent(studentId);
-          console.log(externalResponse);
           
           const combinedApplications = [
             ...(Array.isArray(internalResponse) ? internalResponse : [internalResponse]),
@@ -54,13 +52,19 @@ export default function SubmissionHistoryPage() {
     fetchApplications();
   }, []);
 
-  const handleEdit = (applicationId: string) => {
-    router.push(`/page/application/editApplication/${applicationId}`);
+  const handleView = (applicationId: string, isExternal: boolean) => {
+    if (isExternal) {
+      // Navigate to view-only page for external applications
+      router.push(`/page/application/viewApplicationExternal/${applicationId}`);
+    } else {
+      // Navigate to view-only page for internal applications
+      router.push(`/page/application/viewApplicationInternal/${applicationId}`);
+    }
   };
 
-  const handleView = (applicationId: string) => {
-    // Navigate to a view-only page for the application
-    router.push(`/page/application/viewApplication/${applicationId}`);
+  const handleEdit = (applicationId: string) => {
+    // Navigate to an edit page for the application
+    router.push(`/page/application/editApplication/${applicationId}`);
   };
 
   return (
@@ -81,29 +85,49 @@ export default function SubmissionHistoryPage() {
               </thead>
               <tbody>
                 {applications.map((application) => (
-                  <tr key={application.ApplicationID}>
+                  <tr key={application.ApplicationID || application.Application_EtID}>
                     <td className="px-4 py-2 border border-gray-200 text-center">
                       {application.scholarship?.ScholarshipName || "N/A"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 text-center">
-                      {application.Status || "บันทึกแล้ว"}
+                      {/* Show status of the application */}
+                      {application.Status === "ได้รับทุน" ? (
+                        <span>ได้รับทุน</span>
+                      ) : application.Status === "ไม่ได้รับทุน" ? (
+                        <span>ไม่ได้รับทุน</span>
+                      ) : (
+                        application.Status || "บันทึกแล้ว"
+                      )}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 text-center">
-                      {application.Status !== "รอประกาศผล" ? (
+                      {/* Handle view and edit actions based on internal or external application */}
+                      {application.Status === "ได้รับทุน" || application.Status === "ไม่ได้รับทุน" ? (
                         <button
-                          onClick={() => handleEdit(application.ApplicationID)}
-                          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        >
-                          แก้ไข
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleView(application.ApplicationID)}
+                          onClick={() => handleView(application.ApplicationID || application.Application_EtID!, !!application.Application_EtID)}
                           className="bg-gray-200 text-gray-500 px-4 py-2 rounded"
                           title="View Application"
                         >
                           <FontAwesomeIcon icon={faEye} />
                         </button>
+                      ) : (
+                        <>
+                          {application.Status === "บันทึกแล้ว" ? (
+                            <button
+                              onClick={() => handleEdit(application.ApplicationID || application.Application_EtID!)}
+                              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                            >
+                              แก้ไข
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleView(application.ApplicationID || application.Application_EtID!, !!application.Application_EtID)}
+                              className="bg-gray-200 text-gray-500 px-4 py-2 rounded"
+                              title="View Application"
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                            </button>
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>

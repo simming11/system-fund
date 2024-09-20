@@ -52,28 +52,27 @@ export default function ScholarshipInternalDetailsPage() {
                 const scholarshipId = Array.isArray(id) ? id[0] : id;
                 if (scholarshipId) {
                     const response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
-
+                    console.log(response);
+    
                     // Log the entire response to inspect the structure
                     console.log('API Response:', response);
-
-
-
-
-                    if (response && response.length > 0) {
-                        setApplications(response);
-
-
-
+    
+                    // กรองนิสิตที่มีสถานะ 'รอประกาศผล'
+                    const filteredResponse = response.filter((app: { Status: string; }) => app.Status === 'รอประกาศผล');
+    
+                    if (filteredResponse && filteredResponse.length > 0) {
+                        setApplications(filteredResponse);
+    
                         // Log specific parts of the response to check structure
-                        console.log('First application data:', response[0]);
-
-                        const scholarshipname = response[0].scholarship?.ScholarshipName || 'Unknown';
+                        console.log('First filtered application data:', filteredResponse[0]);
+    
+                        const scholarshipname = filteredResponse[0].scholarship?.ScholarshipName || 'Unknown';
                         console.log('Scholarship Name:', scholarshipname);
-
+    
                         // Extract and store the scholarship name in state
                         setScholarshipName(scholarshipname);
                     } else {
-                        console.warn('No data found in response');
+                        console.warn('No data found with status "รอประกาศผล".');
                     }
                 }
             } catch (error) {
@@ -82,9 +81,10 @@ export default function ScholarshipInternalDetailsPage() {
                 setLoading(false);
             }
         };
-
+    
         fetchScholarshipDetails();
     }, [id]);
+    
 
 
 

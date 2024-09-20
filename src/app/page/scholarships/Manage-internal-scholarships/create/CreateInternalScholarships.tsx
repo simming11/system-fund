@@ -302,10 +302,11 @@ export default function CreateInternalScholarshipPage() {
       return;
     }
 
-    if (!formData.YearLevel || isNaN(Number(formData.YearLevel))) {
+    if (!formData.YearLevel || (!/^\d+$/.test(formData.YearLevel) && !["1-4", "2-4", "3-4"].includes(formData.YearLevel))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
       return;
     }
+    
 
     if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
@@ -924,19 +925,20 @@ export default function CreateInternalScholarshipPage() {
                     </div>
 
                     <div className="w-1/2">
-                      <div className="mb-4">
-                        <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
-                        <input
-                          type="file"
-                          id="Image"
-                          name="Image"
-                          accept="image/*" // Only allow image types
-                          onChange={handleImageChange}
-                          className="w-1/3 p-3 border border-gray-300 rounded"
-                        />
-                        {/* Display error message */}
-                        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-                      </div>
+                    <div className="mb-4">
+  <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
+  <input
+    type="file"
+    id="Image"
+    name="Image"
+    accept=".png, .jpg, .jpeg" // Only allow PNG, JPG, and JPEG formats
+    onChange={handleImageChange}
+    className="w-1/3 p-3 border border-gray-300 rounded"
+  />
+  {/* Display error message */}
+  {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+</div>
+
                     </div>
 
                   </div>

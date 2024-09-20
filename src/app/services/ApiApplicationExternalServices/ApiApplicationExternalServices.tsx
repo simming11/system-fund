@@ -18,7 +18,7 @@ class ApiApplicationExternalServices {
     }
 
     // ดึงข้อมูล application external ตาม ID
-    static async getApplicationById(applicationId: number) {
+    static async getApplicationById(applicationId: string) {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.get(`${API_URL}/applications-external/${applicationId}`, {

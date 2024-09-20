@@ -183,12 +183,20 @@ export default function ScholarshipResultsAnnouncementPage() {
     };
 
 
-    // Handle file change
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = event.target.files?.[0] || null;
-        setFile(selectedFile);
-    };
-    
+// Handle file change
+const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0] || null;
+    if (selectedFile) {
+        const maxFileSize = 20 * 1024 * 1024; // กำหนดขนาดไฟล์สูงสุดเป็น 20 MB
+        if (selectedFile.size > maxFileSize) {
+            alert('ขนาดไฟล์เกิน 20 MB กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 20 MB');
+            setFile(null); // รีเซ็ตไฟล์หากขนาดเกิน
+        } else {
+            setFile(selectedFile);
+        }
+    }
+};
+
     const calculateAcademicYear = (yearEntry: number | null) => {
         if (yearEntry === null) return 'N/A';
         const currentYear = new Date().getFullYear();
@@ -394,9 +402,16 @@ const handleSubmit = async () => {
                     </div>
 
                     <div className="mt-6">
-                        <label htmlFor="fileUpload" className="block text-gray-700 mb-2">ไฟล์เอกสาร</label>
-                        <input type="file" id="fileUpload" onChange={handleFileChange} className="border border-gray-300 p-2 rounded" />
-                    </div>
+    <label htmlFor="fileUpload" className="block text-gray-700 mb-2">ไฟล์เอกสาร</label>
+    <input 
+        type="file" 
+        id="fileUpload" 
+        onChange={handleFileChange} 
+        className="border border-gray-300 p-2 rounded" 
+        accept=".pdf" // กำหนดให้รับเฉพาะไฟล์ PDF
+    />
+</div>
+
 
                     <button onClick={handleSubmit} className="bg-green-500 text-white px-4 py-2 mt-4 rounded hover:bg-green-600">
                         SUBMIT

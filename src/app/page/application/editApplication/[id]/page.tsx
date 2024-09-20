@@ -106,6 +106,7 @@ interface ApplicationFilesData {
     DocumentType: string;
     FilePath: string | File;
     ExistingFilePath?: string; // เพิ่ม ExistingFilePath (อาจจะไม่มีในบางกรณี)
+    error?: string; // Add this property to handle errors
 }
 
 interface CurrentAddressData extends Address { }
@@ -604,22 +605,22 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             [name]: name === 'Income' || name === 'Age' ? Number(value) : value,
         });
     };
- 
+
     const calculateAcademicYear = (yearEntry: number | null) => {
         if (yearEntry === null) return 'N/A';
         const currentYear = new Date().getFullYear();
         const entryYear = yearEntry - 543; // Convert from Thai year to Gregorian year
         const yearDifference = currentYear - entryYear;
-    
+
         if (yearDifference === 0) return '1';
         if (yearDifference === 1) return '2';
         if (yearDifference === 2) return '3';
         if (yearDifference === 3) return '4';
         if (yearDifference === 4) return '5';
-    
+
         return 'จบการศึกษาแล้ว'; // For years more than 4
-      };
-    
+    };
+
 
 
     const handleChangeSibling = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -668,7 +669,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         setApplicationData({
             ...applicationData,
             NumberOfSiblings: value, // Update the number of siblings in applicationData
-          });
+        });
     };
 
 
@@ -819,20 +820,40 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const updatedFiles = [...application_files];
-    
+
         if (file) {
             // เก็บไฟล์ใหม่ใน state
-            updatedFiles[index].FilePath = file; 
+            updatedFiles[index].FilePath = file;
+            const fileType = file.type;
+            // const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+            // const maxSizeInBytes = 20 * 1024 * 1024; // 20 MB in bytes
+
+            // if (!allowedTypes.includes(fileType)) {
+            //     updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
+            //     setApplicationFiles(updatedFiles);
+            //     return;
+            // }
+
+            // // Validate file size (should be <= 20 MB)
+            // if (file.size > maxSizeInBytes) {
+            //     updatedFiles[index].error = 'ขนาดไฟล์ต้องไม่เกิน 20 MB';
+            //     setApplicationFiles(updatedFiles);
+            //     return;
+            // }
+
+            // // If valid, set the file and clear any error messages
+            updatedFiles[index].FilePath = file;
+            updatedFiles[index].error = ''; // Clear error if successful upload
         } else {
             // เก็บ path ไฟล์เดิมใน state
-            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath; 
+            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath;
             // ใช้ path เดิมหากไม่มี ExistingFilePath
         }
-    
+
         setApplicationFiles(updatedFiles);
     };
-    
-    
+
+
     const addFileEntry = () => {
         setApplicationFiles([
             ...application_files,
@@ -854,7 +875,31 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     };
 
+    // // Validate all file entries before submission
+    // const validateFiles = (): boolean => {
+    //     const updatedFiles = [...application_files];
+    //     let isValid = true;
 
+    //     for (const [index, file] of updatedFiles.entries()) {
+    //         // If FilePath is provided, validate all fields
+    //         if (file.FilePath) {
+    //             if (!file.DocumentType || !file.DocumentName) {
+    //                 updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+    //                 isValid = false;
+    //             } else if (!['application/pdf', 'image/jpeg', 'image/png'].includes((file.FilePath as File)?.type)) {
+    //                 updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
+    //                 isValid = false;
+    //             } else {
+    //                 updatedFiles[index].error = ''; // Clear error if valid
+    //             }
+    //         } else {
+    //             updatedFiles[index].error = ''; // Clear error if no file is uploaded
+    //         }
+    //     }
+
+    //     setApplicationFiles(updatedFiles); // Update state with any errors
+    //     return isValid;
+    // };
 
     // useEffect (() => {
     //     console.log("Id : ", params.id);
@@ -862,7 +907,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     // Ensure applicationID is used correctly when saving
     const handleSave = async () => {
+        // if (!validateFiles()) {
+        //     setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+        //     return; // Prevent submission if validation fails
+        // }
         try {
+            setLoading(true); // Start loading
             if (!id) {
                 throw new Error('Application ID not found');
             }
@@ -1066,12 +1116,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
             // Create FormData object
             const formData = new FormData();
-            
+
             application_files.forEach((fileData, index) => {
                 formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
                 formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
                 formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
-            
+
                 // If it's a new file, append it
                 if (fileData.FilePath instanceof File) {
                     formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
@@ -1080,12 +1130,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
                 }
             });
-            
+
             // Log the content of the FormData for debugging
             for (let pair of formData.entries()) {
                 console.log(pair[0], pair[1]);
             }
-            
+
             // Update the files using the FormData method
             ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
@@ -1094,7 +1144,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
                 });
-            
+
 
 
 
@@ -1131,7 +1181,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         }
     };
     const handleSubmit = async () => {
+        // if (!validateFiles()) {
+        //     setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+        //     return; // Prevent submission if validation fails
+        // }
         try {
+            setLoading(true); // Start loading
             if (!id) {
                 throw new Error('Application ID not found');
             }
@@ -1335,12 +1390,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
             // Create FormData object
             const formData = new FormData();
-            
+
             application_files.forEach((fileData, index) => {
                 formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
                 formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
                 formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
-            
+
                 // If it's a new file, append it
                 if (fileData.FilePath instanceof File) {
                     formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
@@ -1349,12 +1404,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
                 }
             });
-            
+
             // Log the content of the FormData for debugging
             for (let pair of formData.entries()) {
                 console.log(pair[0], pair[1]);
             }
-            
+
             // Update the files using the FormData method
             ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
@@ -1363,7 +1418,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
                 });
-            
+
 
 
 
@@ -1465,18 +1520,18 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                                 <div>
-                  <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
-                    ชั้นปี
-                  </label>
-                  <input
-                    id="Year_Entry"
-                    name="Year_Entry"
-                    value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
-                    onChange={handleChangeApplication}
-                    disabled
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                </div>
+                                    <label htmlFor="Year_Entry" className="block text-gray-700 mb-2">
+                                        ชั้นปี
+                                    </label>
+                                    <input
+                                        id="Year_Entry"
+                                        name="Year_Entry"
+                                        value={userData?.Year_Entry ? calculateAcademicYear(userData.Year_Entry) : 'N/A'}
+                                        onChange={handleChangeApplication}
+                                        disabled
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                    />
+                                </div>
                                 <div>
                                     <label htmlFor="StudentID" className="block text-gray-700 mb-2">
                                         รหัสนิสิต
@@ -2259,8 +2314,11 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     value={applicationData.NumberOfSiblings}
                                     onChange={handleNumberOfSiblingsChange}
                                     className="w-50 p-3 border border-gray-300 rounded"
+                                    min={applicationData.NumberOfSiblings || 0} // กำหนดค่า min ให้เป็นค่าเริ่มต้นหรือ 2
                                 />
                             </div>
+
+
 
                             <div className="">
                                 <label htmlFor="NumberOfBrothers" className="block text-gray-700 mb-2">
@@ -2342,26 +2400,26 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                                 <div>
-  <label htmlFor={`EducationLevel-${index}`} className="block text-gray-700 mb-2">ระดับการศึกษา</label>
-  <select
-    id={`EducationLevel-${index}`}
-    name="EducationLevel"
-    value={sibling.EducationLevel}
-    onChange={(e) => handleChangeSibling(index, e)}
-    className="w-full p-3 border border-gray-300 rounded"
-  >
-    <option value="">-- กรุณาเลือกระดับการศึกษา --</option>
-    <option value="ก่อนอนุบาล">ก่อนอนุบาล</option>
-    <option value="อนุบาล">อนุบาล</option>
-    <option value="ประถมศึกษา">ประถมศึกษา</option>
-    <option value="มัธยมศึกษาตอนต้น">มัธยมศึกษาตอนต้น</option>
-    <option value="มัธยมศึกษาตอนปลาย">มัธยมศึกษาตอนปลาย</option>
-    <option value="ปวช.">ปวช.</option>
-    <option value="ปวส.">ปวส.</option>
-    <option value="ปริญญาตรี">ปริญญาตรี</option>
-    <option value="ปริญญาโท">ปริญญาโท</option>
-  </select>
-</div>
+                                    <label htmlFor={`EducationLevel-${index}`} className="block text-gray-700 mb-2">ระดับการศึกษา</label>
+                                    <select
+                                        id={`EducationLevel-${index}`}
+                                        name="EducationLevel"
+                                        value={sibling.EducationLevel}
+                                        onChange={(e) => handleChangeSibling(index, e)}
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                    >
+                                        <option value="">-- กรุณาเลือกระดับการศึกษา --</option>
+                                        <option value="ก่อนอนุบาล">ก่อนอนุบาล</option>
+                                        <option value="อนุบาล">อนุบาล</option>
+                                        <option value="ประถมศึกษา">ประถมศึกษา</option>
+                                        <option value="มัธยมศึกษาตอนต้น">มัธยมศึกษาตอนต้น</option>
+                                        <option value="มัธยมศึกษาตอนปลาย">มัธยมศึกษาตอนปลาย</option>
+                                        <option value="ปวช.">ปวช.</option>
+                                        <option value="ปวส.">ปวส.</option>
+                                        <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                        <option value="ปริญญาโท">ปริญญาโท</option>
+                                    </select>
+                                </div>
 
                                 <div>
                                     <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
@@ -2705,9 +2763,13 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         className="w-full p-3 border border-gray-300 rounded"
                                     >
                                         <option value="">เลือกประเภทไฟล์</option>
-                                        <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
-                                        <option value="ผลการเรียน">ผลการเรียน</option>
-                                        <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
+                                        <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
+                                        <option value="ใบสมัคร">ใบสมัคร</option>
+                                        <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
+                                        <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
+                                        <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
+                                        <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
+                                        <option value="อื่น ๆ">อื่น ๆ</option>
                                     </select>
                                 </div>
                                 <div>
@@ -2727,9 +2789,11 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         type="file"
                                         id={`FilePath-${index}`}
                                         name="FilePath"
+                                        accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
                                         onChange={(e) => handleFileUpload(index, e)}
                                         className="w-full p-3 border border-gray-300 rounded"
                                     />
+                                    {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
                                     {/* แสดงชื่อไฟล์ที่ถูกเลือกหรือไฟล์เดิมที่มีอยู่ */}
                                     {typeof file.FilePath === 'string' && (
                                         <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>

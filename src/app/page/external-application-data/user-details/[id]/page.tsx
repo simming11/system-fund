@@ -31,7 +31,7 @@ interface ApplicationFilesData {
 }
 
 interface Application {
-    ApplicationID:string
+    ApplicationID: string
     Scholarship: Scholarship;
     student: StudentData;
     application_files: ApplicationFilesData[];
@@ -113,14 +113,14 @@ export default function StudentExternalDetailsPage() {
     if (!application) {
         return (
             <div className="min-h-screen flex flex-col bg-gray-100">
-                            <HeaderHome />
-                            <AdminHeader />
-                            <div className="flex flex-row">
-                            <div className="bg-white w-1/8 p-4">
-                    <Sidebar />
+                <HeaderHome />
+                <AdminHeader />
+                <div className="flex flex-row">
+                    <div className="bg-white w-1/8 p-4">
+                        <Sidebar />
+                    </div>
+                    <p className="text-gray-600">Scholarship not found or no students available.</p>
                 </div>
-                <p className="text-gray-600">Scholarship not found or no students available.</p>
-                            </div>
             </div>
         );
     }
@@ -151,24 +151,24 @@ export default function StudentExternalDetailsPage() {
                                         {application.student?.FirstName} {application.student?.LastName}
                                     </td>
                                     <td className="border border-gray-300 p-2 text-center">
-  {application.student?.Year_Entry 
-    ? (() => {
-        const currentYear = new Date().getFullYear();
-        const entryYear = application.student.Year_Entry;
-        
-        // กำหนดปีที่เข้าสู่ระบบไทย (เช่น 2567 = ปี 1)
-        const yearDifference = currentYear - (entryYear - 543); // ลบ 543 เพื่อเปลี่ยนจาก พ.ศ. เป็น ค.ศ.
+                                        {application.student?.Year_Entry
+                                            ? (() => {
+                                                const currentYear = new Date().getFullYear();
+                                                const entryYear = application.student.Year_Entry;
 
-        if (yearDifference === 0) return 'ปี 1';
-        if (yearDifference === 1) return 'ปี 2';
-        if (yearDifference === 2) return 'ปี 3';
-        if (yearDifference === 3) return 'ปี 4';
-        if (yearDifference === 4) return 'ปี 5';
+                                                // กำหนดปีที่เข้าสู่ระบบไทย (เช่น 2567 = ปี 1)
+                                                const yearDifference = currentYear - (entryYear - 543); // ลบ 543 เพื่อเปลี่ยนจาก พ.ศ. เป็น ค.ศ.
 
-        return 'จบการศึกษาแล้ว'; // กรณีปีมากกว่า 4 ปี
-    })()
-    : 'N/A'}
-</td>
+                                                if (yearDifference === 0) return 'ปี 1';
+                                                if (yearDifference === 1) return 'ปี 2';
+                                                if (yearDifference === 2) return 'ปี 3';
+                                                if (yearDifference === 3) return 'ปี 4';
+                                                if (yearDifference === 4) return 'ปี 5';
+
+                                                return 'จบการศึกษาแล้ว'; // กรณีปีมากกว่า 4 ปี
+                                            })()
+                                            : 'N/A'}
+                                    </td>
 
                                     <td className="border border-gray-300 p-2 text-center">{application.student?.Course}</td>
                                 </tr>

@@ -55,14 +55,18 @@ export default function ScholarshipInternalDetailsPage() {
                 if (scholarshipId) {
                     const response = await ApiApplicationExternalServices.getStudentsByScholarshipId(scholarshipId);
                     console.log('API Response:', response);
-
-                    if (response && response.length > 0) {
-                        setApplications(response);
-                        const scholarshipname = response[0].scholarship.ScholarshipName || 'Unknown';
+    
+                    // กรองข้อมูลตาม Status ที่ต้องการ
+                    const filteredResponse = response.filter((app: { Status: string; }) => app.Status === 'รอประกาศผล');
+    
+                    if (filteredResponse && filteredResponse.length > 0) {
+                        setApplications(filteredResponse);
+                        const scholarshipname = filteredResponse[0].scholarship.ScholarshipName || 'Unknown';
+                        console.log('Filtered response Status:', filteredResponse[0].Status);
                         
                         setScholarshipName(scholarshipname);
                     } else {
-                        console.warn('No data found in response');
+                        console.warn('No data found with status "รอประกาศผล".');
                     }
                 }
             } catch (error) {
@@ -71,9 +75,10 @@ export default function ScholarshipInternalDetailsPage() {
                 setLoading(false);
             }
         };
-
+    
         fetchScholarshipDetails();
     }, [id]);
+    
 
     const handleRowClick = (scholarshipId: string, studentId: string) => {
         router.push(`/page/external-application-data/user-details/${scholarshipId}?scholarshipId=${studentId}`);

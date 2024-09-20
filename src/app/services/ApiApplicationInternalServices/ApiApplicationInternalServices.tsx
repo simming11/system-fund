@@ -108,7 +108,20 @@ static async generateApplicationPdf(applicationId: string) {
         }
     }
 
-
+        // ดึงข้อมูล application internals ตาม StudentID
+        static async showByApplication(applicationId: string) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await axios.get(`${API_URL}/application-internals/applications/${applicationId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                return response.data;
+            } catch (error) {
+                console.error(`Error fetching application for StudentID ${applicationId}:`, error);
+                throw error;
+            }
+        }
+    
 
 
     // ดึงข้อมูล application internal ตาม ID

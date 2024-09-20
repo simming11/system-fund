@@ -57,7 +57,7 @@ interface AddressesData {
 }
 
 interface SiblingsData {
-  ApplicationID: string;
+  ApplicationID: string | null;
   PrefixName: string;
   Fname: string;
   Lname: string;
@@ -207,7 +207,15 @@ export default function CreateApplicationInternalPage() {
       Phone: '',
     };
   });
-
+  const [fatherErrors, setFatherErrors] = useState({
+    FirstName: '',
+    LastName: '',
+    Age: '',
+    Occupation: '',
+    Income: '',
+    Workplace: '',
+    Phone: '',
+  });
   const [motherData, setMotherData] = useState<GuardiansData>(() => {
     const savedMotherData = sessionStorage.getItem('motherData');
     return savedMotherData ? JSON.parse(savedMotherData) : {
@@ -224,7 +232,15 @@ export default function CreateApplicationInternalPage() {
       Phone: '',
     };
   });
-
+  const [motherErrors, setMotherErrors] = useState({
+    FirstName: '',
+    LastName: '',
+    Age: '',
+    Occupation: '',
+    Income: '',
+    Workplace: '',
+    Phone: '',
+  });
   const [caretakerData, setCaretakerData] = useState<GuardiansData>(() => {
     const savedCaretakerData = sessionStorage.getItem('caretakerData');
     return savedCaretakerData ? JSON.parse(savedCaretakerData) : {
@@ -241,20 +257,22 @@ export default function CreateApplicationInternalPage() {
     };
   });
 
-  const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
-    const savedSiblingData = sessionStorage.getItem('siblingData');
-    return savedSiblingData ? JSON.parse(savedSiblingData) : {
-      ApplicationID: '',
-      PrefixName: '',
-      Fname: '',
-      Lname: '',
-      Occupation: '',
-      EducationLevel: '',
-      Income: 0,
-      Status: '',
-    };
-  });
-
+// State สำหรับ siblingData (ข้อมูลแต่ละพี่น้อง)
+const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
+  const savedSiblingData = sessionStorage.getItem('siblingData');
+  return savedSiblingData
+    ? JSON.parse(savedSiblingData)
+    : {
+        ApplicationID: '', // ตั้งค่า ApplicationID ล่วงหน้า
+        PrefixName: '',
+        Fname: '',
+        Lname: '',
+        Occupation: '',
+        EducationLevel: '',
+        Income: 0,
+        Status: '',
+      };
+});
   const [activities, setActivities] = useState<ActivitiesData[]>([
     { AcademicYear: '', ActivityName: '', Position: '', ApplicationID: '' },
   ]);
@@ -565,6 +583,11 @@ export default function CreateApplicationInternalPage() {
   ) => {
     const { name, value } = e.target;
 
+    // For numeric-only fields (Phone, Income, Age), sanitize input to allow only numbers
+    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name)
+      ? value.replace(/\D/g, '') // Remove non-numeric characters
+      : value;
+
     setMotherData(prevState => ({
       ...prevState,
       [name === 'MotherStatus' ? 'Status' : name]:
@@ -583,22 +606,26 @@ export default function CreateApplicationInternalPage() {
   ) => {
     const { name, value } = e.target;
 
-    // Handle numeric-only input for 'Phone', 'Income', and 'Age' fields
+    // For numeric-only fields (Phone, Income, Age), sanitize input to allow only numbers
     const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name)
-      ? value.replace(/\D/g, '') // Remove non-numeric characters for these fields
+      ? value.replace(/\D/g, '') // Remove non-numeric characters
       : value;
 
-    setFatherData(prevState => ({
+    setFatherData((prevState) => ({
       ...prevState,
+      // Use 'Status' for FatherStatus field, else use the name directly
       [name === 'FatherStatus' ? 'Status' : name]:
+        // If the field is numeric (Income, Age), store it as a number
         ['Income', 'Age'].includes(name)
-          ? Number(sanitizedValue)  // Ensure numeric fields remain numbers
-          : sanitizedValue,          // Apply sanitized value to non-numeric fields
+          ? Number(sanitizedValue) // Ensure numeric fields are stored as numbers
+          : sanitizedValue,        // Store the sanitized value for non-numeric fields
     }));
 
-    setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
-    setIsParentEditing(true);      // Enable parent editing
+    // When editing parent data, disable caretaker editing
+    setIsCaretakerEditing(false);
+    setIsParentEditing(true);
   };
+
 
 
   const handleChangeCaretaker = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -634,44 +661,48 @@ export default function CreateApplicationInternalPage() {
   };
 
 
-  const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    setNumberOfSiblings(value);
+// ฟังก์ชันสำหรับการเปลี่ยนจำนวนพี่น้อง
+const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = parseInt(e.target.value, 10);
+  setNumberOfSiblings(value);
 
-    // Adjust the siblingsData array to match the number of siblings
-    const newSiblingsData = [...siblingsData];
-    if (value > siblingsData.length) {
-      // Add new sibling entries
-      for (let i = siblingsData.length; i < value; i++) {
-        newSiblingsData.push({
-          ApplicationID: '',
-          PrefixName: '',
-          Fname: '',
-          Lname: '',
-          Occupation: '',
-          EducationLevel: '',
-          Income: 0,
-          Status: '',
-        });
-      }
-    } else {
-      // Remove extra sibling entries
-      newSiblingsData.splice(value);
+  // ปรับข้อมูล siblingsData ให้ตรงกับจำนวนพี่น้องใหม่
+  const newSiblingsData = [...siblingsData];
+  if (value > siblingsData.length) {
+    // เพิ่มรายการพี่น้องใหม่และตั้งค่า ApplicationID ล่วงหน้า
+    for (let i = siblingsData.length; i < value; i++) {
+      newSiblingsData.push({
+        ApplicationID: '', // ใส่ ApplicationID อัตโนมัติ
+        PrefixName: '',
+        Fname: '',
+        Lname: '',
+        Occupation: '',
+        EducationLevel: '',
+        Income: 0,
+        Status: '',
+      });
     }
-    setSiblingsData(newSiblingsData);
+  } else {
+    // ลบรายการพี่น้องที่เกินมา
+    newSiblingsData.splice(value);
+  }
 
-    // Log the updated siblings data
-    console.log('Adjusted Sibling Data:', newSiblingsData);
+  setSiblingsData(newSiblingsData);
 
-    // Save updated siblingsData to sessionStorage
-    sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
+  // เก็บข้อมูลลง sessionStorage อัปเดตทุกครั้งที่มีการเปลี่ยนแปลง
+  sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
 
-    // Update the applicationData state
-    setApplicationData({
-      ...applicationData,
-      NumberOfSiblings: value, // Update the number of siblings in applicationData
-    });
-  };
+  // อัปเดต applicationData ด้วยจำนวนพี่น้องใหม่
+  setApplicationData({
+    ...applicationData,
+    NumberOfSiblings: value, // อัปเดตข้อมูลจำนวนพี่น้องใน applicationData
+  });
+
+  // ส่งกลับข้อมูลพี่น้องที่อัปเดตแล้ว
+  return newSiblingsData;
+};
+
+
   const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setAddressData({
@@ -764,18 +795,21 @@ export default function CreateApplicationInternalPage() {
     setWorkExperiences(updatedWorkExperiences);
   };
 
-  // Handle file input changes
+  // Handle file input changes (for select and text inputs)
   const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updatedFiles = [...applicationFiles];
+
+    // Clear previous error messages on change
     updatedFiles[index] = {
       ...updatedFiles[index],
       [name]: value,
+      error: '', // Reset error when user makes changes
     };
     setApplicationFiles(updatedFiles);
   };
 
-  // Handle file upload
+  // Handle file upload (for file inputs)
   const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const updatedFiles = [...applicationFiles];
@@ -783,10 +817,18 @@ export default function CreateApplicationInternalPage() {
     if (file) {
       const fileType = file.type;
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const maxSizeInBytes = 20 * 1024 * 1024; // 20 MB in bytes
 
       // Validate file type
       if (!allowedTypes.includes(fileType)) {
         updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
+        setApplicationFiles(updatedFiles);
+        return;
+      }
+
+      // Validate file size (should be <= 20 MB)
+      if (file.size > maxSizeInBytes) {
+        updatedFiles[index].error = 'ขนาดไฟล์ต้องไม่เกิน 20 MB';
         setApplicationFiles(updatedFiles);
         return;
       }
@@ -809,7 +851,6 @@ export default function CreateApplicationInternalPage() {
     const updatedFiles = applicationFiles.filter((_, i) => i !== index);
     setApplicationFiles(updatedFiles);
   };
-
   const [addressErrors, setAddressErrors] = useState<{ [key: string]: string }>({});
   const [currentAddressErrors, setCurrentAddressErrors] = useState<{ [key: string]: string }>({});
   const [applicationErrors, setApplicationErrors] = useState<{ [key: string]: string }>({});
@@ -865,6 +906,145 @@ export default function CreateApplicationInternalPage() {
     setCurrentAddressErrors(errors);
     return Object.keys(errors).length === 0;
   };
+
+
+
+  const handlefatherValidation = () => {
+    const errors = {
+      FirstName: '',
+      LastName: '',
+      Age: '',
+      Occupation: '',
+      Income: '',
+      Workplace: '',
+      Phone: '',
+    };
+    let isValid = true;
+
+    // Skip validation for certain fields if father is deceased ("ไม่มีชีวิต")
+    if (fatherData.Status === 'ไม่มีชีวิต') {
+      // Only validate FirstName, LastName, Age
+      if (fatherData.PrefixName && !fatherData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Age) {
+        errors.Age = 'กรุณากรอกอายุ';
+        isValid = false;
+      }
+
+      setFatherErrors(errors);
+      return isValid;
+    }
+
+    // Validate all fields if father is alive ("มีชีวิต")
+    if (fatherData.Status === 'มีชีวิต') {
+      if (fatherData.PrefixName && !fatherData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Age) {
+        errors.Age = 'กรุณากรอกอายุ';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Occupation) {
+        errors.Occupation = 'กรุณากรอกอาชีพ';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Income) {
+        errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Workplace) {
+        errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+        isValid = false;
+      }
+      if (fatherData.PrefixName && !fatherData.Phone) {
+        errors.Phone = 'กรุณากรอกเบอร์โทร';
+        isValid = false;
+      }
+    }
+
+    setFatherErrors(errors);
+    return isValid;
+  };
+
+  const handlemotherValidation = () => {
+    const errors = {
+      FirstName: '',
+      LastName: '',
+      Age: '',
+      Occupation: '',
+      Income: '',
+      Workplace: '',
+      Phone: '',
+    };
+    let isValid = true;
+
+    // Skip validation for certain fields if father is deceased ("ไม่มีชีวิต")
+    if (motherData.Status === 'ไม่มีชีวิต') {
+      // Only validate FirstName, LastName, Age
+      if (motherData.PrefixName && !motherData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Age) {
+        errors.Age = 'กรุณากรอกอายุ';
+        isValid = false;
+      }
+
+      setMotherErrors(errors);
+      return isValid;
+    }
+
+    // Validate all fields if father is alive ("มีชีวิต")
+    if (motherData.Status === 'มีชีวิต') {
+      if (motherData.PrefixName && !motherData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Age) {
+        errors.Age = 'กรุณากรอกอายุ';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Occupation) {
+        errors.Occupation = 'กรุณากรอกอาชีพ';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Income) {
+        errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Workplace) {
+        errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+        isValid = false;
+      }
+      if (motherData.PrefixName && !motherData.Phone) {
+        errors.Phone = 'กรุณากรอกเบอร์โทร';
+        isValid = false;
+      }
+    }
+
+    setMotherErrors(errors);
+    return isValid;
+  };
+
 
   const validateApplication = () => {
     const errors: { [key: string]: string } = {};
@@ -931,7 +1111,31 @@ export default function CreateApplicationInternalPage() {
     return isValid;
   };
 
+  // Validate all file entries before submission
+  const validateFiles = (): boolean => {
+    const updatedFiles = [...applicationFiles];
+    let isValid = true;
 
+    for (const [index, file] of updatedFiles.entries()) {
+      // If FilePath is provided, validate all fields
+      if (file.FilePath) {
+        if (!file.DocumentType || !file.DocumentName) {
+          updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+          isValid = false;
+        } else if (!['application/pdf', 'image/jpeg', 'image/png'].includes((file.FilePath as File)?.type)) {
+          updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
+          isValid = false;
+        } else {
+          updatedFiles[index].error = ''; // Clear error if valid
+        }
+      } else {
+        updatedFiles[index].error = ''; // Clear error if no file is uploaded
+      }
+    }
+
+    setApplicationFiles(updatedFiles); // Update state with any errors
+    return isValid;
+  };
   const handleNextStep = () => {
     if (step === 1) {
       if (!validateAddress()) return;
@@ -940,15 +1144,23 @@ export default function CreateApplicationInternalPage() {
     }
     if (step === 2) {
       if (!validateSiblingsData()) return;
+      if (!handlefatherValidation()) return;
+      if (!handlemotherValidation()) return;
     }
     if (step === 3) {
       if (!validateApplication()) return;
     }
+
     setStep(step < 5 ? step + 1 : step);
   };
 
   const handleSave = async () => {
     // Add loading state
+    // Validate files before submitting
+    if (!validateFiles()) {
+      setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+      return; // Prevent submission if validation fails
+    }
     try {
       setLoading(true); // Start loading
 
@@ -1013,13 +1225,23 @@ export default function CreateApplicationInternalPage() {
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
 
-      // Send all sibling data as an array to the API
-      const updatedSiblingsData = siblingsData.map((sibling) => ({
-        ...sibling,
-        ApplicationID: applicationID,
-      }));
-      tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
-      console.log('Siblings data sent:', updatedSiblingsData);
+// รวม siblingsData และ siblingData เข้าไปด้วยกัน
+const updatedSiblingsData = [...siblingsData, siblingData] 
+  .map((sibling) => ({
+    ...sibling,
+    ApplicationID: applicationID, // กำหนด ApplicationID ที่ต้องการ
+  }));
+
+// ถ้ามีข้อมูลใน updatedSiblingsData ก็ส่งไปยัง API
+if (updatedSiblingsData.length > 0) {
+  tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
+}
+
+// Log ข้อมูลที่ถูกส่งไป
+console.log('Siblings data sent:', updatedSiblingsData);
+
+    
+
 
       // Send all activities data as an array to the API
       const updatedActivities = activities.map((activity) => ({
@@ -1106,7 +1328,11 @@ export default function CreateApplicationInternalPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    // Validate files before submitting
+    if (!validateFiles()) {
+      setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+      return; // Prevent submission if validation fails
+    }
     setLoading(true); // Optionally, set loading state to disable the form or show a spinner
 
     try {
@@ -1144,15 +1370,20 @@ export default function CreateApplicationInternalPage() {
       tasks.push(createGuardian(fatherData));
       tasks.push(createGuardian(motherData));
 
-      // Submit siblings data
-      if (siblingsData.length > 0) {
-        const updatedSiblingsData = siblingsData.map((sibling) => ({
-          ...sibling,
-          ApplicationID: applicationID,
-        }));
-        tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
-      }
+// รวม siblingsData และ siblingData เข้าไปด้วยกัน
+const updatedSiblingsData = [...siblingsData, siblingData] 
+  .map((sibling) => ({
+    ...sibling,
+    ApplicationID: applicationID, // กำหนด ApplicationID ที่ต้องการ
+  }));
 
+// ถ้ามีข้อมูลใน updatedSiblingsData ก็ส่งไปยัง API
+if (updatedSiblingsData.length > 0) {
+  tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
+}
+
+// Log ข้อมูลที่ถูกส่งไป
+console.log('Siblings data sent:', updatedSiblingsData);
       // Submit activities data
       if (activities.length > 0) {
         const updatedActivities = activities.map((activity) => ({
@@ -1663,16 +1894,14 @@ export default function CreateApplicationInternalPage() {
             {/* Father's Information */}
             <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
               <div>
-                <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">
-                  คำนำหน้า
-                </label>
+                <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
                 <select
                   id="FatherPrefixName"
                   name="PrefixName"
                   value={fatherData.PrefixName}
                   onChange={handleChangeFather}
                   className="w-30 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  disabled={isCaretakerEditing}
                 >
                   <option value="">คำนำหน้า</option>
                   <option value="นาย">นาย</option>
@@ -1680,10 +1909,9 @@ export default function CreateApplicationInternalPage() {
                   <option value="นางสาว">นางสาว</option>
                 </select>
               </div>
+
               <div className="">
-                <label htmlFor="FatherFirstName" className="block text-gray-700 mb-2">
-                  บิดาชื่อ
-                </label>
+                <label htmlFor="FatherFirstName" className="block text-gray-700 mb-2">บิดาชื่อ</label>
                 <input
                   type="text"
                   id="FatherFirstName"
@@ -1691,20 +1919,18 @@ export default function CreateApplicationInternalPage() {
                   value={fatherData.FirstName}
                   onChange={(e) => {
                     const value = e.target.value;
-                    // Allow only alphabetic characters and spaces
                     if (/^[A-Za-zก-๙\s]*$/.test(value)) {
-                      handleChangeFather(e); // Only call the handler if the input is valid
+                      handleChangeFather(e);
                     }
                   }}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!fatherData.PrefixName || isCaretakerEditing}
                 />
+                {fatherErrors.FirstName && <p className="text-red-500">{fatherErrors.FirstName}</p>}
               </div>
 
               <div className="">
-                <label htmlFor="FatherLastName" className="block text-gray-700 mb-2">
-                  นามสกุล
-                </label>
+                <label htmlFor="FatherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
                 <input
                   type="text"
                   id="FatherLastName"
@@ -1712,20 +1938,18 @@ export default function CreateApplicationInternalPage() {
                   value={fatherData.LastName}
                   onChange={(e) => {
                     const value = e.target.value;
-                    // Allow only alphabetic characters and spaces (supports English and Thai letters)
                     if (/^[A-Za-zก-๙\s]*$/.test(value)) {
-                      handleChangeFather(e); // Only call the handler if the input is valid
+                      handleChangeFather(e);
                     }
                   }}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!fatherData.PrefixName || isCaretakerEditing}
                 />
+                {fatherErrors.LastName && <p className="text-red-500">{fatherErrors.LastName}</p>}
               </div>
 
               <div className="">
-                <label htmlFor="FatherAge" className="block text-gray-700 mb-2">
-                  อายุ
-                </label>
+                <label htmlFor="FatherAge" className="block text-gray-700 mb-2">อายุ</label>
                 <input
                   type="number"
                   id="FatherAge"
@@ -1733,21 +1957,20 @@ export default function CreateApplicationInternalPage() {
                   value={fatherData.Age}
                   onChange={(e) => {
                     const value = parseInt(e.target.value, 10);
-                    // Ensure the age is greater than or equal to 1
                     if (value >= 1 || e.target.value === "") {
-                      handleChangeFather(e); // Only call the handler if the input is valid
+                      handleChangeFather(e);
                     }
                   }}
-                  className="w-20 p-3 border border-gray-300 rounded"
-                  min="1" // Ensure min attribute to block lower values from being manually set
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+                  min="1"
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!fatherData.PrefixName || isCaretakerEditing}
                 />
+                {fatherErrors.Age && <p className="text-red-500">{fatherErrors.Age}</p>}
               </div>
 
+              {/* Father's status */}
               <div>
-                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">
-                  สถานภาพ (พ่อ)
-                </label>
+                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (พ่อ)</label>
                 <div className="flex items-center">
                   <input
                     type="radio"
@@ -1756,9 +1979,8 @@ export default function CreateApplicationInternalPage() {
                     value="มีชีวิต"
                     checked={fatherData.Status === 'มีชีวิต'}
                     onChange={handleChangeFather}
-                    className="mr-2"
-                    disabled={isCaretakerEditing} // Disable if parent info is being edited
-
+                    className={`mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled={!fatherData.PrefixName || isCaretakerEditing}
                   />{' '}
                   มีชีวิต
                   <input
@@ -1768,268 +1990,254 @@ export default function CreateApplicationInternalPage() {
                     value="ไม่มีชีวิต"
                     checked={fatherData.Status === 'ไม่มีชีวิต'}
                     onChange={handleChangeFather}
-                    className="ml-4 mr-2"
-                    disabled={isCaretakerEditing} // Disable if parent info is being edited
-
+                    className={`ml-4 mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled={!fatherData.PrefixName || isCaretakerEditing}
                   />{' '}
                   ไม่มีชีวิต
                 </div>
               </div>
 
-              {/* Disable fields if Father is deceased */}
-              <div className="">
-                <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">
-                  เบอร์โทร
-                </label>
-                <input
-                  type="text"
-                  id="FatherPhone"
-                  name="Phone"
-                  value={fatherData.Phone}
-                  onChange={(e) => {
-                    const onlyNumbers = e.target.value.replace(/\D/g, ''); // Remove non-numeric characters
-                    if (onlyNumbers.length <= 10) { // Restrict to 10 digits
-                      handleChangeFather(e);  // Pass the original event, no need to modify
-                    }
-                  }}
-                  className={`w-70 p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
-                  inputMode="numeric" // Helps to show a numeric keyboard on mobile devices
-                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+              {/* Additional fields based on status */}
+              {fatherData.Status === 'มีชีวิต' && fatherData.PrefixName && (
+                <>
+                  <div className="">
+                    <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+                    <input
+                      type="text"
+                      id="FatherPhone"
+                      name="Phone"
+                      value={fatherData.Phone}
+                      onChange={(e) => {
+                        const onlyNumbers = e.target.value.replace(/\D/g, '');
+                        if (onlyNumbers.length <= 10) {
+                          handleChangeFather(e);
+                        }
+                      }}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled={isCaretakerEditing}
+                    />
+                  </div>
 
+                  <div className="">
+                    <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
+                    <input
+                      type="text"
+                      id="FatherOccupation"
+                      name="Occupation"
+                      value={fatherData.Occupation}
+                      onChange={handleChangeFather}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled={isCaretakerEditing}
+                    />
+                  </div>
 
-              <div className="">
-                <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">
-                  อาชีพ
-                </label>
-                <input
-                  type="text"
-                  id="FatherOccupation"
-                  name="Occupation"
-                  value={fatherData.Occupation}
-                  onChange={(e) => {
-                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
-                    e.target.value = onlyLetters; // Modify the input value before passing the event
-                    handleChangeFather(e);  // Pass the original event
-                  }}
-                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
-                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+                  <div className="">
+                    <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
+                    <input
+                      type="number"
+                      id="FatherIncome"
+                      name="Income"
+                      value={fatherData.Income}
+                      onChange={handleChangeFather}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled={isCaretakerEditing}
+                    />
+                  </div>
 
-
-              <div className="">
-                <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">
-                  รายได้ต่อเดือน
-                </label>
-                <input
-                  type="number"
-                  id="FatherIncome"
-                  name="Income"
-                  value={fatherData.Income}
-                  onChange={handleChangeFather}
-                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
-                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
-
-              <div className="">
-                <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">
-                  สถานที่ทำงาน
-                </label>
-                <input
-                  type="text"
-                  id="FatherWorkplace"
-                  name="Workplace"
-                  value={fatherData.Workplace}
-                  onChange={handleChangeFather}
-                  className={`w-full p-3 border ${fatherData.Status === 'ไม่มีชีวิต' ? 'bg-gray-200 text-gray-700 font-semibold' : 'border-gray-300'}`}
-                  disabled={fatherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
-
+                  <div className="">
+                    <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
+                    <input
+                      type="text"
+                      id="FatherWorkplace"
+                      name="Workplace"
+                      value={fatherData.Workplace}
+                      onChange={handleChangeFather}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled={isCaretakerEditing}
+                    />
+                  </div>
+                </>
+              )}
             </div>
+
 
             {/* Mother's Information */}
             <div className="mb-10 grid grid-cols-3 sm:grid-cols-5 gap-2">
-              <div>
-                <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">
-                  คำนำหน้า
-                </label>
-                <select
-                  id="MotherPrefixName"
-                  name="PrefixName"
-                  value={motherData.PrefixName}
-                  onChange={handleChangeMother}
-                  className="w-30 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
-                >
-                  <option value="">คำนำหน้า</option>
-                  <option value="นาย">นาย</option>
-                  <option value="นาง">นาง</option>
-                  <option value="นางสาว">นางสาว</option>
-                </select>
-              </div>
+  <div>
+    <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
+    <select
+      id="MotherPrefixName"
+      name="PrefixName"
+      value={motherData.PrefixName}
+      onChange={handleChangeMother}
+      className="w-30 p-3 border border-gray-300 rounded"
+      disabled={isCaretakerEditing} // Disable if caretaker info is being edited
+    >
+      <option value="">คำนำหน้า</option>
+      <option value="นาย">นาย</option>
+      <option value="นาง">นาง</option>
+      <option value="นางสาว">นางสาว</option>
+    </select>
+  </div>
 
-              <div className="">
-                <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">
-                  มารดาชื่อ
-                </label>
-                <input
-                  type="text"
-                  id="MotherFirstName"
-                  name="FirstName"
-                  value={motherData.FirstName}
-                  onChange={(e) => {
-                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
-                    e.target.value = onlyLetters; // Modify the input value before passing the event
-                    handleChangeMother(e);  // Pass the original event
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
-                />
-              </div>
-              <div className="">
-                <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">
-                  นามสกุล
-                </label>
-                <input
-                  type="text"
-                  id="MotherLastName"
-                  name="LastName"
-                  value={motherData.LastName}
-                  onChange={(e) => {
-                    const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and spaces
-                    e.target.value = onlyLetters; // Modify the input value before passing the event
-                    handleChangeMother(e);  // Pass the original event
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
-                />
-              </div>
+  <div className="">
+    <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">มารดาชื่อ</label>
+    <input
+      type="text"
+      id="MotherFirstName"
+      name="FirstName"
+      value={motherData.FirstName}
+      onChange={(e) => {
+        const value = e.target.value;
+        if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+          handleChangeMother(e); // Only allow alphabetic characters
+        }
+      }}
+      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+      disabled={!motherData.PrefixName || isCaretakerEditing} // Disable if no prefix or caretaker is editing
+    />
+    {motherErrors.FirstName && <p className="text-red-500">{motherErrors.FirstName}</p>}
+  </div>
 
-              <div className="">
-                <label htmlFor="MotherAge" className="block text-gray-700 mb-2">
-                  อายุ
-                </label>
-                <input
-                  type="number"
-                  id="MotherAge"
-                  name="Age"
-                  value={motherData.Age}
-                  onChange={handleChangeMother}
-                  className="w-20 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing} // Disable if caretaker info is being edited
-                />
-              </div>
+  <div className="">
+    <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
+    <input
+      type="text"
+      id="MotherLastName"
+      name="LastName"
+      value={motherData.LastName}
+      onChange={(e) => {
+        const value = e.target.value;
+        if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+          handleChangeMother(e);
+        }
+      }}
+      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+      disabled={!motherData.PrefixName || isCaretakerEditing}
+    />
+    {motherErrors.LastName && <p className="text-red-500">{motherErrors.LastName}</p>}
+  </div>
 
-              <div>
-                <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">
-                  สถานภาพ (แม่)
-                </label>
-                <div className="flex items-center">
-                  <input
-                    type="radio"
-                    id="MotherStatusAlive"
-                    name="MotherStatus"
-                    value="มีชีวิต"
-                    checked={motherData.Status === 'มีชีวิต'}
-                    onChange={handleChangeMother}
-                    className="mr-2"
-                    disabled={isCaretakerEditing} // Disable if parent info is being edited
-                  />{' '}
-                  มีชีวิต
-                  <input
-                    type="radio"
-                    id="MotherStatusDeceased"
-                    name="MotherStatus"
-                    value="ไม่มีชีวิต"
-                    checked={motherData.Status === 'ไม่มีชีวิต'}
-                    onChange={handleChangeMother}
-                    className="ml-4 mr-2"
-                    disabled={isCaretakerEditing} // Disable if parent info is being edited
-                  />{' '}
-                  ไม่มีชีวิต
-                </div>
-              </div>
+  <div className="">
+    <label htmlFor="MotherAge" className="block text-gray-700 mb-2">อายุ</label>
+    <input
+      type="number"
+      id="MotherAge"
+      name="Age"
+      value={motherData.Age}
+      onChange={(e) => {
+        const value = parseInt(e.target.value, 10);
+        if (value >= 1 || e.target.value === "") {
+          handleChangeMother(e);
+        }
+      }}
+      min="1"
+      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+      disabled={!motherData.PrefixName || isCaretakerEditing}
+    />
+    {motherErrors.Age && <p className="text-red-500">{motherErrors.Age}</p>}
+  </div>
 
-              {/* Disable these fields if Mother is deceased */}
-              <div className="">
-                <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">
-                  เบอร์โทร
-                </label>
-                <input
-                  type="text"
-                  id="MotherPhone"
-                  name="Phone"
-                  value={motherData.Phone}
-                  onChange={handleChangeMother}
-                  className={`w-70 p-3 border ${motherData.Status === 'ไม่มีชีวิต'
-                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
-                    : 'border-gray-300'
-                    } rounded`}
-                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+  {/* Mother's status */}
+  <div>
+    <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (แม่)</label>
+    <div className="flex items-center">
+      <input
+        type="radio"
+        id="MotherStatusAlive"
+        name="MotherStatus"
+        value="มีชีวิต"
+        checked={motherData.Status === 'มีชีวิต'}
+        onChange={handleChangeMother}
+        className={`mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+        disabled={!motherData.PrefixName || isCaretakerEditing}
+      />{' '}
+      มีชีวิต
+      <input
+        type="radio"
+        id="MotherStatusDeceased"
+        name="MotherStatus"
+        value="ไม่มีชีวิต"
+        checked={motherData.Status === 'ไม่มีชีวิต'}
+        onChange={handleChangeMother}
+        className={`ml-4 mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+        disabled={!motherData.PrefixName || isCaretakerEditing}
+      />{' '}
+      ไม่มีชีวิต
+    </div>
+  </div>
 
-              <div className="">
-                <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">
-                  อาชีพ
-                </label>
-                <input
-                  type="text"
-                  id="MotherOccupation"
-                  name="Occupation"
-                  value={motherData.Occupation}
-                  onChange={handleChangeMother}
-                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
-                    ? 'bg-gray-200 text-gray-900 font-bold ' // Darker and bold when disabled
-                    : 'border-gray-300'
-                    } rounded`}
-                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+  {/* Additional fields based on status */}
+  {motherData.Status === 'มีชีวิต' && motherData.PrefixName && (
+    <>
+      <div className="">
+        <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+        <input
+          type="text"
+          id="MotherPhone"
+          name="Phone"
+          value={motherData.Phone}
+          onChange={(e) => {
+            const onlyNumbers = e.target.value.replace(/\D/g, '');
+            if (onlyNumbers.length <= 10) {
+              handleChangeMother(e);
+            }
+          }}
+          className="w-full p-3 border border-gray-300"
+          inputMode="numeric"
+          disabled={isCaretakerEditing}
+        />
+      </div>
 
-              <div className="">
-                <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">
-                  รายได้ต่อเดือน
-                </label>
-                <input
-                  type="number"
-                  id="MotherIncome"
-                  name="Income"
-                  value={motherData.Income}
-                  onChange={handleChangeMother}
-                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
-                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
-                    : 'border-gray-300'
-                    } rounded`}
-                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+      <div className="">
+        <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
+        <input
+          type="text"
+          id="MotherOccupation"
+          name="Occupation"
+          value={motherData.Occupation}
+          onChange={handleChangeMother}
+          className="w-full p-3 border border-gray-300"
+          inputMode="numeric"
+          disabled={isCaretakerEditing}
+        />
+      </div>
 
-              <div className="">
-                <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">
-                  สถานที่ทำงาน
-                </label>
-                <input
-                  type="text"
-                  id="MotherWorkplace"
-                  name="Workplace"
-                  value={motherData.Workplace}
-                  onChange={handleChangeMother}
-                  className={`w-full p-3 border ${motherData.Status === 'ไม่มีชีวิต'
-                    ? 'bg-gray-200 text-gray-900 font-bold' // Darker and bold when disabled
-                    : 'border-gray-300'
-                    } rounded`}
-                  disabled={motherData.Status === 'ไม่มีชีวิต' || isCaretakerEditing}
-                />
-              </div>
+      <div className="">
+        <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
+        <input
+          type="number"
+          id="MotherIncome"
+          name="Income"
+          value={motherData.Income}
+          onChange={handleChangeMother}
+          className="w-full p-3 border border-gray-300"
+          inputMode="numeric"
+          disabled={isCaretakerEditing}
+        />
+      </div>
 
+      <div className="">
+        <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
+        <input
+          type="text"
+          id="MotherWorkplace"
+          name="Workplace"
+          value={motherData.Workplace}
+          onChange={handleChangeMother}
+          className="w-full p-3 border border-gray-300"
+          inputMode="numeric"
+          disabled={isCaretakerEditing}
+        />
+      </div>
+    </>
+  )}
+</div>
 
-
-            </div>
 
             {/* Caretaker Information */}
             <div className="mb-6">
@@ -2216,17 +2424,22 @@ export default function CreateApplicationInternalPage() {
 
             {/* Sibling Information */}
             <div className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-6">
-              <div className="">
-                <label htmlFor="NumberOfSiblings" className="block text-gray-700 mb-2">จำนวนพี่น้อง</label>
-                <input
-                  type="number"
-                  id="NumberOfSiblings"
-                  name="NumberOfSiblings"
-                  value={numberOfSiblings}
-                  onChange={handleNumberOfSiblingsChange}
-                  className="w-50 p-3 border border-gray-300 rounded"
-                />
-              </div>
+            <div className="">
+  <label htmlFor="NumberOfSiblings" className="block text-gray-700 mb-2">จำนวนพี่น้อง</label>
+  <input
+    type="number"
+    id="NumberOfSiblings"
+    name="NumberOfSiblings"
+    value={numberOfSiblings}
+    onChange={(e) => {
+      const value = Math.max(0, parseInt(e.target.value, 10)); // กำหนดให้ค่าต่ำสุดเป็น 0
+      handleNumberOfSiblingsChange({ ...e, target: { ...e.target, value: value.toString() } });
+    }}
+    min="0" 
+    className="w-50 p-3 border border-gray-300 rounded"
+  />
+</div>
+
               <div className="">
                 <label htmlFor="NumberOfBrothers" className="block text-gray-700 mb-2">
                   จำนวนพี่น้องชาย
@@ -2695,7 +2908,7 @@ export default function CreateApplicationInternalPage() {
                     className="w-full p-3 border border-gray-300 rounded"
                   >
                     <option value="">เลือกประเภทไฟล์</option>
-                    <option value="รูปถ่ายหน้าตรง"> รูปถ่ายหน้าตรง</option>
+                    <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
                     <option value="ใบสมัคร">ใบสมัคร</option>
                     <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
                     <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
@@ -2721,13 +2934,15 @@ export default function CreateApplicationInternalPage() {
                     type="file"
                     id={`FilePath-${index}`}
                     name="FilePath"
-                    accept="application/pdf, image/jpeg, image/png" // Allow only PDF, JPEG, and PNG files
+                    accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
                     onChange={(e) => handleFileUpload(index, e)}
                     className="w-full p-3 border border-gray-300 rounded"
                   />
-                  {/* แจ้งเตือนข้อผิดพลาดใต้กล่องอัปโหลด */}
-                  {file.error && <p className="text-red-500 mt-1">{file.error}</p>}
+                  {/* Show error message for each file, if any */}
+                  {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
                 </div>
+
+
                 <div className="flex items-end">
                   <button
                     type="button"
@@ -2746,6 +2961,8 @@ export default function CreateApplicationInternalPage() {
             >
               เพิ่มไฟล์
             </button>
+
+
           </div>
         );
 

@@ -79,15 +79,28 @@ export default function CreateApplicationExternalPage() {
     setApplicationFiles(updatedFiles);
   };
 
-  // Handle file upload
-  const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const updatedFiles = [...applicationFiles];
-      updatedFiles[index].FilePath = file;
-      setApplicationFiles(updatedFiles);
+// Handle file upload with validation for PDF and image files
+const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+
+  if (file) {
+    const fileType = file.type;
+    const validFileTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+
+    // Check if the file type is valid
+    if (!validFileTypes.includes(fileType)) {
+      alert('เฉพาะไฟล์ PDF และรูปภาพ (JPEG, PNG) เท่านั้นที่สามารถอัปโหลดได้');
+      return; // Exit if the file type is not valid
     }
-  };
+
+    const updatedFiles = [...applicationFiles];
+    updatedFiles[index].FilePath = file; // Assign the selected file
+    setApplicationFiles(updatedFiles); // Update the state with the new file
+
+    console.log('File uploaded:', file);
+  }
+};
+
 
   // Add a new file entry
   const addFileEntry = () => {
@@ -103,6 +116,15 @@ export default function CreateApplicationExternalPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+      // Check if all fields in applicationFiles are filled out
+      for (const file of applicationFiles) {
+        if (!file.DocumentType || !file.DocumentName || !file.FilePath) {
+            setError('กรุณากรอกข้อมูลทุกฟิลด์ให้ครบถ้วน และอัปโหลดไฟล์สำหรับเอกสาร');
+            return; // Prevent form submission if validation fails
+        }
+    }
+
 
     try {
         // Set the status to 'รอประกาศผล'
@@ -197,15 +219,17 @@ export default function CreateApplicationExternalPage() {
                 />
               </div>
               <div>
-                <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
-                <input
-                  type="file"
-                  id={`FilePath-${index}`}
-                  name="FilePath"
-                  onChange={(e) => handleFileUpload(index, e)}
-                  className="w-full p-3 border border-gray-300 rounded"
-                />
-              </div>
+  <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+  <input
+    type="file"
+    id={`FilePath-${index}`}
+    name="FilePath"
+    accept=".pdf, image/*" // Restrict the file type to PDF and images
+    onChange={(e) => handleFileUpload(index, e)}
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+</div>
+
               <div className="flex items-end">
                 <button
                   type="button"
