@@ -1,4 +1,20 @@
 /** @type {import('next').NextConfig} */
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com;
+    child-src 'self' https://www.youtube.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: https: http:;
+    font-src 'self' https://fonts.gstatic.com;
+    object-src 'self';
+    base-uri 'self';
+    form-action 'self';
+    frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com;
+    frame-ancestors 'self' https://localhost:* http://localhost:* https://*.localhost:* http://*.localhost:* https://discord.com https://youtube.com;
+    connect-src 'self' https: http: wss: https://www.youtube.com;
+    upgrade-insecure-requests;
+`
+
 const nextConfig = {
   reactStrictMode: false,
   images: {
@@ -18,6 +34,7 @@ const nextConfig = {
             value:
               "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
           },
+          { key: 'Content-Security-Policy', value: cspHeader.replace(/\n/g, '')  }
         ],
       },
     ];
