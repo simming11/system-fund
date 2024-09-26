@@ -21,17 +21,12 @@ interface ApplicationFilesData {
 }
 
 export default function CreateApplicationExternalPage() {
-  const searchParams = useSearchParams();
-  const id = searchParams.get('scholarshipId');
-  const idStudent = localStorage.getItem('UserID');
-  console.log(idStudent);
-
   const router = useRouter();
 
 
   const [applicationData, setApplicationData] = useState<ApplicationExternaldata>({
-    StudentID: idStudent || '',
-    ScholarshipID: id || '',
+    StudentID: '',
+    ScholarshipID: '',
     ApplicationDate: '',
     Status: 'รออนุมัติ',
   });
@@ -44,24 +39,31 @@ export default function CreateApplicationExternalPage() {
 
   const [error, setError] = useState('');
 
- // Ensure the hook `useSearchParams` only runs on the client side
- useEffect(() => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    const Role = localStorage.getItem('UserRole');
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
 
-    if (!token || Role?.trim().toLowerCase() !== 'student') {
-      console.error('Unauthorized access or missing token. Redirecting to login.');
-      router.push('/page/login');
+      if (!token || Role?.trim().toLowerCase() !== 'student') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/login');
+      }
+
+      const idStudent = localStorage.getItem('UserID');
+      setApplicationData((prevData) => ({
+        ...prevData,
+        StudentID: idStudent || '',
+      }));
+
+      // Fetch search params on the client side
+      const searchParams = new URLSearchParams(window.location.search);
+      const scholarshipId = searchParams.get('scholarshipId');
+      setApplicationData((prevData) => ({
+        ...prevData,
+        ScholarshipID: scholarshipId || '',
+      }));
     }
-
-    const idStudent = localStorage.getItem('UserID');
-    setApplicationData((prevData) => ({
-      ...prevData,
-      StudentID: idStudent || '',
-    }));
-  }
-}, [router]);
+  }, [router]);
   // Saving the state data to sessionStorage when the component mounts or state changes
 
   useEffect(() => {
