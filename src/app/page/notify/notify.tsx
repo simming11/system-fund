@@ -151,6 +151,11 @@ export default function LineNotifyForm() {
       localStorage.removeItem('oauth_code');
       localStorage.removeItem('oauth_state');
       localStorage.removeItem('line_notify_token');
+      localStorage.removeItem('oauth_redirect_uri');
+      localStorage.removeItem('oauth_client_id');
+      localStorage.removeItem('oauth_scope');
+
+
 
       fetchLineNotifies();
       router.push('/page/notify');
