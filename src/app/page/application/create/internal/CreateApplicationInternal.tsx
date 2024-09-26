@@ -5,7 +5,7 @@ import Footer from '@/app/components/footer/footer';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
 import ApiServiceLocations from '@/app/services/location/apiLocations';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './createApplication.module.css';
 import Swal from 'sweetalert2';
@@ -3442,6 +3442,7 @@ export default function CreateApplicationInternalPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
+        <Suspense fallback={<div>Loading...</div>}>
       <div className={styles.fixedheader}>
         <Header />
 
@@ -3534,6 +3535,7 @@ export default function CreateApplicationInternalPage() {
           </form>
         </div>
       </div>
+      </Suspense>
       <Footer />
     </div>
   );
