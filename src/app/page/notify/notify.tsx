@@ -157,8 +157,8 @@ export default function LineNotifyForm() {
 
 
 
-      fetchLineNotifies();
       router.push('/page/notify');
+      fetchLineNotifies();
     } catch (error) {
       console.error('Error deleting Line Notify:', error);
       setResponseMessage('ไม่สามารถลบข้อมูลได้');
