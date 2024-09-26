@@ -48,12 +48,6 @@ interface ApplicationINEX {
     StudentID?: string;            // ID of the student (for internal applications)
 }
 
-
-
-
-
-
-
 export default function ScholarshipResultsAnnouncementPage() {
     const router = useRouter();
     const { id } = useParams();

@@ -44,17 +44,24 @@ export default function CreateApplicationExternalPage() {
 
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const Role = localStorage.getItem('UserRole');
+ // Ensure the hook `useSearchParams` only runs on the client side
+ useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    const Role = localStorage.getItem('UserRole');
 
-      if (!token || Role?.trim().toLowerCase() !== 'student') {
-        console.error('Unauthorized access or missing token. Redirecting to login.');
-        router.push('/page/login');
-      }
+    if (!token || Role?.trim().toLowerCase() !== 'student') {
+      console.error('Unauthorized access or missing token. Redirecting to login.');
+      router.push('/page/login');
     }
-  }, [router]);
+
+    const idStudent = localStorage.getItem('UserID');
+    setApplicationData((prevData) => ({
+      ...prevData,
+      StudentID: idStudent || '',
+    }));
+  }
+}, [router]);
   // Saving the state data to sessionStorage when the component mounts or state changes
 
   useEffect(() => {
