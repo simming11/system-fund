@@ -1492,22 +1492,22 @@ export default function CreateApplicationInternalPage() {
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
 
-            // Update and submit caretakerData if it's filled out, or replace empty values with "-"
-            const updatedCaretakerData = {
-              ...caretakerData,
-              ApplicationID: applicationID,
-              FirstName: caretakerData.FirstName || '-',
-              LastName: caretakerData.LastName || '-',
-              PrefixName: caretakerData.PrefixName || '-',
-              Occupation: caretakerData.Occupation || '-',
-              Phone: caretakerData.Phone || '-',
-              Workplace: caretakerData.Workplace || '-',
-              Status: caretakerData.Status || '-',
-              Type: caretakerData.Type || '-',
-              Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
-            };
-            tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
-            console.log('Caretaker data sent:', updatedCaretakerData);
+            // // Update and submit caretakerData if it's filled out, or replace empty values with "-"
+            // const updatedCaretakerData = {
+            //   ...caretakerData,
+            //   ApplicationID: applicationID,
+            //   FirstName: caretakerData.FirstName || '-',
+            //   LastName: caretakerData.LastName || '-',
+            //   PrefixName: caretakerData.PrefixName || '-',
+            //   Occupation: caretakerData.Occupation || '-',
+            //   Phone: caretakerData.Phone || '-',
+            //   Workplace: caretakerData.Workplace || '-',
+            //   Status: caretakerData.Status || '-',
+            //   Type: caretakerData.Type || '-',
+            //   Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
+            // };
+            // tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
+            // console.log('Caretaker data sent:', updatedCaretakerData);
 
       // รวม siblingsData และ siblingData เข้าไปด้วยกัน
       const updatedSiblingsData = [...siblingsData, siblingData]
@@ -2633,7 +2633,7 @@ export default function CreateApplicationInternalPage() {
 
 
             {/* Caretaker Information */}
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <div className="flex justify-start items-center space-x-4">
                 <h2 className={`text-red-500 ${isCaretakerEditing ? 'text-gray-700' : ''}`}>
                   {isCaretakerEditing
@@ -2883,7 +2883,7 @@ export default function CreateApplicationInternalPage() {
 
 
               </div>
-            </div>
+            </div> */}
 
             {/* Sibling Information */}
             <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
