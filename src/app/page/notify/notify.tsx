@@ -71,40 +71,30 @@ export default function LineNotifyForm() {
   const fetchLineNotifiesAndToken = async (code: string) => {
     try {
       const response = await ApiLineNotifyServices.getAllLineNotifies();
-
+  
       if (response.length > 0) {
         const { client_secret, notify_client_id, LineToken } = response[0];
-
+  
         if (!client_secret || !notify_client_id) {
           throw new Error('Client ID or Client Secret is missing.');
         }
-
+  
         setFormData((prevFormData) => ({
           ...prevFormData,
           client_secret: client_secret || '',
           notify_client_id: notify_client_id || '',
         }));
-
-        const responseToken = await axios.post('https://notify-bot.line.me/oauth/token', null, {
-          params: {
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: 'https://system-fund.vercel.app/page/notify', 
-            client_id: notify_client_id,
-            client_secret: client_secret,
-          },
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        });
-
-        const { access_token } = responseToken.data;
+  
+        // Call the `getToken` method from `ApiLineNotifyServices` with the correct arguments
+        const responseToken = await ApiLineNotifyServices.getToken(code, notify_client_id, client_secret);
+  
+        const { access_token } = responseToken;
         console.log('Access Token:', access_token);
         setHasLineToken(!LineToken);
         localStorage.setItem('line_notify_token', access_token);
-
+  
         await updateLineNotifyInDB(access_token);
-
+  
         return access_token;
       } else {
         throw new Error('No Line Notify data found.');
@@ -113,7 +103,7 @@ export default function LineNotifyForm() {
       console.error('Error fetching Line Notifies or token:', error);
     }
   };
-
+  
   const fetchLineNotifies = async () => {
     try {
       const AcademicID = localStorage.getItem('AcademicID');

@@ -9,8 +9,8 @@ class ApiLineNotifyServices {
         try {
             const response = await axios.get(`${API_URL}/line-notifies`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true',
+                    Authorization: `Bearer ${token}`
+                   
                 },
             });
             return response.data;
@@ -20,14 +20,35 @@ class ApiLineNotifyServices {
         }
     }
 
+    // Method to get the LINE Notify token
+  static async getToken(code: string, notify_client_id: string, client_secret: string) {
+    try {
+      const response = await axios.post('/api/line-notify-token', {
+        code,
+        notify_client_id,
+        client_secret,
+      });
+
+      // Check if response was successful and return the data
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(`Error fetching token: ${response.data.error}`);
+      }
+    } catch (error) {
+      console.error('Error fetching token:', error);
+      throw error;
+    }
+  }
+
     // ดึงข้อมูล LineNotify ตาม AcademicID
     static async getLineNotifiesByAcademicID(academicID: string) {
         const token = localStorage.getItem('token');
         try {
             const response = await axios.get(`${API_URL}/line-notifies/academic/${academicID}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true',
+                    Authorization: `Bearer ${token}`
+                
                 },
             });
             return response.data;
