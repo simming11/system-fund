@@ -23,8 +23,8 @@ class ApiLineNotifyServices {
     // Method to get the LINE Notify token
   static async getToken(code: string, notify_client_id: string, client_secret: string) {
     try {
-      const response = await axios.post('/api/line-notify-token', {
-        code,
+      const response = await axios.post( `${API_URL}/line-notify-token`, {
+        code, 
         notify_client_id,
         client_secret,
       });
