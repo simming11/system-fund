@@ -1458,22 +1458,7 @@ export default function CreateApplicationInternalPage() {
 
       const tasks: Promise<any>[] = [];
 
-      // Update and submit caretakerData if it's filled out, or replace empty values with "-"
-      const updatedCaretakerData = {
-        ...caretakerData,
-        ApplicationID: applicationID,
-        FirstName: caretakerData.FirstName || '-',
-        LastName: caretakerData.LastName || '-',
-        PrefixName: caretakerData.PrefixName || '-',
-        Occupation: caretakerData.Occupation || '-',
-        Phone: caretakerData.Phone || '-',
-        Workplace: caretakerData.Workplace || '-',
-        Status: caretakerData.Status || '-',
-        Type: caretakerData.Type || '-',
-        Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
-      };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
-      console.log('Caretaker data sent:', updatedCaretakerData);
+
 
       // Update and submit fatherData if it's filled out, or replace empty values with "-"
       const updatedFatherData = {
@@ -1506,6 +1491,23 @@ export default function CreateApplicationInternalPage() {
       };
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
+
+            // Update and submit caretakerData if it's filled out, or replace empty values with "-"
+            const updatedCaretakerData = {
+              ...caretakerData,
+              ApplicationID: applicationID,
+              FirstName: caretakerData.FirstName || '-',
+              LastName: caretakerData.LastName || '-',
+              PrefixName: caretakerData.PrefixName || '-',
+              Occupation: caretakerData.Occupation || '-',
+              Phone: caretakerData.Phone || '-',
+              Workplace: caretakerData.Workplace || '-',
+              Status: caretakerData.Status || '-',
+              Type: caretakerData.Type || '-',
+              Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
+            };
+            tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
+            console.log('Caretaker data sent:', updatedCaretakerData);
 
       // รวม siblingsData และ siblingData เข้าไปด้วยกัน
       const updatedSiblingsData = [...siblingsData, siblingData]
