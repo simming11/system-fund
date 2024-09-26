@@ -10,7 +10,6 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
-
 interface User {
   StudentID?: string;
   FirstName?: string;
@@ -128,103 +127,103 @@ const Header = () => {
 
   return (
     <header className="bg-white  p-4 flex justify-between items-center  fixed relative">
-      <div className="flex items-center">
-        <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
-        <nav className="hidden md:flex space-x-4">
-          <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-          <button
-            type="button"
-            className="inline-flex justify-center items-center text-gray-600 hover:text-gray-900"
-            onClick={toggleScholarshipDropdown}
-          >
-            ทุนการศึกษา
-            <FontAwesomeIcon
-              icon={isScholarshipDropdownOpen ? faChevronUp : faChevronDown} // เปลี่ยนไอคอนตามสถานะการเปิดปิด
-              className="ml-2" // เพิ่มระยะห่างระหว่างข้อความและไอคอน
-            />
-          </button>
-          {isScholarshipDropdownOpen && (
-            <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-              <div className="py-1">
-                <Link href="/page/internal-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                  ทุนภายใน
-                </Link>
-                <Link href="/page/external-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                  ทุนภายนอก
-                </Link>
-              </div>
-            </div>
-          )}
-          <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
-          {user && (
-        <Link href="/page/History-Application" className="text-gray-600 hover:text-gray-900">ประวัติการสมัคร</Link>
-      )}
-          <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
-        </nav>
-        <button className="md:hidden" onClick={toggleMobileMenu}>
-          {isMobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+    <div className="flex items-center">
+      <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
+      <nav className="hidden md:flex space-x-4">
+        <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
+        <button
+          type="button"
+          className="inline-flex justify-center items-center text-gray-600 hover:text-gray-900"
+          onClick={toggleScholarshipDropdown}
+        >
+          ทุนการศึกษา
+          <FontAwesomeIcon
+            icon={isScholarshipDropdownOpen ? faChevronUp : faChevronDown} // เปลี่ยนไอคอนตามสถานะการเปิดปิด
+            className="ml-2" // เพิ่มระยะห่างระหว่างข้อความและไอคอน
+          />
         </button>
-      </div>
+        {isScholarshipDropdownOpen && (
+          <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+            <div className="py-1">
+              <Link href="/page/internal-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                ทุนภายใน
+              </Link>
+              <Link href="/page/external-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                ทุนภายนอก
+              </Link>
+            </div>
+          </div>
+        )}
+        <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
+        {user && (
+      <Link href="/page/History-Application" className="text-gray-600 hover:text-gray-900">ประวัติการสมัคร</Link>
+    )}
+        <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
+      </nav>
+      <button className="md:hidden" onClick={toggleMobileMenu}>
+        {isMobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+      </button>
+    </div>
 
-      <div className="flex items-center space-x-4 relative">
-  {user ? (
-    <>
-      <div className="flex items-center space-x-1 cursor-pointer" onClick={toggleDropdown}>
-        <UserIcon className="h-6 text-gray-700" />
-        <span className="text-gray-700 text-sm">{user.FirstName} {user.LastName}</span>
-        <svg className="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
+    <div className="flex items-center space-x-4 relative">
+{user ? (
+  <>
+    <div className="flex items-center space-x-1 cursor-pointer" onClick={toggleDropdown}>
+      <UserIcon className="h-6 text-gray-700" />
+      <span className="text-gray-700 text-sm">{user.FirstName} {user.LastName}</span>
+      <svg className="h-4 w-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+      </svg>
+    </div>
+    {isDropdownOpen && (
+      <div ref={dropdownRef} className="absolute right-0 mt-12 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 w-40">
+        <Link href="/page/info" className="block px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ข้อมูลส่วนตัว</Link>
+        <Link href="/page/History-Application" className="block px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ประวัติการสมัคร</Link>
+        <button onClick={handleLogoutClick} className="block w-full text-left px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ออกจากระบบ</button>
       </div>
-      {isDropdownOpen && (
-        <div ref={dropdownRef} className="absolute right-0 mt-12 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 w-40">
-          <Link href="/page/info" className="block px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ข้อมูลส่วนตัว</Link>
-          <Link href="/page/History-Application" className="block px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ประวัติการสมัคร</Link>
-          <button onClick={handleLogoutClick} className="block w-full text-left px-4 py-2 text-gray-800 text-sm hover:bg-gray-100">ออกจากระบบ</button>
-        </div>
-      )}
-    </>
-  ) : (
-    <>
-      <Link href="/page/login" className="text-gray-600 hover:text-gray-900">เข้าสู่ระบบ</Link>
-      <Link href="/page/register" className="text-gray-600 hover:text-gray-900">ลงทะเบียน</Link>
-    </>
-  )}
+    )}
+  </>
+) : (
+  <>
+    <Link href="/page/login" className="text-gray-600 hover:text-gray-900">เข้าสู่ระบบ</Link>
+    <Link href="/page/register" className="text-gray-600 hover:text-gray-900">ลงทะเบียน</Link>
+  </>
+)}
 </div>
 
 {isMobileMenuOpen && (
-  <div className="md:hidden absolute top-16 left-0 w-full bg-white shadow-lg">
-    <nav className="flex flex-col space-y-2 p-4">
-      <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-      <Link href="/page/internal-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายใน</Link>
-      <Link href="/page/external-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายนอก</Link>
+<div className="md:hidden absolute top-16 left-0 w-full bg-white shadow-lg">
+  <nav className="flex flex-col space-y-2 p-4">
+    <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
+    <Link href="/page/internal-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายใน</Link>
+    <Link href="/page/external-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายนอก</Link>
 
-      
+    
 
- 
-      <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
-      {user && (
-        <Link href="/page/History-Application" className="text-gray-600 hover:text-gray-900">ประวัติการสมัคร</Link>
-      )}
-      <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
-    </nav>
-  </div>
+
+    <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
+    {user && (
+      <Link href="/page/History-Application" className="text-gray-600 hover:text-gray-900">ประวัติการสมัคร</Link>
+    )}
+    <Link href="/page/contact" className="text-gray-600 hover:text-gray-900">ติดต่อเรา</Link>
+  </nav>
+</div>
 )}
 
 
-      {showLogoutModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-30">
-          <div className="fixed inset-0 bg-black opacity-50"></div>
-          <div className="bg-white p-6 rounded-lg shadow-lg z-40">
-            <h2 className="text-xl font-semibold mb-4">ต้องการออกจากระบบหรือไม่</h2>
-            <div className="flex justify-end space-x-4">
-              <button onClick={() => setShowLogoutModal(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">ยกเลิก</button>
-              <button onClick={handleLogoutClick} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">ยืนยัน</button>
-            </div>
+    {showLogoutModal && (
+      <div className="fixed inset-0 flex items-center justify-center z-30">
+        <div className="fixed inset-0 bg-black opacity-50"></div>
+        <div className="bg-white p-6 rounded-lg shadow-lg z-40">
+          <h2 className="text-xl font-semibold mb-4">ต้องการออกจากระบบหรือไม่</h2>
+          <div className="flex justify-end space-x-4">
+            <button onClick={() => setShowLogoutModal(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">ยกเลิก</button>
+            <button onClick={handleLogoutClick} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">ยืนยัน</button>
           </div>
         </div>
-      )}
-    </header>
+      </div>
+    )}
+  </header>
   );
 };
 

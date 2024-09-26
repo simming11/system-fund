@@ -33,9 +33,6 @@ interface Scholarship {
 }
 
 export default function ScholarShipsPage() {
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
-  const userName = searchParams.get('userName');
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);

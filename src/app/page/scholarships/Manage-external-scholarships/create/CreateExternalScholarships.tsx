@@ -20,29 +20,49 @@ export default function CreateExternalScholarshipPage() {
     // Add other fields as needed
   });
   const [formData, setFormData] = useState(() => {
-    const savedFormData = sessionStorage.getItem(' createExternalScholarshipForm');
-    return savedFormData
-      ? JSON.parse(savedFormData)
-      : {
-        ScholarshipName: "",
-        Year: "",
-        Num_scholarship: "",
-        Minimum_GPA: "",
-        TypeID: "2",
-        YearLevel: "",
-        StartDate: "",
-        EndDate: "",
-        otherQualificationText: "",  // Initialize as an empty string
-        otherDocument: "",           // Initialize as an empty string
-        CreatedBy: localStorage.getItem('AcademicID') || '',
-        Major: [] as string[],  // Initialize as an empty array
-        Description: [] as string[],  // Initialize as an empty array
-        information: [] as string[],  // Initialize as an empty array
-        Files: [] as File[],  // Initialize as an empty array
-        Image: [] as File[],  // Initialize Image as null
-      };
+    // Check if we are in the browser before accessing sessionStorage
+    if (typeof window !== 'undefined') {
+      const savedFormData = sessionStorage.getItem('createExternalScholarshipForm');
+      return savedFormData
+        ? JSON.parse(savedFormData)
+        : {
+            ScholarshipName: "",
+            Year: "",
+            Num_scholarship: "",
+            Minimum_GPA: "",
+            TypeID: "2",
+            YearLevel: "",
+            StartDate: "",
+            EndDate: "",
+            otherQualificationText: "",  
+            otherDocument: "",         
+            CreatedBy: localStorage.getItem('AcademicID') || '',
+            Major: [] as string[],  
+            Description: [] as string[],  
+            information: [] as string[],  
+            Files: [] as File[],  
+            Image: [] as File[],  
+          };
+    }
+    return {
+      ScholarshipName: "",
+      Year: "",
+      Num_scholarship: "",
+      Minimum_GPA: "",
+      TypeID: "2",
+      YearLevel: "",
+      StartDate: "",
+      EndDate: "",
+      otherQualificationText: "",  
+      otherDocument: "",         
+      CreatedBy: '',
+      Major: [] as string[],  
+      Description: [] as string[],  
+      information: [] as string[],  
+      Files: [] as File[],  
+      Image: [] as File[],  
+    };
   });
-
   const [fileInputs, setFileInputs] = useState([0]);
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
   const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
@@ -111,9 +131,10 @@ export default function CreateExternalScholarshipPage() {
   useEffect(() => {
     fetchLineNotifies()
     fetchScholarship();
-    sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('createExternalScholarshipForm', JSON.stringify(formData));
+    }
   }, [formData]);
-
   const handleArrayChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     arrayName: string,
