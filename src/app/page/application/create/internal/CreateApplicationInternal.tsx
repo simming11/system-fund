@@ -258,7 +258,7 @@ export default function CreateApplicationInternalPage() {
       Phone: '',
       Occupation: '',
       Income: 0,
-      Type: '',
+      Type: 'ผู้อุปการะ',
       Workplace: '',
     };
   });
