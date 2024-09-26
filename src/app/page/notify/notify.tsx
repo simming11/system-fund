@@ -89,7 +89,7 @@ export default function LineNotifyForm() {
           params: {
             grant_type: 'authorization_code',
             code,
-            redirect_uri: 'https://your-redirect-uri.com/page/notify', 
+            redirect_uri: 'https://system-fund.vercel.app/page/notify', 
             client_id: notify_client_id,
             client_secret: client_secret,
           },
@@ -183,7 +183,7 @@ export default function LineNotifyForm() {
       return;
     }
 
-    const redirectUri = 'https://your-redirect-uri.com/page/notify';
+    const redirectUri = 'https://system-fund.vercel.app/page/notify';
     const scope = 'notify';
     const state = [...Array(30)].map(() => Math.random().toString(36)[2]).join('');
 
