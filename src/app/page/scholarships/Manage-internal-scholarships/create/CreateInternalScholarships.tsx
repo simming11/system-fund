@@ -55,12 +55,13 @@ export default function CreateInternalScholarshipPage() {
   const [error, setError] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
   const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
+  const [lineToken, setLineToken] = useState<string | null>(null);
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
     files: true,
   });
-
+  const AcademicID = typeof window !== "undefined" ? localStorage.getItem('AcademicID') ?? '' : '';
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
@@ -73,8 +74,21 @@ export default function CreateInternalScholarshipPage() {
     }
   }, [router]);
 
-  const AcademicID = localStorage.getItem('AcademicID') ?? '';
-  const [lineToken, setLineToken] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedFormData = sessionStorage.getItem('createInternalScholarshipForm');
+      if (savedFormData) {
+        setFormData(JSON.parse(savedFormData));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
+    }
+  }, [formData]);
+
   const fetchLineNotifies = async () => {
     try {
       if (!AcademicID) {
@@ -83,25 +97,23 @@ export default function CreateInternalScholarshipPage() {
       const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID);
 
       if (response.length > 0) {
-        // Extract client_secret, notify_client_id, and LineToken from the response
         const { client_secret, notify_client_id, LineToken } = response[0];
-
-        // Store LineToken in state
-        setLineToken(response[0].LineToken);
-        console.log(response[0].LineToken);
-
+        setLineToken(LineToken);
         console.log('Updated formData with client_secret and notify_client_id:', {
           client_secret,
           notify_client_id,
           LineToken,
         });
       }
-
-
     } catch (error) {
       console.error('Error fetching line notifies:', error);
     }
   };
+
+  useEffect(() => {
+    fetchLineNotifies();
+    fetchScholarship();
+  }, []);
 
   const fetchScholarship = async () => {
     try {
@@ -111,13 +123,6 @@ export default function CreateInternalScholarshipPage() {
       console.error("Error fetching applications:", error);
     }
   };
-
-  useEffect(() => {
-    fetchLineNotifies()
-    fetchScholarship();
-    sessionStorage.setItem('createInternalScholarshipForm', JSON.stringify(formData));
-  }, [formData]);
-
   const handleArrayChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     arrayName: string,
