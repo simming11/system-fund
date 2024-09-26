@@ -375,7 +375,7 @@ export default function EditInternalScholarshipPage() {
     Swal.fire({
       title: "",
       html: "",
-      timer: 0,
+      timer: 10,
       timerProgressBar: true,
       didOpen: () => {
         Swal.showLoading();

@@ -384,7 +384,7 @@ export default function CreateExternalScholarshipPage() {
     Swal.fire({
       title: "",
       html: "",
-      timer: 0,
+      timer: 10,
       timerProgressBar: true,
       didOpen: () => {
         Swal.showLoading();
