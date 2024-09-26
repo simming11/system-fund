@@ -374,8 +374,8 @@ export default function EditInternalScholarshipPage() {
     let timerInterval: string | number | NodeJS.Timeout | undefined;
     Swal.fire({
       title: "",
-      html: "หน้าต่างนี้จะปิดใน <b></b> มิลลิวินาที.",
-      timer: 4000,
+      html: "",
+      timer: 0,
       timerProgressBar: true,
       didOpen: () => {
         Swal.showLoading();
