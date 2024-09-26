@@ -12,7 +12,7 @@ import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScho
 export default function EditInternalScholarshipPage() {
   const router = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
-  const id = searchParams.get('scholarshipId');
+  const id = searchParams.get('id');
 
 
   useEffect(() => {
