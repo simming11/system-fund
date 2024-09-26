@@ -36,7 +36,7 @@ export default function CreateExternalScholarshipPage() {
             EndDate: "",
             otherQualificationText: "",  
             otherDocument: "",         
-            CreatedBy: localStorage.getItem('AcademicID') || '',
+            CreatedBy: localStorage.getItem('AcademicID') ? localStorage.getItem('AcademicID') : '',
             Major: [] as string[],  
             Description: [] as string[],  
             information: [] as string[],  
@@ -70,6 +70,7 @@ export default function CreateExternalScholarshipPage() {
   const [error, setError] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
   const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
+  const [ academicID, setAcademicID ] = useState('');
 
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
@@ -79,24 +80,32 @@ export default function CreateExternalScholarshipPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const Role = localStorage.getItem('UserRole');
+      const token = localStorage.getItem('token') ? localStorage.getItem('token') : '';
+      const Role = localStorage.getItem('UserRole') ? localStorage.getItem('UserRole') : '';
+      const AcademicID = localStorage.getItem('AcademicID') ? localStorage.getItem('AcademicID') : '';
 
       if (!token || Role?.trim().toLowerCase() !== 'admin') {
         console.error('Unauthorized access or missing token. Redirecting to login.');
         router.push('/page/control');
       }
+
+      if(AcademicID) {
+        setAcademicID(AcademicID);
+        setFormData((prev: any) => ({
+          ...prev,
+          CreatedBy: AcademicID
+        }))
+      }
     }
   }, [router]);
-
-  const AcademicID = localStorage.getItem('AcademicID') ?? '';
+  
   const [lineToken, setLineToken] = useState<string | null>(null);
   const fetchLineNotifies = async () => {
     try {
-      if (!AcademicID) {
+      if (!academicID) {
         throw new Error('AcademicID is missing');
       }
-      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID);
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(academicID);
 
       if (response.length > 0) {
         // Extract client_secret, notify_client_id, and LineToken from the response

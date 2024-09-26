@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, ReactNode, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
+import dynamic from 'next/dynamic';
 
 interface Attachment {
   ApplicationID: string;
@@ -68,10 +69,7 @@ interface Application {
   ApplicationID: number;
 }
 
-export default function ApplicationDetail() {
-  const router = useRouter(); // Hook for navigation
-  const searchParams = useSearchParams(); // Get search params from the URL
-  const id = searchParams.get('id'); // Extract the ID from the query parameters
+const ApplicationDetailContent = dynamic(() => Promise.resolve(({ id }: { id: string | null}) => {
   const [application, setApplication] = useState<Application | null>(null); // State to store application data
   const [loading, setLoading] = useState(true); // State to manage loading state
 
@@ -113,6 +111,29 @@ export default function ApplicationDetail() {
     return <p>Application not found</p>;
   }
 
+  return (
+    <div className="bg-white shadow-md rounded-lg p-6">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Application ID: {application.ApplicationID}</h2>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Status:</span> {application.Status}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Personal Info:</span> {application.PersonalInfo}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Family Info:</span> {application.FamilyInfo}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Academic Info:</span> {application.AcademicInfo}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Scholarship History:</span> {application.ScholarshipHistory}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Loan Amount:</span> {application.LoanAmount}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Monthly Expense:</span> {application.MonthlyExpenses}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Work History:</span> {application.WorkHistory}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Financial Info:</span> {application.FinancialInfo}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Reasons:</span> {application.Reasons}</p>
+      <p className="text-gray-700 mb-4"><span className="font-semibold">Signature:</span> {application.Signature}</p>
+    </div>
+  )
+}), { ssr: false});
+
+export default function ApplicationDetail() {
+  const router = useRouter(); // Hook for navigation
+  //const id = searchParams.get('id'); // Extract the ID from the query parameters
+  const id = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('id') : null;
+
   // Function to download the file
   //   const downloadFile = async (fileName: string) => {
   //     try {
@@ -137,20 +158,9 @@ export default function ApplicationDetail() {
     <div className="min-h-screen flex flex-col">
       <Header /> {/* Header component */}
       <div className="flex-1 container mx-auto px-4 py-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Application ID: {application.ApplicationID}</h2>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Status:</span> {application.Status}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Personal Info:</span> {application.PersonalInfo}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Family Info:</span> {application.FamilyInfo}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Academic Info:</span> {application.AcademicInfo}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Scholarship History:</span> {application.ScholarshipHistory}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Loan Amount:</span> {application.LoanAmount}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Monthly Expense:</span> {application.MonthlyExpenses}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Work History:</span> {application.WorkHistory}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Financial Info:</span> {application.FinancialInfo}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Reasons:</span> {application.Reasons}</p>
-          <p className="text-gray-700 mb-4"><span className="font-semibold">Signature:</span> {application.Signature}</p>
-        </div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ApplicationDetailContent id={id} />
+        </Suspense>
       </div>
       <Footer /> {/* Footer component */}
     </div>

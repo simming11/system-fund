@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
 import ApiStudentServices from '@/app/services/students/ApiStudent';

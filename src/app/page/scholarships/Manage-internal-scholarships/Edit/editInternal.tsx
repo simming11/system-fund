@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import HeaderHome from "@/app/components/headerHome/headerHome";
 import AdminHeader from "@/app/components/headerAdmin/headerAdmin";
 import Sidebar from "@/app/components/Sidebar/Sidebar";
@@ -11,8 +11,8 @@ import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScho
 
 export default function EditInternalScholarshipPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = searchParams.get('id');
+  const searchParams = new URLSearchParams(window.location.search);
+  const id = searchParams.get('scholarshipId');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

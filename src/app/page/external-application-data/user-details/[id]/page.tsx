@@ -2,7 +2,7 @@
 import React from 'react';
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import AdminHeader from '@/app/components/headerAdmin/headerAdmin';
 import Sidebar from '@/app/components/Sidebar/Sidebar';
@@ -41,7 +41,7 @@ export default function StudentExternalDetailsPage() {
     const router = useRouter();
     const { id } = useParams();
     const studentId: string = Array.isArray(id) ? id[0] : id;
-    const searchParams = useSearchParams();
+    const searchParams = new URLSearchParams(window.location.search);
 
     // Extract the `scholarshipId` from the query parameters
     const scholarshipId = searchParams.get('scholarshipId');

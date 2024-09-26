@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
@@ -122,7 +122,6 @@ interface PageProps {
 
 export default function EditApplicationInternalPage({ params }: PageProps) {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const id = params.id;
     const idStudent = localStorage.getItem('UserID');
     const token = localStorage.getItem('token');

@@ -1,3 +1,4 @@
+'use client'
 import CreateExternalScholarshipPage from "./CreateExternalScholarships";
 
 

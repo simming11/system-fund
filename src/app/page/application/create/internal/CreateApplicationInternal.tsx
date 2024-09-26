@@ -1,11 +1,11 @@
 "use client";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, } from 'next/navigation';
 import Header from '@/app/components/header/Header';
 import Footer from '@/app/components/footer/footer';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
 import ApiServiceLocations from '@/app/services/location/apiLocations';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './createApplication.module.css';
 import Swal from 'sweetalert2';
@@ -105,7 +105,7 @@ interface ApplicationFilesData {
 interface CurrentAddressData extends AddressesData { }
 
 export default function CreateApplicationInternalPage() {
-  const searchParams = useSearchParams();
+  const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get('scholarshipId');
   const idStudent = localStorage.getItem('UserID');
   const token = localStorage.getItem('token');
@@ -3442,7 +3442,6 @@ export default function CreateApplicationInternalPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-        <Suspense fallback={<div>Loading...</div>}>
       <div className={styles.fixedheader}>
         <Header />
 
@@ -3535,7 +3534,6 @@ export default function CreateApplicationInternalPage() {
           </form>
         </div>
       </div>
-      </Suspense>
       <Footer />
     </div>
   );

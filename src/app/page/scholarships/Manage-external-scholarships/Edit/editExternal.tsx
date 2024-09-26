@@ -1,6 +1,6 @@
 'use client';
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import HeaderHome from "@/app/components/headerHome/headerHome";
 import AdminHeader from "@/app/components/headerAdmin/headerAdmin";
 import Sidebar from "@/app/components/Sidebar/Sidebar";
@@ -11,7 +11,7 @@ import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScho
 
 export default function EditExternalScholarshipPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get('id');
 
   useEffect(() => {
@@ -500,7 +500,6 @@ export default function EditExternalScholarshipPage() {
           <Sidebar />
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
-        <Suspense fallback={<div>Loading...</div>}>
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายนอกมหาวิทยาลัย</h2>
             {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -900,7 +899,6 @@ export default function EditExternalScholarshipPage() {
               </div>
             </form>
           </div>
-        </Suspense>
         </div>
       </div>
       <Footer />
