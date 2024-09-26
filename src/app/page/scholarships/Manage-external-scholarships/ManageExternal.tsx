@@ -170,24 +170,9 @@ export default function ManageExternalScholarshipsPage() {
                       เกรด: {scholarship.Minimum_GPA} <br />
                       ชั้นปี: {scholarship.YearLevel} <br />
                       หลักสูตรที่สมัครได้: {scholarship.courses.map(course => course.CourseName).join(', ')} <br />
-                      <div className="scholarship-qualifications">
-                        คุณสมบัติ:{' '}
-                        {scholarship.qualifications.map((qualification, index) => {
-                          const text = qualification.QualificationText;
-                          return (
-                            <span key={index}>
-                              {text.length > 50 ? (
-                                <React.Fragment>
-                                  {text.substring(0, 50)}... <br /> {text.substring(50)}
-                                </React.Fragment>
-                              ) : (
-                                text
-                              )}
-                              {index < scholarship.qualifications.length - 1 && ', '}
-                            </span>
-                          );
-                        })}
-                      </div>
+                        คุณสมบัติ:
+                        {scholarship.qualifications.map((qualification) => qualification.QualificationText)}
+
                       <br />
                       เอกสารประกอบการขอทุน: {scholarship.documents.map(document => document.DocumentText).join(', ')}
                     </td>
