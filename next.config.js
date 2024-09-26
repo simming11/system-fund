@@ -27,7 +27,7 @@ const nextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "*,https://notify-bot.line.me/oauth,https://notify-bot.line.me/oauth/token,https://notify-bot.line.me/oauth/token?grant_type=authorization_code&code=uYZQy8jahh4PlOp2IhBg6o&redirect_uri=https:%2F%2Fsystem-fund.vercel.app%2Fpage%2Fnotify&client_id=8BuZEEpF4fhJ1QqJqY9H7z&client_secret=6VDi2J1kOf6JE8y9lii1ndyOh3WRjslF6EG5w1TEqhB" }, // Change "*" to your specific origin if needed
+          { key: "Access-Control-Allow-Origin", value: "*,https://notify-bot.line.me/oauth,https://notify-bot.line.me/oauth/token,https://notify-bot.line.me/oauth/token?grant_type=authorization_code&code=uYZQy8jahh4PlOp2IhBg6o&redirect_uri=https:%2F%2Fsystem-fund.vercel.app%2Fpage%2Fnotify&client_id=8BuZEEpF4fhJ1QqJqY9H7z&client_secret=6VDi2J1kOf6JE8y9lii1ndyOh3WRjslF6EG5w1TEqhB,https://system-fund.vercel.app" }, // Change "*" to your specific origin if needed
           { key: "Access-Control-Allow-Methods", value: "GET, DELETE, PATCH, POST, PUT" },
           {
             key: "Access-Control-Allow-Headers",
