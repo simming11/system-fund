@@ -73,14 +73,14 @@ export default function CreateInternalScholarshipPage() {
     }
   }, [router]);
 
-  const AcademicID = localStorage.getItem('AcademicID') ?? ''; 
-  const [lineToken, setLineToken] = useState<string | null>(null); 
+  const AcademicID = localStorage.getItem('AcademicID') ?? '';
+  const [lineToken, setLineToken] = useState<string | null>(null);
   const fetchLineNotifies = async () => {
     try {
       if (!AcademicID) {
         throw new Error('AcademicID is missing');
       }
-      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); 
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID);
 
       if (response.length > 0) {
         // Extract client_secret, notify_client_id, and LineToken from the response
@@ -306,7 +306,7 @@ export default function CreateInternalScholarshipPage() {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
       return;
     }
-    
+
 
     if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
@@ -358,7 +358,7 @@ export default function CreateInternalScholarshipPage() {
 
     // Show loading spinner only after all validations have passed
     Swal.fire({
-      title: "กำลังดำเนินการคำขอของคุณ!",
+      title: "",
       html: "หน้าต่างนี้จะปิดใน <b></b> มิลลิวินาที.",
       timer: 4000,
       timerProgressBar: true,
@@ -366,7 +366,7 @@ export default function CreateInternalScholarshipPage() {
         Swal.showLoading();
       },
     });
-    
+
 
     try {
       // Fetch all scholarships and check for duplicates
@@ -387,7 +387,7 @@ export default function CreateInternalScholarshipPage() {
         });
         return;
       }
-      
+
 
       // Prepare the form data
       const submitFormData = {
@@ -471,7 +471,7 @@ export default function CreateInternalScholarshipPage() {
         text: "สร้างทุนการศึกษาเรียบร้อยแล้ว!",
         icon: "success"
       });
-      
+
 
       // Clear session storage and redirect
       sessionStorage.clear();
@@ -491,7 +491,7 @@ export default function CreateInternalScholarshipPage() {
         console.error("Error creating scholarship:", error);
         Swal.fire({
           title: "Error",
-          text: "Failed to create scholarship. Please try again.",
+          text: error.response.data.error,
           icon: "error",
         });
       }
@@ -601,19 +601,43 @@ export default function CreateInternalScholarshipPage() {
                       <div className="mb-4">
                         <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
                         <input
-                          type="number"
+                          type="text"
                           id="Minimum_GPA"
                           name="Minimum_GPA"
-                          step="0.01"
-                          min="1"
-                          max="4"
                           value={formData.Minimum_GPA}
-                          onChange={handleChange}
+                          onChange={(e) => {
+                            let value = e.target.value;
+
+                            // ตรวจสอบว่ามีทศนิยมเกิน 2 ตำแหน่งหรือไม่
+                            const decimalPattern = /^\d*\.?\d{0,2}$/;
+
+                            if (value === "" || decimalPattern.test(value)) {
+                              // Allow empty or valid decimal inputs
+                              setFormData({ ...formData, Minimum_GPA: value });
+
+                              if (value === "") {
+                                setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+                              } else {
+                                const numericValue = parseFloat(value);
+                                if (numericValue >= 0 && numericValue <= 4.00) {
+                                  setErrorGpa(""); // Clear error if the value is valid
+                                } else {
+                                  setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+                                }
+                              }
+                            } else {
+                              setErrorGpa("กรุณากรอกทศนิยมไม่เกิน 2 ตำแหน่ง");
+                            }
+                          }}
                           className="w-full p-3 border border-gray-300 rounded"
                         />
-                        {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>} {/* Display error message if there's an error */}
+                        {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>}
                       </div>
                     </div>
+
+
+
+
 
                   </div>
 
@@ -925,19 +949,19 @@ export default function CreateInternalScholarshipPage() {
                     </div>
 
                     <div className="w-1/2">
-                    <div className="mb-4">
-  <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
-  <input
-    type="file"
-    id="Image"
-    name="Image"
-    accept=".png, .jpg, .jpeg" // Only allow PNG, JPG, and JPEG formats
-    onChange={handleImageChange}
-    className="w-1/3 p-3 border border-gray-300 rounded"
-  />
-  {/* Display error message */}
-  {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-</div>
+                      <div className="mb-4">
+                        <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
+                        <input
+                          type="file"
+                          id="Image"
+                          name="Image"
+                          accept=".png, .jpg, .jpeg" // Only allow PNG, JPG, and JPEG formats
+                          onChange={handleImageChange}
+                          className="w-1/3 p-3 border border-gray-300 rounded"
+                        />
+                        {/* Display error message */}
+                        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+                      </div>
 
                     </div>
 

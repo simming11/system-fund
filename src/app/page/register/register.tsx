@@ -11,11 +11,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import th from "date-fns/locale/th";
 import { format, Locale } from "date-fns";
 import Swal from "sweetalert2";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 // Register Thai locale
 registerLocale("th", th as unknown as Locale);
 
 export default function RegisterPage() {
+  const [showPassword, setShowPassword] = useState(false); // เพิ่ม state สำหรับแสดง/ซ่อนรหัสผ่าน
   const [StudentID, setStudentID] = useState<string>("");
   const [FirstName, setFirstName] = useState<string>("");
   const [LastName, setLastName] = useState<string>("");
@@ -56,7 +59,7 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     let validationErrors = { ...errors };
     let hasErrors = false;
-  
+
     // Reset all previous errors
     validationErrors = {
       StudentID: "",
@@ -73,81 +76,82 @@ export default function RegisterPage() {
       Religion: "",
       form: ""
     };
-  
+
     // ตรวจสอบความถูกต้องของแต่ละฟิลด์ก่อนทำการลงทะเบียน
-    if (!StudentID || StudentID.length < 7) {
-      validationErrors.StudentID = "รหัสนักศึกษาต้องมีความยาวอย่างน้อย 7 ตัวอักษร";
+    if (!StudentID || StudentID.length < 9) {
+      validationErrors.StudentID = "กรุณากรอกรหัสนิสิต";
       hasErrors = true;
     }
-  
+
     if (!PrefixName) {
-      validationErrors.PrefixName = "คำนำหน้าชื่อเป็นข้อมูลที่จำเป็น";
+      validationErrors.PrefixName = "กรุณากรอกคำนำหน้าชื่อ";
       hasErrors = true;
     }
-  
+
     if (!FirstName || !/^[A-Za-zก-๙]+$/.test(FirstName)) {
-      validationErrors.FirstName = "ชื่อจริงต้องประกอบด้วยตัวอักษรเท่านั้น";
+      validationErrors.FirstName = "กรุณากรอกชื่อจริง";
       hasErrors = true;
     }
-  
+
     if (!LastName || !/^[A-Za-zก-๙]+$/.test(LastName)) {
-      validationErrors.LastName = "นามสกุลต้องประกอบด้วยตัวอักษรเท่านั้น";
+      validationErrors.LastName = "กรุณากรอกนามสกุลจริง";
       hasErrors = true;
     }
-  
-    if (!Email || !/^[^\s@]+@(tsu\.ac\.th|TSU\.AC\.TH)$/.test(Email)) {
-      validationErrors.Email = "กรุณากรอกอีเมลที่ลงท้ายด้วย @tsu.ac.th หรือ @TSU.AC.TH เท่านั้น";
+
+    if (!Email || !/^[^\s@]+@(tsu\.ac\.th)$/.test(Email)) {
+      validationErrors.Email = "กรุณากรอกอีเมล";
       hasErrors = true;
     }
-  
+
     if (!Phone || !/^\d{10}$/.test(Phone)) {
-      validationErrors.Phone = "หมายเลขโทรศัพท์ต้องมีความยาว 10 หลักและเป็นตัวเลขเท่านั้น";
+      validationErrors.Phone = "กรุณากรอกหมายเลขโทรศัพท์";
       hasErrors = true;
     }
-  
-    if (Password.length < 6 || /[^\x00-\x7F]/.test(Password)) {
-      validationErrors.Password = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร และต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น";
+
+    if (Password.length < 8 || /[^\x00-\x7F]/.test(Password)) {
+      validationErrors.Password = "กรุณากรอกรหัสผ่าน";
       hasErrors = true;
     }
-  
+
     if (!Year_Entry) {
-      validationErrors.Year_Entry = "ปีที่เข้าศึกษาเป็นข้อมูลที่จำเป็น";
+      validationErrors.Year_Entry = "กรุณากรอกปีที่เข้าศึกษา";
       hasErrors = true;
     }
-  
+
     if (!Course) {
-      validationErrors.Course = "สาขาวิชาเป็นข้อมูลที่จำเป็น";
+      validationErrors.Course = "กรุณากรอกสาขาวิชา";
       hasErrors = true;
     }
-  
+
     if (!GPA || isNaN(Number(GPA)) || Number(GPA) < 1.00 || Number(GPA) > 4.00) {
-      validationErrors.GPA = "เกรดเฉลี่ย (GPA) ต้องเป็นค่าระหว่าง 1.00 ถึง 4.00";
+      validationErrors.GPA = "กรุณากรอกเกรดเฉลี่ย";
       hasErrors = true;
     }
-  
+
     if (!Religion) {
-      validationErrors.Religion = "ศาสนาเป็นข้อมูลที่จำเป็น";
+      validationErrors.Religion = "กรุณากรอกศาสนา";
       hasErrors = true;
     }
-  
+
     if (!DOB) {
-      validationErrors.DOB = "วันเกิดเป็นข้อมูลที่จำเป็น";
+      validationErrors.DOB = "กรุณากรอกวันเกิด";
       hasErrors = true;
     }
-  
+
+
     // อัปเดตสถานะด้วยข้อผิดพลาดในการตรวจสอบความถูกต้อง
     setErrors(validationErrors);
-  
+
     // หากมีข้อผิดพลาดในการตรวจสอบความถูกต้อง ให้ป้องกันการส่งฟอร์ม
     if (hasErrors) {
       setErrors({ ...validationErrors, form: "กรุณาแก้ไขข้อผิดพลาดด้านล่างและลองอีกครั้ง" });
       return;
     }
-  
+
     const yearEntryNumber = parseInt(Year_Entry, 10);
     const gpaNumber = parseFloat(GPA);
     const formattedDOB = DOB ? format(DOB, 'dd/MM/yyyy') : "";
-  
+
     try {
       const response = await ApiAuthService.registerStudent(
         StudentID,
@@ -163,7 +167,7 @@ export default function RegisterPage() {
         gpaNumber,
         Religion
       );
-  
+
       console.log("Registration successful", response.data);
       const { token, user } = response.data;
       localStorage.setItem('token', token);
@@ -173,7 +177,7 @@ export default function RegisterPage() {
       localStorage.setItem("FirstName", FirstName);
       localStorage.setItem("LastName", LastName);
       localStorage.setItem("Email", Email);
-  
+
       // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนสำเร็จ
       Swal.fire({
         icon: "success",
@@ -181,14 +185,14 @@ export default function RegisterPage() {
         showConfirmButton: false,
         timer: 1500
       });
-  
+
       // Redirect to the login page
       router.push("/page/scholarships/ApplyScholarship");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorResponse = error.response?.data.errors;
         let errorMessages = [];
-  
+
         if (errorResponse?.Email) {
           errorMessages.push("อีเมลถูกใช้งานแล้ว");
         }
@@ -198,10 +202,10 @@ export default function RegisterPage() {
         if (errorResponse?.StudentID) {
           errorMessages.push("รหัสนิสิตถูกใช้งานแล้ว");
         }
-  
+
         const fullErrorMessage = errorMessages.join(', ');
         setErrors({ ...errors, form: fullErrorMessage });
-  
+
         // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนล้มเหลว
         Swal.fire({
           position: "top-end",
@@ -211,11 +215,11 @@ export default function RegisterPage() {
           showConfirmButton: false,
           timer: 1500
         });
-  
+
       } else {
         const unknownError = "An unknown error occurred during registration";
         setErrors({ ...errors, form: unknownError });
-  
+
         // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนล้มเหลว
         Swal.fire({
           position: "top-end",
@@ -229,37 +233,8 @@ export default function RegisterPage() {
       console.error("Registration failed", error);
     }
   };
-  
 
-  const handleStudentIDChange = (e: { target: { value: any; }; }) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      setStudentID(value);
-      setErrors({ ...errors, StudentID: "" });
-    } else {
-      setErrors({ ...errors, StudentID: "Student ID must be a number" });
-    }
-  };
 
-  const handleGPAChange = (e: { target: { value: any } }) => {
-    const value = e.target.value;
-    if (value === "" || (!isNaN(value) && value >= 1.0 && value <= 4.0)) {
-      setGPA(value);
-      setErrors({ ...errors, GPA: "" });
-    } else {
-      setErrors({ ...errors, GPA: "GPA must be a valid number between 1.00 and 4.00" });
-    }
-  };
-
-  const handlePhoneChange = (e: { target: { value: any } }) => {
-    const value = e.target.value;
-    if (/^\d{0,15}$/.test(value)) { // Updated to allow up to 15 digits
-      setPhone(value);
-      setErrors({ ...errors, Phone: "" });
-    } else {
-      setErrors({ ...errors, Phone: "Phone number must be a valid number with no more than 15 digits" });
-    }
-  };
 
   // Function to convert the selected date to Buddhist year for display
   const formatToBuddhistYear = (date: Date | null) => {
@@ -283,13 +258,11 @@ export default function RegisterPage() {
       <HeaderHome />
       <Header />
       <div className="flex flex-grow flex-col lg:flex-row items-center justify-center">
-        <div className="w-full lg:w-1/2 p-4 flex justify-center">
-          <img src="/images/imageRegiter.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
+        <div className="w-full lg:w-1/2 p-4  md:w-1/2  flex justify-center">
+          <img src="/images/tsumove.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
         </div>
         <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center mr-10">
           <div className="w-full">
-          {errors.form && <div className="bg-red-100 text-red-700 p-4 mb-4 rounded">{errors.form}</div>}
-
             <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
 
             {/* Form starts here */}
@@ -302,29 +275,27 @@ export default function RegisterPage() {
                   placeholder="รหัสนิสิต"
                   value={StudentID}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    // Use regex to allow only numeric characters
-                    const regex = /^[0-9]*$/;
-                    if (regex.test(value)) {
-                      if (value.length > 10) {
-                        // Set error if input exceeds 10 digits
-                        setErrors((prevErrors) => ({
-                          ...prevErrors,
-                          StudentID: 'รหัสนิสิตต้องไม่เกิน 10 ตัวเลข',
-                        }));
-                      } else {
-                        // Clear error if input is valid
-                        setErrors((prevErrors) => ({
-                          ...prevErrors,
-                          StudentID: '',
-                        }));
-                        setStudentID(value);
-                      }
-                    } else {
-                      // Set error if non-numeric characters are entered
+                    let value = e.target.value;
+                    value = value.replace(/\D/g, ''); // Remove all non-numeric characters
+
+                    // Limit the value to 9 characters
+                    if (value.length > 9) {
+                      value = value.slice(0, 9);
+                    }
+
+                    setStudentID(value); // Update the state with the filtered and truncated value
+
+                    if (value.length < 9) {
+                      // Set error if input is less than 9 digits
                       setErrors((prevErrors) => ({
                         ...prevErrors,
-                        StudentID: 'กรุณากรอกตัวเลขเท่านั้น',
+                        StudentID: 'รหัสนิสิตต้องมีอย่างน้อย 9 ตัวเลข',
+                      }));
+                    } else {
+                      // Clear error if input is valid
+                      setErrors((prevErrors) => ({
+                        ...prevErrors,
+                        StudentID: '',
                       }));
                     }
                   }}
@@ -332,6 +303,9 @@ export default function RegisterPage() {
                 />
                 {errors.StudentID && <p className="text-red-500 text-sm">{errors.StudentID}</p>}
               </div>
+
+
+
 
 
               {/* Year Entry */}
@@ -359,9 +333,14 @@ export default function RegisterPage() {
                   className={`w-full p-3 mb-1 border ${errors.Course ? 'border-red-500' : 'border-gray-300'} rounded`}
                 >
                   <option value="" disabled>เลือกสาขา</option>
-                  <option value="วิทยาการคอมพิวเตอร์">วิทยาการคอมพิวเตอร์</option>
-                  <option value="เทคโนโลยีสารสนเทศ">เทคโนโลยีสารสนเทศ</option>
-                  <option value="วิศวกรรมซอฟต์แวร์">วิศวกรรมซอฟต์แวร์</option>
+                  <option value="เคมี">เคมี</option>
+                  <option value="วิทยาศาสตร์สิ่งแวดล้อม">วิทยาศาสตร์สิ่งแวดล้อม</option>
+                  <option value="คณิตศาสตร์และการจัดการข้อมูล">คณิตศาสตร์และการจัดการข้อมูล</option>
+                  <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                  <option value="วิทยาการคอมพิวเตอร์และสารสนเทศ">วิทยาการคอมพิวเตอร์และสารสนเทศ</option>
+                  <option value="ชีววิทยาศาสตร์">ชีววิทยาศาสตร์</option>
+                  <option value="ฟิสิกส์">ฟิสิกส์</option>
+
                 </select>
                 {errors.Course && <p className="text-red-500 text-sm">{errors.Course}</p>}
               </div>
@@ -442,28 +421,28 @@ export default function RegisterPage() {
                 {errors.Religion && <p className="text-red-500 text-sm">{errors.Religion}</p>}
               </div>
 
-              {/* DOB */}
-              <div className="w-full">
-                <label className="block text-gray-700 mb-1">วันเกิด</label>
-                <DatePicker
-                  selected={DOB}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
-                  locale="th" // Set Thai locale
-                  placeholderText="วัน/เดือน/ปี"
-                  showYearDropdown
-                  yearDropdownItemNumber={100} // Dropdown showing 100 years back
-                  scrollableYearDropdown // Enable scrollable dropdown for years
-                  customInput={
-                    <input
-                      value={DOB ? formatToBuddhistYear(DOB) : ""}
-                      className="w-full p-3 mb-1 border border-gray-300 rounded"
-                    />
-                  }
-                  className="w-full p-3 mb-1 border border-gray-300 rounded"
-                />
-                {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
-              </div>
+             {/* DOB */}
+      <div className="w-full">
+        <label className="block text-gray-700 mb-1">วันเกิด</label>
+        <DatePicker
+          selected={DOB}
+          onChange={handleDateChange}
+          dateFormat="dd/MM/yyyy"
+          locale="th"
+          placeholderText="วัน/เดือน/ปี"
+          showYearDropdown
+          yearDropdownItemNumber={100}
+          scrollableYearDropdown
+          customInput={
+            <input
+              value={DOB ? formatToBuddhistYear(DOB) : ""}
+              className="w-full p-3 mb-1 border border-gray-300 rounded"
+            />
+          }
+          className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
+        />
+        {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
+      </div>
 
               {/* Phone */}
               <div className="w-full">
@@ -567,15 +546,53 @@ export default function RegisterPage() {
               {/* Password */}
               <div className="w-full">
                 <label className="block text-gray-700 mb-1">รหัสผ่าน</label>
-                <input
-                  type="password"
-                  placeholder="รหัสผ่าน"
-                  value={Password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full p-3 mb-1 border ${errors.Password ? 'border-red-500' : 'border-gray-300'} rounded`}
-                />
-                {errors.Password && <p className="text-red-500 text-sm">{errors.Password}</p>}
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'} // เปลี่ยนระหว่าง text และ password
+                    placeholder="รหัสผ่าน"
+                    value={Password}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // ลบอักขระภาษาไทยออก
+                      const filteredValue = value.replace(/[\u0E00-\u0E7F]/g, ''); // ตัดตัวอักษรภาษาไทย
+                      setPassword(filteredValue); // อัปเดตรหัสผ่านโดยไม่มีตัวอักษรภาษาไทย
+
+                      // Validate password length and set errors if it's less than 8 characters
+                      if (filteredValue.length < 8) {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          Password: 'รหัสผ่านอย่างน้อย 8 ตัว',
+                        }));
+                      } else {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          Password: '',
+                        }));
+                      }
+                    }}
+                    className={`w-full p-3 mb-1 border ${errors.Password ? 'border-red-500' : 'border-gray-300'} rounded`}
+                  />
+
+                  {/* ปุ่มเปิด-ปิดการดูรหัสผ่าน - จะปรากฏเฉพาะเมื่อมีการกรอกรหัสผ่าน */}
+                  {Password && (
+                    <button
+                      type="button"
+                      onMouseDown={() => setShowPassword(true)}  // กดปุ่มค้างเพื่อแสดงรหัสผ่าน
+                      onMouseUp={() => setShowPassword(false)}   // ปล่อยปุ่มเพื่อซ่อนรหัสผ่าน
+                      onMouseLeave={() => setShowPassword(false)} // ป้องกันการแสดงรหัสหากเมาส์ออกจากปุ่ม
+                      className="absolute right-3 top-3"
+                    >
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                    </button>
+                  )}
+                </div>
+                {errors.Password && <p className="text-red-500 text-sm mt-1">{errors.Password}</p>}
               </div>
+
+
+
+
+
             </div>
 
             {/* Submit Button */}

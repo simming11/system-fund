@@ -14,7 +14,7 @@ export default function EditInternalScholarshipPage() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       const Role = localStorage.getItem('UserRole');
@@ -370,7 +370,7 @@ export default function EditInternalScholarshipPage() {
 
     let timerInterval: string | number | NodeJS.Timeout | undefined;
     Swal.fire({
-      title: "กำลังดำเนินการคำขอของคุณ!",
+      title: "",
       html: "หน้าต่างนี้จะปิดใน <b></b> มิลลิวินาที.",
       timer: 4000,
       timerProgressBar: true,
@@ -470,7 +470,7 @@ export default function EditInternalScholarshipPage() {
             text: "อัปเดตทุนการศึกษาเรียบร้อยแล้ว!",
             icon: "success"
           });
-          
+
 
           // Clear session storage and redirect
           sessionStorage.clear();
@@ -514,276 +514,297 @@ export default function EditInternalScholarshipPage() {
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-              
-                  <>
-                    <div className="w-full md:w-1/1 px-4 mb-4">
-                      <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
-                      <input
-                        type="text"
-                        id="ScholarshipName"
-                        name="ScholarshipName"
-                        value={formData.ScholarshipName}
-                        onChange={handleChange}
-                        className="w-5/6 p-3 border border-gray-300 rounded"
-                      />
-                    </div>
 
-                    <div className="flex flex-wrap">
-                      <div className="w-full md:w-1/2 px-4 mb-4">
-                        <div className="mb-4">
-                          <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
-                          <select
-                            id="Year"
-                            name="Year"
-                            value={formData.Year}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded"
-                          >
-                            {Array.from({ length: 18 }, (_, i) => (
-                              <option key={2563 + i} value={2563 + i}>
-                                {2563 + i}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="w-full md:w-1/2 px-4 mb-4">
-                        <div className="mb-4">
-                          <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
-                          <select
-                            id="YearLevel"
-                            name="YearLevel"
-                            value={formData.YearLevel}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded"
-                          >
-                            {[
-                              { value: "1", label: "ปี 1" },
-                              { value: "2", label: "ปี 2" },
-                              { value: "3", label: "ปี 3" },
-                              { value: "1-4", label: "ทุกชั้นปี" },
-                              { value: "2-4", label: "2ขึ้นไป" },
-                              { value: "3-4", label: "3ขึ้นไป" },
+                <>
+                  <div className="w-full md:w-1/1 px-4 mb-4">
+                    <label htmlFor="ScholarshipName" className="block text-gray-700 mb-2">ชื่อทุนการศึกษา</label>
+                    <input
+                      type="text"
+                      id="ScholarshipName"
+                      name="ScholarshipName"
+                      value={formData.ScholarshipName}
+                      onChange={handleChange}
+                      className="w-5/6 p-3 border border-gray-300 rounded"
+                    />
+                  </div>
 
-                            ].map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="w-full md:w-1/2 px-4 mb-4">
-                        <div className="mb-4">
-                          <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
-                          <input
-                            type="number"
-                            id="Num_scholarship"
-                            name="Num_scholarship"
-                            value={formData.Num_scholarship}
-                            onChange={handleChange}
-                            className="w-full p-3 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
-                      <div className="w-full md:w-1/2 px-4 mb-4">
+                  <div className="flex flex-wrap">
+                    <div className="w-full md:w-1/2 px-4 mb-4">
                       <div className="mb-4">
-                        <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
+                        <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                        <select
+                          id="Year"
+                          name="Year"
+                          value={formData.Year}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        >
+                          {Array.from({ length: 18 }, (_, i) => (
+                            <option key={2563 + i} value={2563 + i}>
+                              {2563 + i}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                        <select
+                          id="YearLevel"
+                          name="YearLevel"
+                          value={formData.YearLevel}
+                          onChange={handleChange}
+                          className="w-full p-3 border border-gray-300 rounded"
+                        >
+                          {[
+                            { value: "1", label: "ปี 1" },
+                            { value: "2", label: "ปี 2" },
+                            { value: "3", label: "ปี 3" },
+                            { value: "1-4", label: "ทุกชั้นปี" },
+                            { value: "2-4", label: "2ขึ้นไป" },
+                            { value: "3-4", label: "3ขึ้นไป" },
+
+                          ].map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <div className="mb-4">
+                        <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
                         <input
                           type="number"
-                          id="Minimum_GPA"
-                          name="Minimum_GPA"
-                          step="0.01"
-                          min="1"
-                          max="4"
-                          value={formData.Minimum_GPA}
+                          id="Num_scholarship"
+                          name="Num_scholarship"
+                          value={formData.Num_scholarship}
                           onChange={handleChange}
                           className="w-full p-3 border border-gray-300 rounded"
                         />
-                        {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>} {/* Display error message if there's an error */}
                       </div>
                     </div>
-                    </div>
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+  <div className="mb-4">
+    <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
+    <input
+      type="text"
+      id="Minimum_GPA"
+      name="Minimum_GPA"
+      value={formData.Minimum_GPA}
+      onChange={(e) => {
+        let value = e.target.value;
 
-                    <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">สาขาวิชา</label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="math"
-                            value="คณิตศาสตร์และการจัดการข้อมูล"
-                            checked={formData.course?.includes("คณิตศาสตร์และการจัดการข้อมูล") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="math">คณิตศาสตร์และการจัดการข้อมูล</label>
-                        </div>
+        // ตรวจสอบว่ามีทศนิยมเกิน 2 ตำแหน่งหรือไม่
+        const decimalPattern = /^\d*\.?\d{0,2}$/;
 
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="cs"
-                            value="วิทยาการคอมพิวเตอร์และสารสนเทศ"
-                            checked={formData.course?.includes("วิทยาการคอมพิวเตอร์และสารสนเทศ") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="cs">วิทยาการคอมพิวเตอร์และสารสนเทศ</label>
-                        </div>
+        if (value === "" || decimalPattern.test(value)) {
+          // Allow empty or valid decimal inputs
+          setFormData({ ...formData, Minimum_GPA: value });
+          
+          if (value === "") {
+            setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+          } else {
+            const numericValue = parseFloat(value);
+            if (numericValue >= 0 && numericValue <= 4.00) {
+              setErrorGpa(""); // Clear error if the value is valid
+            } else {
+              setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+            }
+          }
+        } else {
+          setErrorGpa("กรุณากรอกทศนิยมไม่เกิน 2 ตำแหน่ง");
+        }
+      }}
+      className="w-full p-3 border border-gray-300 rounded"
+    />
+    {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>}
+  </div>
+</div>
 
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="env_sci"
-                            value="วิทยาศาสตร์สิ่งแวดล้อม"
-                            checked={formData.course?.includes("วิทยาศาสตร์สิ่งแวดล้อม") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="env_sci">วิทยาศาสตร์สิ่งแวดล้อม</label>
-                        </div>
+                  </div>
 
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="chem"
-                            value="เคมี"
-                            checked={formData.course?.includes("เคมี") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="chem">เคมี</label>
-                        </div>
-
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="fish"
-                            value="วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ"
-                            checked={formData.course?.includes("วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="fish">วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ</label>
-                        </div>
-
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="bio"
-                            value="ชีววิทยาศาสตร์"
-                            checked={formData.course?.includes("ชีววิทยาศาสตร์") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="bio">ชีววิทยาศาสตร์</label>
-                        </div>
-
-                        <div>
-                          <input
-                            type="checkbox"
-                            id="phy"
-                            value="ฟิสิกส์วัสดุและนาโนเทคโนโลยี"
-                            checked={formData.course?.includes("ฟิสิกส์วัสดุและนาโนเทคโนโลยี") || false}
-                            onChange={handleArrayMajorChange}
-                            className="mr-2"
-                          />
-                          <label htmlFor="phy">ฟิสิกส์วัสดุและนาโนเทคโนโลยี</label>
-                        </div>
-
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">สาขาวิชา</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="math"
+                          value="คณิตศาสตร์และการจัดการข้อมูล"
+                          checked={formData.course?.includes("คณิตศาสตร์และการจัดการข้อมูล") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="math">คณิตศาสตร์และการจัดการข้อมูล</label>
                       </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="cs"
+                          value="วิทยาการคอมพิวเตอร์และสารสนเทศ"
+                          checked={formData.course?.includes("วิทยาการคอมพิวเตอร์และสารสนเทศ") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="cs">วิทยาการคอมพิวเตอร์และสารสนเทศ</label>
+                      </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="env_sci"
+                          value="วิทยาศาสตร์สิ่งแวดล้อม"
+                          checked={formData.course?.includes("วิทยาศาสตร์สิ่งแวดล้อม") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="env_sci">วิทยาศาสตร์สิ่งแวดล้อม</label>
+                      </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="chem"
+                          value="เคมี"
+                          checked={formData.course?.includes("เคมี") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="chem">เคมี</label>
+                      </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="fish"
+                          value="วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ"
+                          checked={formData.course?.includes("วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="fish">วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ</label>
+                      </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="bio"
+                          value="ชีววิทยาศาสตร์"
+                          checked={formData.course?.includes("ชีววิทยาศาสตร์") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="bio">ชีววิทยาศาสตร์</label>
+                      </div>
+
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="phy"
+                          value="ฟิสิกส์วัสดุและนาโนเทคโนโลยี"
+                          checked={formData.course?.includes("ฟิสิกส์วัสดุและนาโนเทคโนโลยี") || false}
+                          onChange={handleArrayMajorChange}
+                          className="mr-2"
+                        />
+                        <label htmlFor="phy">ฟิสิกส์วัสดุและนาโนเทคโนโลยี</label>
+                      </div>
+
                     </div>
+                  </div>
 
 
 
-                    <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">คุณสมบัติ</label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          "กำลังศึกษาอยู่ในระดับปริญญาตรี",
-                          "ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)",
-                          "มีความประพฤติดี มีความขยันหมั่นเพียร",
-                          "เป็นผู้พิการ",
-                          "มีฐานะยากจน หรือขาดแคลนทุนทรัพย์",
-                          "อื่น ๆ"
-                        ].map((qualification) => (
-                          <div key={qualification}>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">คุณสมบัติ</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        "กำลังศึกษาอยู่ในระดับปริญญาตรี",
+                        "ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)",
+                        "มีความประพฤติดี มีความขยันหมั่นเพียร",
+                        "เป็นผู้พิการ",
+                        "มีฐานะยากจน หรือขาดแคลนทุนทรัพย์",
+                        "อื่น ๆ"
+                      ].map((qualification) => (
+                        <div key={qualification}>
+                          <input
+                            type="checkbox"
+                            id={qualification}
+                            value={qualification}
+                            checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === qualification && q.isActive) || false}
+                            onChange={(e) =>
+                              handleArrayChange(
+                                e,
+                                "qualifications",
+                                setFormData,
+                                qualification === "อื่น ๆ" ? setShowDescriptionOtherInput : undefined
+                              )
+                            }
+                            className="mr-2"
+                          />
+                          <label htmlFor={qualification}>{qualification}</label>
+                          {qualification === "อื่น ๆ" && showDescriptionOtherInput && (
                             <input
-                              type="checkbox"
-                              id={qualification}
-                              value={qualification}
-                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === qualification && q.isActive) || false}
-                              onChange={(e) =>
-                                handleArrayChange(
-                                  e,
-                                  "qualifications",
-                                  setFormData,
-                                  qualification === "อื่น ๆ" ? setShowDescriptionOtherInput : undefined
-                                )
-                              }
-                              className="mr-2"
+                              type="text"
+                              name="otherQualificationText"
+                              value={formData.otherQualificationText}
+                              onChange={handleChange}
+                              className="ml-4 p-2 border border-gray-300 rounded"
+                              placeholder="ระบุคุณสมบัติอื่น ๆ"
                             />
-                            <label htmlFor={qualification}>{qualification}</label>
-                            {qualification === "อื่น ๆ" && showDescriptionOtherInput && (
-                              <input
-                                type="text"
-                                name="otherQualificationText"
-                                value={formData.otherQualificationText}
-                                onChange={handleChange}
-                                className="ml-4 p-2 border border-gray-300 rounded"
-                                placeholder="ระบุคุณสมบัติอื่น ๆ"
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">เอกสารประกอบการสมัคร</label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          "รูปถ่ายหน้าตรง",
-                          "สำเนาบัตรประชาชนผู้สมัคร",
-                          "หนังสือรับรองสภาพการเป็นนิสิต",
-                          "ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด",
-                          "ใบสะสมผลการเรียน",
-                          "อื่น ๆ"
-                        ].map((document) => (
-                          <div key={document}>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 mb-2">เอกสารประกอบการสมัคร</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {[
+                        "รูปถ่ายหน้าตรง",
+                        "สำเนาบัตรประชาชนผู้สมัคร",
+                        "หนังสือรับรองสภาพการเป็นนิสิต",
+                        "ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด",
+                        "ใบสะสมผลการเรียน",
+                        "อื่น ๆ"
+                      ].map((document) => (
+                        <div key={document}>
+                          <input
+                            type="checkbox"
+                            id={document}
+                            value={document}
+                            checked={formData.documents?.some((q: { text: string; isActive: any; }) => q.text === document && q.isActive) || false}
+                            onChange={(e) =>
+                              handleArrayChange(
+                                e,
+                                "documents",
+                                setFormData,
+                                document === "อื่น ๆ" ? setShowinformationOtherInput : undefined
+                              )
+                            }
+                            className="mr-2"
+                          />
+                          <label htmlFor={document}>{document}</label>
+                          {document === "อื่น ๆ" && showinformationOtherInput && (
                             <input
-                              type="checkbox"
-                              id={document}
-                              value={document}
-                              checked={formData.documents?.some((q: { text: string; isActive: any; }) => q.text === document && q.isActive) || false}
-                              onChange={(e) =>
-                                handleArrayChange(
-                                  e,
-                                  "documents",
-                                  setFormData,
-                                  document === "อื่น ๆ" ? setShowinformationOtherInput : undefined
-                                )
-                              }
-                              className="mr-2"
+                              type="text"
+                              name="otherDocument"
+                              value={formData.otherDocument}
+                              onChange={handleChange}
+                              className="ml-4 p-2 border border-gray-300 rounded"
+                              placeholder="ระบุเอกสารอื่น ๆ"
                             />
-                            <label htmlFor={document}>{document}</label>
-                            {document === "อื่น ๆ" && showinformationOtherInput && (
-                              <input
-                                type="text"
-                                name="otherDocument"
-                                value={formData.otherDocument}
-                                onChange={handleChange}
-                                className="ml-4 p-2 border border-gray-300 rounded"
-                                placeholder="ระบุเอกสารอื่น ๆ"
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <div className="flex">
+                  <div className="flex">
                     <div className="w-1/2">
                       <div className="mb-4">
                         {showSection.files && (
@@ -824,7 +845,7 @@ export default function EditInternalScholarshipPage() {
                         )}
                       </div>
                     </div>
-   <div className="w-1/2">
+                    <div className="w-1/2">
                       <div className="mb-4">
                         <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
                         <input
@@ -839,44 +860,49 @@ export default function EditInternalScholarshipPage() {
                         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
                       </div>
                     </div>
-                   
-                    </div>
 
-                    <div className="flex">
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
-                          <input
-                            type="date"
-                            id="StartDate"
-                            name="StartDate"
-                            value={formData.StartDate}
-                            onChange={handleChange}
-                            className="w-5/6 p-3 border border-gray-300 rounded"
-                          />
-                        </div>
-                      </div>
+                  </div>
 
-                      <div className="w-1/2">
-                        <div className="mb-4">
-                          <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
-                          <input
-                            type="date"
-                            id="EndDate"
-                            name="EndDate"
-                            value={formData.EndDate}
-                            onChange={handleChange}
-                            className="w-5/6 p-3 border border-gray-300 rounded"
-                          />
-                        </div>
+                  <div className="flex">
+                    <div className="w-1/2">
+                      <div className="mb-4">
+                        <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
+                        <input
+                          type="date"
+                          id="StartDate"
+                          name="StartDate"
+                          value={formData.StartDate}
+                          onChange={handleChange}
+                          className="w-5/6 p-3 border border-gray-300 rounded"
+                        />
                       </div>
                     </div>
-                  </>
+
+                    <div className="w-1/2">
+                      <div className="mb-4">
+                        <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                        <input
+                          type="date"
+                          id="EndDate"
+                          name="EndDate"
+                          value={formData.EndDate}
+                          onChange={handleChange}
+                          className="w-5/6 p-3 border border-gray-300 rounded"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
 
               </div>
-              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
-                Update Scholarship
-              </button>
+              <div className="flex ...">
+                <div className="w-5/6 ..."></div>
+                <div className="w-1/6 ...">
+                  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
+                    แก้ไขทุน
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
         </div>

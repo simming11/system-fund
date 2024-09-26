@@ -48,33 +48,9 @@ interface ApplicationINEX {
     StudentID?: string;            // ID of the student (for internal applications)
 }
 
-// Interface for external applications
-interface ApplicationExternal {
-    Application_EtID: string;      // External Application ID
-    ScholarshipID: number;         // ID of the scholarship
-    Status: string;                // Status of the application
-    StudentID: string;             // ID of the student
-    ApplicationDate: string;       // Date of the application in ISO 8601 format
-    created_at: string;            // Date when the application was created in ISO 8601 format
-}
 
-// Interface for internal applications
-interface ApplicationInternal {
-    ApplicationID: string;         // Internal Application ID
-    AdvisorName: string;           // Name of the student's advisor
-    ApplicationDate: string;       // Date of the application in ISO 8601 format
-    GPAYear1: number;              // GPA for the first year
-    GPAYear2: number;              // GPA for the second year
-    GPAYear3: number;              // GPA for the third year
-    MonthlyExpenses: number;       // Monthly expenses of the student
-    MonthlyIncome: number;         // Monthly income of the student
-    NumberOfBrothers: number;      // Number of brothers the student has
-    NumberOfSiblings: number;      // Total number of siblings (including brothers and sisters)
-    NumberOfSisters: number;       // Number of sisters the student has
-    ScholarshipID: number;         // ID of the scholarship
-    Status: string;                // Status of the application
-    StudentID: string;             // ID of the student
-}
+
+
 
 
 
@@ -89,6 +65,17 @@ export default function ScholarshipResultsAnnouncementPage() {
     const [file, setFile] = useState<File | null>(null);
     const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
     const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            const Role = localStorage.getItem('UserRole');
+
+            if (!token || Role?.trim().toLowerCase() !== 'admin') {
+                console.error('Unauthorized access or missing token. Redirecting to login.');
+                router.push('/page/control');
+            }
+        }
+    }, [router]);
     const fetchLineNotifies = async () => {
       try {
         if (!AcademicID) {

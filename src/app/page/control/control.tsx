@@ -70,7 +70,7 @@ export default function LoginControlPage() {
           <form className="w-full" onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
-              placeholder="รหัสนิสิต"
+              placeholder="รหัสผู้ดูแล"
               value={identifier}
               onChange={handleIdentifierChange}
               className="w-full p-3 mb-4 border border-gray-300 rounded"

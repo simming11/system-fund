@@ -143,12 +143,13 @@ export default function ExternalScholarShipsPage() {
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      if (now >= start && now <= end) {
+      if (now > start && now < end) {
         return "เปิดรับอยู่";
       }
     }
     return "ปิดรับแล้ว";
   };
+
 
   // Check if a scholarship has been applied
   const hasApplied = (scholarshipID: number): boolean => {
@@ -170,8 +171,8 @@ export default function ExternalScholarShipsPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <main className="flex-1">
-          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาภายใน</h2>
-          <div className="flex flex-wrap justify-start">
+          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาภายนอก</h2>
+          <div className="flex flex-wrap justify-start mb-60">
             {scholarships.map((scholarship) => (
               <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
                 <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">

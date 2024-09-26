@@ -60,17 +60,29 @@ class ApiApplicationInternalServices {
     }
 }
 
-
 static async generateApplicationPdf(applicationId: string) {
     try {
         const response = await axios.get(`${API_URL}/generate-pdf/${applicationId}`, {
             responseType: 'blob', // important to download the file as binary
         });
+
         // Create a blob URL for the file
         const fileURL = window.URL.createObjectURL(new Blob([response.data]));
         const fileLink = document.createElement('a');
         fileLink.href = fileURL;
-        fileLink.setAttribute('download', 'application_report.pdf'); // File name
+
+        // Set the filename based on the response's headers or based on applicationId
+        const contentDisposition = response.headers['content-disposition'];
+        let fileName = `${applicationId}_report.pdf`;
+        
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename="(.+)"/);
+            if (match && match.length > 1) {
+                fileName = match[1]; // Extract filename from headers
+            }
+        }
+        
+        fileLink.setAttribute('download', fileName);
         document.body.appendChild(fileLink);
         fileLink.click();
     } catch (error) {
@@ -78,6 +90,8 @@ static async generateApplicationPdf(applicationId: string) {
         throw error;
     }
 }
+
+
 
 
     // ดึงข้อมูล application internals ตาม StudentID

@@ -8,6 +8,7 @@ import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationI
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './createApplication.module.css';
+import Swal from 'sweetalert2';
 interface Students {
   StudentID: string;
   PrefixName: string;
@@ -44,6 +45,7 @@ interface GuardiansData {
   Status: string;
   Workplace: string;
   Phone: string;
+  CaretakerType?: string; // Add CaretakerType to the type definition
 }
 
 interface AddressesData {
@@ -158,7 +160,7 @@ export default function CreateApplicationInternalPage() {
       Type: '',
       Occupation: '',
       Income: 1,
-      Age: 1,
+      Age: 0,
       Status: '',
       Workplace: '',
       Phone: '',
@@ -198,7 +200,7 @@ export default function CreateApplicationInternalPage() {
       FirstName: '',
       LastName: '',
       PrefixName: '',
-      Type: 'พ่อ',
+      Type: 'บิดา',
       Occupation: '',
       Income: 0,
       Age: 0,
@@ -215,6 +217,8 @@ export default function CreateApplicationInternalPage() {
     Income: '',
     Workplace: '',
     Phone: '',
+    PrefixName: '',
+    Status: ''
   });
   const [motherData, setMotherData] = useState<GuardiansData>(() => {
     const savedMotherData = sessionStorage.getItem('motherData');
@@ -223,7 +227,7 @@ export default function CreateApplicationInternalPage() {
       FirstName: '',
       LastName: '',
       PrefixName: '',
-      Type: 'แม่',
+      Type: 'มารดา',
       Occupation: '',
       Income: 0,
       Age: 0,
@@ -240,6 +244,8 @@ export default function CreateApplicationInternalPage() {
     Income: '',
     Workplace: '',
     Phone: '',
+    PrefixName: '',
+    Status: ''
   });
   const [caretakerData, setCaretakerData] = useState<GuardiansData>(() => {
     const savedCaretakerData = sessionStorage.getItem('caretakerData');
@@ -256,13 +262,27 @@ export default function CreateApplicationInternalPage() {
       Workplace: '',
     };
   });
+  // สร้าง state สำหรับ caretaker errors
+  const [caretakerErrors, setCaretakerErrors] = useState({
+    PrefixName: '',
+    FirstName: '',
+    LastName: '',
+    Age: '',
+    Status: '',
+    Phone: '',
+    Occupation: '',
+    Income: '',
+    Workplace: '',
+    CaretakerType: '',
+  });
 
-// State สำหรับ siblingData (ข้อมูลแต่ละพี่น้อง)
-const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
-  const savedSiblingData = sessionStorage.getItem('siblingData');
-  return savedSiblingData
-    ? JSON.parse(savedSiblingData)
-    : {
+
+  // State สำหรับ siblingData (ข้อมูลแต่ละพี่น้อง)
+  const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
+    const savedSiblingData = sessionStorage.getItem('siblingData');
+    return savedSiblingData
+      ? JSON.parse(savedSiblingData)
+      : {
         ApplicationID: '', // ตั้งค่า ApplicationID ล่วงหน้า
         PrefixName: '',
         Fname: '',
@@ -272,7 +292,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
         Income: 0,
         Status: '',
       };
-});
+  });
   const [activities, setActivities] = useState<ActivitiesData[]>([
     { AcademicYear: '', ActivityName: '', Position: '', ApplicationID: '' },
   ]);
@@ -544,12 +564,12 @@ const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
   }, [currentAddressData.District]);
 
 
-  // Application data handler
   const handleChangeApplication = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
+    // Update applicationData
     setApplicationData({
       ...applicationData,
       [name]:
@@ -557,7 +577,14 @@ const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
           ? Number(value) // Convert these fields to numbers
           : value, // For other fields, use the value as-is
     });
+
+    // Remove error messages when valid input is provided
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: value !== "" && Number(value) > 0 ? "" : prevErrors[name], // Clear error if valid
+    }));
   };
+
 
 
   const calculateAcademicYear = (yearEntry: number | null) => {
@@ -577,80 +604,153 @@ const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
 
 
 
-
-  const handleChangeMother = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  // ฟังก์ชันสำหรับเปลี่ยนแปลงข้อมูลมารดา
+  const handleChangeMother = (e: { target: { name: string, value: string } }) => {
     const { name, value } = e.target;
 
-    // For numeric-only fields (Phone, Income, Age), sanitize input to allow only numbers
-    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name)
-      ? value.replace(/\D/g, '') // Remove non-numeric characters
-      : value;
+    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name) && value !== "" ? value.replace(/\D/g, '') : value;
 
-    setMotherData(prevState => ({
+    setMotherData((prevState) => ({
       ...prevState,
-      [name === 'MotherStatus' ? 'Status' : name]:
-        ['Income', 'Age'].includes(name)
-          ? Number(value)  // Convert fields like 'Income' and 'Age' to numbers
-          : value,          // Use the value directly for non-numeric fields
+      [name === 'MotherStatus' ? 'Status' : name]: ['Income', 'Age'].includes(name) && sanitizedValue !== "" ? Number(sanitizedValue) : sanitizedValue,
     }));
 
-    setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
-    setIsParentEditing(true);      // Enable parent editing
-    console.log('Mother Status:', name === 'MotherStatus' ? value : motherData.Status);  // Log mother's status
+    setMotherErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: ''
+    }));
+
+    if (name === 'Phone' && sanitizedValue.length === 10) {
+      setMotherErrors((prevErrors) => ({
+        ...prevErrors,
+        Phone: ''
+      }));
+    }
+
+    if (name === 'Occupation' && sanitizedValue !== "") {
+      setMotherErrors((prevErrors) => ({
+        ...prevErrors,
+        Occupation: ''
+      }));
+    }
+
+    setIsCaretakerEditing(false);
+    setIsParentEditing(true);
   };
 
-  const handleChangeFather = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  // ฟังก์ชันสำหรับเปลี่ยนแปลงข้อมูลบิดา
+  const handleChangeFather = (e: { target: { name: string, value: string } }) => {
     const { name, value } = e.target;
 
-    // For numeric-only fields (Phone, Income, Age), sanitize input to allow only numbers
-    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name)
-      ? value.replace(/\D/g, '') // Remove non-numeric characters
-      : value;
+    const sanitizedValue = ['Phone', 'Income', 'Age'].includes(name) && value !== "" ? value.replace(/\D/g, '') : value;
 
     setFatherData((prevState) => ({
       ...prevState,
-      // Use 'Status' for FatherStatus field, else use the name directly
-      [name === 'FatherStatus' ? 'Status' : name]:
-        // If the field is numeric (Income, Age), store it as a number
-        ['Income', 'Age'].includes(name)
-          ? Number(sanitizedValue) // Ensure numeric fields are stored as numbers
-          : sanitizedValue,        // Store the sanitized value for non-numeric fields
+      [name === 'FatherStatus' ? 'Status' : name]: ['Income', 'Age'].includes(name) && sanitizedValue !== "" ? Number(sanitizedValue) : sanitizedValue,
     }));
 
-    // When editing parent data, disable caretaker editing
+    setFatherErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: ''
+    }));
+
+    if (name === 'Age' && !isNaN(Number(sanitizedValue)) && Number(sanitizedValue) >= 1 && Number(sanitizedValue) <= 150) {
+      setFatherErrors((prevErrors) => ({
+        ...prevErrors,
+        Age: ''
+      }));
+    }
+
+    if (name === 'Phone' && sanitizedValue.length === 10) {
+      setFatherErrors((prevErrors) => ({
+        ...prevErrors,
+        Phone: ''
+      }));
+    }
+
+    if (name === 'Occupation' && sanitizedValue !== "") {
+      setFatherErrors((prevErrors) => ({
+        ...prevErrors,
+        Occupation: ''
+      }));
+    }
+
     setIsCaretakerEditing(false);
     setIsParentEditing(true);
   };
 
 
 
+  // ฟังก์ชันสำหรับเปลี่ยนแปลงข้อมูลผู้อุปการะ
   const handleChangeCaretaker = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
+    // ปรับค่าเฉพาะในฟิลด์ที่เป็น Income หรือ Age ให้เป็นตัวเลข
+    let updatedValue: any;
+
+    // ถ้าฟิลด์เป็น Age และค่าคือ "" (ลบค่าหรือว่างเปล่า) ให้เก็บเป็นค่าเริ่มต้น (null หรือ "")
+    if (name === 'Age') {
+      updatedValue = value === "" ? "" : Number(value);
+    } else if (name === 'Income') {
+      updatedValue = Number(value); // สำหรับ Income ให้เป็นตัวเลขเสมอ
+    } else {
+      updatedValue = value;
+    }
+
+    // อัปเดตข้อมูลผู้อุปการะ
     setCaretakerData((prevState: any) => ({
       ...prevState,
-      [name]: name === 'Income' || name === 'Age' ? Number(value) : value,
+      [name]: updatedValue,
     }));
 
-    // Enable caretaker editing and disable parent editing
+    // ลบข้อผิดพลาดเมื่อข้อมูลถูกต้องตามเงื่อนไข
+    setCaretakerErrors((prevErrors: any) => ({
+      ...prevErrors,
+      [name]: validateCaretakerField(name, updatedValue) ? '' : prevErrors[name],
+    }));
+
     setIsCaretakerEditing(true);
     setIsParentEditing(false);
-    console.log('Caretaker Data on Change:', {
-      ...caretakerData,
-      [name]: name === 'Income' || name === 'Age' ? Number(value) : value,
-    });
   };
 
+
+  // ฟังก์ชันสำหรับตรวจสอบค่าที่ถูกต้องตามเงื่อนไขสำหรับผู้อุปการะ
+  const validateCaretakerField = (name: string, value: any): boolean => {
+    switch (name) {
+      case 'PrefixName':
+        return value !== '';
+      case 'FirstName':
+      case 'LastName':
+        return value.trim() !== '';
+      case 'Age':
+        return value > 0 && value <= 150;
+      case 'Phone':
+        return value.length === 10;
+      case 'Occupation':
+      case 'Workplace':
+      case 'CaretakerType':
+        return value.trim() !== '';
+      case 'Income':
+        return value > 0;
+      case 'Status':
+        return value !== '';
+      default:
+        return true;
+    }
+  };
   const handleChangeSibling = (index: number, name: string, value: string | number) => {
     const newSiblingsData = [...siblingsData];
+
+    // ตรวจสอบถ้าค่าเป็นค่าว่าง ("") ให้ใช้ค่าว่าง, ถ้าไม่ใช่ให้ใช้ค่าสูงสุดไม่เกิน 100 ล้าน
+    const sanitizedValue = name === 'Income'
+      ? value === "" ? "" : Math.min(Number(value), 100000000) // อนุญาตค่าว่าง และจำกัดค่าไม่เกิน 100 ล้าน
+      : value;
+
     newSiblingsData[index] = {
       ...newSiblingsData[index],
-      [name]: name === 'Income' ? Number(value) : value,
+      [name]: sanitizedValue,
     };
+
     setSiblingsData(newSiblingsData);
 
     // Log the updated siblings data
@@ -661,64 +761,79 @@ const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
   };
 
 
-// ฟังก์ชันสำหรับการเปลี่ยนจำนวนพี่น้อง
-const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = parseInt(e.target.value, 10);
-  setNumberOfSiblings(value);
+  // ฟังก์ชันสำหรับการเปลี่ยนจำนวนพี่น้อง
+  const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setNumberOfSiblings(value);
 
-  // ปรับข้อมูล siblingsData ให้ตรงกับจำนวนพี่น้องใหม่
-  const newSiblingsData = [...siblingsData];
-  if (value > siblingsData.length) {
-    // เพิ่มรายการพี่น้องใหม่และตั้งค่า ApplicationID ล่วงหน้า
-    for (let i = siblingsData.length; i < value; i++) {
-      newSiblingsData.push({
-        ApplicationID: '', // ใส่ ApplicationID อัตโนมัติ
-        PrefixName: '',
-        Fname: '',
-        Lname: '',
-        Occupation: '',
-        EducationLevel: '',
-        Income: 0,
-        Status: '',
-      });
+    // ปรับข้อมูล siblingsData ให้ตรงกับจำนวนพี่น้องใหม่
+    const newSiblingsData = [...siblingsData];
+    if (value > siblingsData.length) {
+      // เพิ่มรายการพี่น้องใหม่และตั้งค่า ApplicationID ล่วงหน้า
+      for (let i = siblingsData.length; i < value; i++) {
+        newSiblingsData.push({
+          ApplicationID: '', // ใส่ ApplicationID อัตโนมัติ
+          PrefixName: '',
+          Fname: '',
+          Lname: '',
+          Occupation: '',
+          EducationLevel: '',
+          Income: 0,
+          Status: '',
+        });
+      }
+    } else {
+      // ลบรายการพี่น้องที่เกินมา
+      newSiblingsData.splice(value);
     }
-  } else {
-    // ลบรายการพี่น้องที่เกินมา
-    newSiblingsData.splice(value);
-  }
 
-  setSiblingsData(newSiblingsData);
+    setSiblingsData(newSiblingsData);
 
-  // เก็บข้อมูลลง sessionStorage อัปเดตทุกครั้งที่มีการเปลี่ยนแปลง
-  sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
+    // เก็บข้อมูลลง sessionStorage อัปเดตทุกครั้งที่มีการเปลี่ยนแปลง
+    sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
 
-  // อัปเดต applicationData ด้วยจำนวนพี่น้องใหม่
-  setApplicationData({
-    ...applicationData,
-    NumberOfSiblings: value, // อัปเดตข้อมูลจำนวนพี่น้องใน applicationData
-  });
-
-  // ส่งกลับข้อมูลพี่น้องที่อัปเดตแล้ว
-  return newSiblingsData;
-};
-
-
-  const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setAddressData({
-      ...addressData,
-      [name]: value,
+    // อัปเดต applicationData ด้วยจำนวนพี่น้องใหม่
+    setApplicationData({
+      ...applicationData,
+      NumberOfSiblings: value, // อัปเดตข้อมูลจำนวนพี่น้องใน applicationData
     });
+
+    // ส่งกลับข้อมูลพี่น้องที่อัปเดตแล้ว
+    return newSiblingsData;
   };
+
 
   const handleChangeCurrentAddress = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    // อัปเดตข้อมูล currentAddressData
     setCurrentAddressData({
       ...currentAddressData,
       [name]: value,
     });
+
+    // ลบการแจ้งเตือนทันทีเมื่อข้อมูลถูกกรอก
+    setCurrentAddressErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: value !== "" ? "" : prevErrors[name], // ถ้ากรอกข้อมูลแล้วให้เคลียร์ Error
+    }));
+  };
+  const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+
+    // อัปเดตข้อมูล addressData
+    setAddressData({
+      ...addressData,
+      [name]: value,
+    });
+
+    // ลบการแจ้งเตือนทันทีเมื่อข้อมูลถูกกรอก
+    setAddressErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: value !== "" ? "" : prevErrors[name], // ถ้ากรอกข้อมูลแล้วให้เคลียร์ Error
+    }));
   };
 
   const handleCopyAddress = () => {
@@ -751,16 +866,23 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setActivities(newActivities);
   };
 
-  // Function to handle input changes for each scholarship history entry
   const handleScholarshipChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updatedScholarshipHistory = [...scholarshipHistory];
+
+    // ตรวจสอบถ้าค่าเป็นค่าว่าง ("") ให้ใช้ค่าว่าง, ถ้าไม่ใช่ให้ใช้ค่าสูงสุดไม่เกิน 10 ล้าน
+    const sanitizedValue = name === 'AmountReceived'
+      ? value === "" ? "" : Math.min(Number(value), 10000000) // อนุญาตค่าว่าง
+      : value;
+
     updatedScholarshipHistory[index] = {
       ...updatedScholarshipHistory[index],
-      [name]: name === 'AmountReceived' ? Number(value) : value,
+      [name]: sanitizedValue,
     };
+
     setScholarshipHistory(updatedScholarshipHistory);
   };
+
 
   // Function to add a new scholarship history entry
   const addScholarshipHistory = () => {
@@ -773,14 +895,20 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setScholarshipHistory(updatedScholarshipHistory);
   };
 
-  // Function to handle input changes for each work experience entry
   const handleWorkExperienceChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updatedWorkExperiences = [...workExperiences];
+
+    // ตรวจสอบถ้าค่าเป็นค่าว่าง ("") ให้ใช้ค่าว่าง, ถ้าไม่ใช่ให้ใช้ค่าสูงสุดไม่เกิน 10 ล้าน
+    const sanitizedValue = name === 'Earnings'
+      ? value === "" ? "" : Math.min(Number(value), 10000000) // อนุญาตค่าว่าง และจำกัดค่าไม่เกิน 10 ล้าน
+      : value;
+
     updatedWorkExperiences[index] = {
       ...updatedWorkExperiences[index],
-      [name]: name === 'Earnings' ? Number(value) : value,
+      [name]: sanitizedValue,
     };
+
     setWorkExperiences(updatedWorkExperiences);
   };
 
@@ -795,21 +923,27 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setWorkExperiences(updatedWorkExperiences);
   };
 
-  // Handle file input changes (for select and text inputs)
   const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const updatedFiles = [...applicationFiles];
 
-    // Clear previous error messages on change
+    // Update field value and reset error if there's any change
     updatedFiles[index] = {
       ...updatedFiles[index],
       [name]: value,
       error: '', // Reset error when user makes changes
     };
+
+    // Trigger validation if the user has started filling in fields
+    if (updatedFiles[index].DocumentType || updatedFiles[index].DocumentName || updatedFiles[index].FilePath) {
+      if (!updatedFiles[index].DocumentType || !updatedFiles[index].DocumentName || !updatedFiles[index].FilePath) {
+        updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+      }
+    }
+
     setApplicationFiles(updatedFiles);
   };
 
-  // Handle file upload (for file inputs)
   const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const updatedFiles = [...applicationFiles];
@@ -837,13 +971,17 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
       updatedFiles[index].FilePath = file;
       updatedFiles[index].error = ''; // Clear error if successful upload
       setApplicationFiles(updatedFiles);
+    } else {
+      // If no file selected, set an error if necessary
+      if (!updatedFiles[index].FilePath) {
+        updatedFiles[index].error = 'กรุณาอัปโหลดไฟล์';
+      }
     }
   };
 
 
-  // Add a new file entry
   const addFileEntry = () => {
-    setApplicationFiles([...applicationFiles, { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '' }]);
+    setApplicationFiles([...applicationFiles, { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', error: '' }]);
   };
 
   // Remove a file entry
@@ -864,9 +1002,9 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     Income?: string;
     Status?: string;
   }[]>([]);
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<{ [key: string]: string }>({
     MonthlyIncome: '',
-    MonthlyExpenses: ''
+    MonthlyExpenses: '',
   });
 
 
@@ -908,9 +1046,9 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
   };
 
 
-
   const handlefatherValidation = () => {
     const errors = {
+      PrefixName: '',
       FirstName: '',
       LastName: '',
       Age: '',
@@ -918,67 +1056,80 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
       Income: '',
       Workplace: '',
       Phone: '',
+      Status: ''
     };
     let isValid = true;
 
-    // Skip validation for certain fields if father is deceased ("ไม่มีชีวิต")
-    if (fatherData.Status === 'ไม่มีชีวิต') {
-      // Only validate FirstName, LastName, Age
-      if (fatherData.PrefixName && !fatherData.FirstName) {
-        errors.FirstName = 'กรุณากรอกชื่อ';
-        isValid = false;
-      }
-      if (fatherData.PrefixName && !fatherData.LastName) {
-        errors.LastName = 'กรุณากรอกนามสกุล';
-        isValid = false;
-      }
-      if (fatherData.PrefixName && !fatherData.Age) {
-        errors.Age = 'กรุณากรอกอายุ';
-        isValid = false;
-      }
+    // ตรวจสอบคำนำหน้า (PrefixName)
+    if (!fatherData.PrefixName) {
+      errors.PrefixName = 'กรุณากรอกคำนำหน้า';
+      isValid = false;
+    }
 
+    // ตรวจสอบชื่อบิดา
+    if (!fatherData.FirstName) {
+      errors.FirstName = 'กรุณากรอกชื่อบิดา';
+      isValid = false;
+    }
+
+    // ตรวจสอบนามสกุลบิดา
+    if (!fatherData.LastName) {
+      errors.LastName = 'กรุณากรอกนามสกุล';
+      isValid = false;
+    }
+
+    // ตรวจสอบอายุ
+    if (!fatherData.Age || fatherData.Age <= 0 || fatherData.Age > 150) {
+      errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+      isValid = false;
+    }
+
+    // ตรวจสอบสถานภาพ (บิดา)
+    if (!fatherData.Status) {
+      errors.Status = 'กรุณาระบุสถานภาพของบิดา';
+      isValid = false;
+    }
+
+    // ถ้าเสียชีวิตแล้ว ไม่ต้อง validate ฟิลด์อื่น
+    if (fatherData.Status === 'เสียชีวิตแล้ว') {
       setFatherErrors(errors);
       return isValid;
     }
 
-    // Validate all fields if father is alive ("มีชีวิต")
-    if (fatherData.Status === 'มีชีวิต') {
-      if (fatherData.PrefixName && !fatherData.FirstName) {
-        errors.FirstName = 'กรุณากรอกชื่อ';
-        isValid = false;
-      }
-      if (fatherData.PrefixName && !fatherData.LastName) {
-        errors.LastName = 'กรุณากรอกนามสกุล';
-        isValid = false;
-      }
-      if (fatherData.PrefixName && !fatherData.Age) {
-        errors.Age = 'กรุณากรอกอายุ';
-        isValid = false;
-      }
-      if (fatherData.PrefixName && !fatherData.Occupation) {
+    // ตรวจสอบอาชีพเมื่อยังมีชีวิตอยู่
+    if (fatherData.Status === 'ยังมีชีวิตอยู่') {
+      if (!fatherData.Occupation) {
         errors.Occupation = 'กรุณากรอกอาชีพ';
         isValid = false;
       }
-      if (fatherData.PrefixName && !fatherData.Income) {
+
+      if (!fatherData.Income) {
         errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
         isValid = false;
       }
-      if (fatherData.PrefixName && !fatherData.Workplace) {
+
+      if (!fatherData.Workplace) {
         errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
         isValid = false;
       }
-      if (fatherData.PrefixName && !fatherData.Phone) {
-        errors.Phone = 'กรุณากรอกเบอร์โทร';
+
+      if (!fatherData.Phone || fatherData.Phone.length !== 10) {
+        errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
         isValid = false;
       }
     }
 
+    // อัปเดต state ของ errors
     setFatherErrors(errors);
+
+    // return true ถ้าไม่มีข้อผิดพลาด หรือ false ถ้ามี
     return isValid;
   };
 
+
   const handlemotherValidation = () => {
     const errors = {
+      PrefixName: '',
       FirstName: '',
       LastName: '',
       Age: '',
@@ -986,77 +1137,200 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
       Income: '',
       Workplace: '',
       Phone: '',
+      Status: ''
     };
     let isValid = true;
 
-    // Skip validation for certain fields if father is deceased ("ไม่มีชีวิต")
-    if (motherData.Status === 'ไม่มีชีวิต') {
-      // Only validate FirstName, LastName, Age
-      if (motherData.PrefixName && !motherData.FirstName) {
-        errors.FirstName = 'กรุณากรอกชื่อ';
-        isValid = false;
-      }
-      if (motherData.PrefixName && !motherData.LastName) {
-        errors.LastName = 'กรุณากรอกนามสกุล';
-        isValid = false;
-      }
-      if (motherData.PrefixName && !motherData.Age) {
-        errors.Age = 'กรุณากรอกอายุ';
-        isValid = false;
-      }
+    // ตรวจสอบคำนำหน้า (PrefixName)
+    if (!motherData.PrefixName) {
+      errors.PrefixName = 'กรุณากรอกคำนำหน้า';
+      isValid = false;
+    }
 
+    // ตรวจสอบชื่อมารดา
+    if (!motherData.FirstName) {
+      errors.FirstName = 'กรุณากรอกชื่อมารดา';
+      isValid = false;
+    }
+
+    // ตรวจสอบนามสกุลมารดา
+    if (!motherData.LastName) {
+      errors.LastName = 'กรุณากรอกนามสกุล';
+      isValid = false;
+    }
+
+    // ตรวจสอบอายุ
+    if (!motherData.Age || motherData.Age <= 0 || motherData.Age > 150) {
+      errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+      isValid = false;
+    }
+
+    // ตรวจสอบสถานภาพ (มารดา)
+    if (!motherData.Status) {
+      errors.Status = 'กรุณาระบุสถานภาพของมารดา';
+      isValid = false;
+    }
+
+    // ถ้าเสียชีวิตแล้ว ไม่ต้อง validate ฟิลด์อื่น
+    if (motherData.Status === 'เสียชีวิตแล้ว') {
       setMotherErrors(errors);
       return isValid;
     }
 
-    // Validate all fields if father is alive ("มีชีวิต")
-    if (motherData.Status === 'มีชีวิต') {
-      if (motherData.PrefixName && !motherData.FirstName) {
-        errors.FirstName = 'กรุณากรอกชื่อ';
-        isValid = false;
-      }
-      if (motherData.PrefixName && !motherData.LastName) {
-        errors.LastName = 'กรุณากรอกนามสกุล';
-        isValid = false;
-      }
-      if (motherData.PrefixName && !motherData.Age) {
-        errors.Age = 'กรุณากรอกอายุ';
-        isValid = false;
-      }
-      if (motherData.PrefixName && !motherData.Occupation) {
+    // ตรวจสอบอาชีพเมื่อยังมีชีวิตอยู่
+    if (motherData.Status === 'ยังมีชีวิตอยู่') {
+      if (!motherData.Occupation) {
         errors.Occupation = 'กรุณากรอกอาชีพ';
         isValid = false;
       }
-      if (motherData.PrefixName && !motherData.Income) {
+
+      if (!motherData.Income) {
         errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
         isValid = false;
       }
-      if (motherData.PrefixName && !motherData.Workplace) {
+
+      if (!motherData.Workplace) {
         errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
         isValid = false;
       }
-      if (motherData.PrefixName && !motherData.Phone) {
-        errors.Phone = 'กรุณากรอกเบอร์โทร';
+
+      if (!motherData.Phone || motherData.Phone.length !== 10) {
+        errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
         isValid = false;
       }
     }
 
+    // อัปเดต state ของ errors
     setMotherErrors(errors);
+
+    // return true ถ้าไม่มีข้อผิดพลาด หรือ false ถ้ามี
     return isValid;
   };
+
+  const handleResetCaretakerData = () => {
+    setCaretakerData({
+      PrefixName: '',
+      FirstName: '',
+      LastName: '',
+      Age: 0, // ค่าเริ่มต้นของ number
+      Status: '',
+      Phone: '',
+      Occupation: '',
+      Income: 0, // ค่าเริ่มต้นของ number
+      Workplace: '',
+      CaretakerType: '',
+      ApplicationID: '', // เพิ่มฟิลด์ ApplicationID ตามโครงสร้างของ GuardiansData
+      Type: '' // เพิ่มฟิลด์ Type ตามโครงสร้างของ GuardiansData
+    });
+
+    setCaretakerErrors({
+      PrefixName: '',
+      FirstName: '',
+      LastName: '',
+      Age: '',
+      Status: '',
+      Phone: '',
+      Occupation: '',
+      Income: '',
+      Workplace: '',
+      CaretakerType: ''
+    });
+  };
+
+
+
+  // ฟังก์ชันสำหรับตรวจสอบความถูกต้องของข้อมูลผู้อุปการะ
+  const validateCaretakerData = () => {
+    const errors: any = {};
+    let isValid = true;
+
+    // จะทำการ validate เฉพาะเมื่อผู้ใช้กดปุ่มเปิดฟอร์มการกรอกข้อมูล
+    if (isCaretakerEditing) {
+      if (!caretakerData.PrefixName) {
+        errors.PrefixName = 'กรุณาเลือกคำนำหน้า';
+        isValid = false;
+      }
+
+      if (!caretakerData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+
+      if (!caretakerData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+
+      if (!caretakerData.Age || caretakerData.Age <= 0 || caretakerData.Age > 150) {
+        errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+        isValid = false;
+      }
+
+      if (!caretakerData.Status) {
+        errors.Status = 'กรุณาระบุสถานภาพ';
+        isValid = false;
+      }
+
+      if (!caretakerData.Phone || caretakerData.Phone.length !== 10) {
+        errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
+        isValid = false;
+      }
+
+      if (!caretakerData.Occupation) {
+        errors.Occupation = 'กรุณากรอกอาชีพ';
+        isValid = false;
+      }
+
+      if (!caretakerData.Income) {
+        errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+        isValid = false;
+      }
+
+      if (!caretakerData.Workplace) {
+        errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+        isValid = false;
+      }
+
+      if (!caretakerData.CaretakerType) {
+        errors.CaretakerType = 'กรุณากรอกความสัมพันธ์';
+        isValid = false;
+      }
+
+      setCaretakerErrors(errors); // แสดงข้อความแจ้งเตือนข้อผิดพลาด
+    }
+
+    return isValid;
+  };
+
+  // ฟังก์ชันสำหรับสลับสถานะการกรอกข้อมูล
+  const handleToggleCaretakerForm = () => {
+    if (isCaretakerEditing) {
+      // ปิดการกรอกข้อมูลผู้อุปการะและรีเซ็ตข้อมูลเมื่อคลิกปิด
+      handleResetCaretakerData();
+      setIsCaretakerEditing(false);
+      setIsParentEditing(true);
+    } else {
+      // เมื่อผู้ใช้กดเปิดฟอร์ม ตรวจสอบข้อมูลและเปิดฟอร์ม
+      setIsCaretakerEditing(true);
+      setIsParentEditing(false);
+    }
+  };
+
+
+
 
 
   const validateApplication = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 1 || applicationData.GPAYear1 > 4)
-      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (1.00 - 4.00)';
+    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
+      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
 
-    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 1 || applicationData.GPAYear2 > 4)
-      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (1.00 - 4.00)';
+    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
+      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
 
-    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 1 || applicationData.GPAYear3 > 4)
-      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (1.00 - 4.00)';
+    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
+      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
 
     if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
 
@@ -1117,25 +1391,33 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     let isValid = true;
 
     for (const [index, file] of updatedFiles.entries()) {
-      // If FilePath is provided, validate all fields
-      if (file.FilePath) {
+      // Check if any field (DocumentType, DocumentName, or FilePath) is filled, trigger validation
+      const isFilled = file.DocumentType || file.DocumentName || file.FilePath;
+
+      if (isFilled) {
+        // Validate each field if any one is filled
         if (!file.DocumentType || !file.DocumentName) {
           updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
           isValid = false;
-        } else if (!['application/pdf', 'image/jpeg', 'image/png'].includes((file.FilePath as File)?.type)) {
+        } else if (
+          file.FilePath &&
+          !['application/pdf', 'image/jpeg', 'image/png'].includes((file.FilePath as File)?.type)
+        ) {
           updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
           isValid = false;
         } else {
-          updatedFiles[index].error = ''; // Clear error if valid
+          updatedFiles[index].error = ''; // Clear error if everything is valid
         }
       } else {
-        updatedFiles[index].error = ''; // Clear error if no file is uploaded
+        // If no field is filled, clear the error
+        updatedFiles[index].error = '';
       }
     }
 
     setApplicationFiles(updatedFiles); // Update state with any errors
     return isValid;
   };
+
   const handleNextStep = () => {
     if (step === 1) {
       if (!validateAddress()) return;
@@ -1146,6 +1428,7 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
       if (!validateSiblingsData()) return;
       if (!handlefatherValidation()) return;
       if (!handlemotherValidation()) return;
+      if (!validateCaretakerData()) return;
     }
     if (step === 3) {
       if (!validateApplication()) return;
@@ -1158,7 +1441,6 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     // Add loading state
     // Validate files before submitting
     if (!validateFiles()) {
-      setError('กรุณากรอกข้อมูลให้ครบถ้วน');
       return; // Prevent submission if validation fails
     }
     try {
@@ -1225,22 +1507,22 @@ const handleNumberOfSiblingsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
       tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
       console.log('Mother data sent:', updatedMotherData);
 
-// รวม siblingsData และ siblingData เข้าไปด้วยกัน
-const updatedSiblingsData = [...siblingsData, siblingData] 
-  .map((sibling) => ({
-    ...sibling,
-    ApplicationID: applicationID, // กำหนด ApplicationID ที่ต้องการ
-  }));
+      // รวม siblingsData และ siblingData เข้าไปด้วยกัน
+      const updatedSiblingsData = [...siblingsData, siblingData]
+        .map((sibling) => ({
+          ...sibling,
+          ApplicationID: applicationID, // กำหนด ApplicationID ที่ต้องการ
+        }));
 
-// ถ้ามีข้อมูลใน updatedSiblingsData ก็ส่งไปยัง API
-if (updatedSiblingsData.length > 0) {
-  tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
-}
+      // ถ้ามีข้อมูลใน updatedSiblingsData ก็ส่งไปยัง API
+      if (updatedSiblingsData.length > 0) {
+        tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
+      }
 
-// Log ข้อมูลที่ถูกส่งไป
-console.log('Siblings data sent:', updatedSiblingsData);
+      // Log ข้อมูลที่ถูกส่งไป
+      console.log('Siblings data sent:', updatedSiblingsData);
 
-    
+
 
 
       // Send all activities data as an array to the API
@@ -1303,6 +1585,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
       console.log('All data submitted successfully.');
 
       // Clear sessionStorage after successful submission
+      // Clear sessionStorage after successful submission
       sessionStorage.removeItem('step');
       sessionStorage.removeItem('fatherData');
       sessionStorage.removeItem('motherData');
@@ -1311,6 +1594,15 @@ console.log('Siblings data sent:', updatedSiblingsData);
       sessionStorage.removeItem('currentAddressData');
       sessionStorage.removeItem('siblingsData');
       sessionStorage.clear();
+
+      // Show success notification
+      Swal.fire({
+        icon: "success",
+        title: "บันทึกเรียบร้อย",
+        showConfirmButton: false,
+        timer: 1500
+      });
+
       router.push(`/page/History-Application`);
 
     } catch (error) {
@@ -1328,136 +1620,160 @@ console.log('Siblings data sent:', updatedSiblingsData);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     // Validate files before submitting
     if (!validateFiles()) {
       setError('กรุณากรอกข้อมูลให้ครบถ้วน');
       return; // Prevent submission if validation fails
     }
-    setLoading(true); // Optionally, set loading state to disable the form or show a spinner
 
-    try {
-      // Set the status to 'รอประกาศผล'
-      const updatedApplicationData = {
-        ...applicationData,
-        Status: 'รอประกาศผล',
-      };
+    // Show confirmation dialog
+    Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถแก้ไขข้อมูลหลังจากการส่งได้!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "ใช่, ส่งข้อมูล!",
+      cancelButtonText: "ยกเลิก"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        // Proceed with submission
+        setLoading(true); // Optionally, set loading state to disable the form or show a spinner
 
-      // Create the application and retrieve the ApplicationID
-      const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
-      const applicationID = applicationResponse.ApplicationID;
+        try {
+          // Set the status to 'รอประกาศผล'
+          const updatedApplicationData = {
+            ...applicationData,
+            Status: 'รอประกาศผล',
+          };
 
-      const tasks: Promise<any>[] = [];
+          // Create the application and retrieve the ApplicationID
+          const applicationResponse = await ApiApplicationCreateInternalServices.createApplication(updatedApplicationData);
+          const applicationID = applicationResponse.ApplicationID;
 
-      // Function to update guardian data (caretaker, father, mother)
-      const createGuardian = (guardianData: GuardiansData) => {
-        const updatedGuardianData = {
-          ...guardianData,
-          ApplicationID: applicationID,
-          FirstName: guardianData.FirstName || '-',
-          LastName: guardianData.LastName || '-',
-          PrefixName: guardianData.PrefixName || '-',
-          Occupation: guardianData.Occupation || '-',
-          Phone: guardianData.Phone || '-',
-          Workplace: guardianData.Workplace || '-',
-          Status: guardianData.Status || '-',
-          Age: guardianData.Age || 0,  // Set Age to 0 if not provided
-        };
-        return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
-      };
+          const tasks: Promise<any>[] = [];
 
-      // Submit caretaker, father, and mother data
-      tasks.push(createGuardian(caretakerData));
-      tasks.push(createGuardian(fatherData));
-      tasks.push(createGuardian(motherData));
+          // Function to update guardian data (caretaker, father, mother)
+          const createGuardian = (guardianData: GuardiansData) => {
+            const updatedGuardianData = {
+              ...guardianData,
+              ApplicationID: applicationID,
+              FirstName: guardianData.FirstName || '-',
+              LastName: guardianData.LastName || '-',
+              PrefixName: guardianData.PrefixName || '-',
+              Occupation: guardianData.Occupation || '-',
+              Phone: guardianData.Phone || '-',
+              Workplace: guardianData.Workplace || '-',
+              Status: guardianData.Status || '-',
+              Age: guardianData.Age || 0,  // Set Age to 0 if not provided
+            };
+            return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
+          };
 
-// รวม siblingsData และ siblingData เข้าไปด้วยกัน
-const updatedSiblingsData = [...siblingsData, siblingData] 
-  .map((sibling) => ({
-    ...sibling,
-    ApplicationID: applicationID, // กำหนด ApplicationID ที่ต้องการ
-  }));
+          // Submit caretaker, father, and mother data
+          tasks.push(createGuardian(caretakerData));
+          tasks.push(createGuardian(fatherData));
+          tasks.push(createGuardian(motherData));
 
-// ถ้ามีข้อมูลใน updatedSiblingsData ก็ส่งไปยัง API
-if (updatedSiblingsData.length > 0) {
-  tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
-}
+          // Update siblings data
+          const updatedSiblingsData = [...siblingsData, siblingData].map((sibling) => ({
+            ...sibling,
+            ApplicationID: applicationID, // Assign ApplicationID
+          }));
 
-// Log ข้อมูลที่ถูกส่งไป
-console.log('Siblings data sent:', updatedSiblingsData);
-      // Submit activities data
-      if (activities.length > 0) {
-        const updatedActivities = activities.map((activity) => ({
-          ...activity,
-          ApplicationID: applicationID,
-        }));
-        tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
-      }
-
-      // Submit scholarship history data
-      if (scholarshipHistory.length > 0) {
-        const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
-          ...scholarship,
-          ApplicationID: applicationID,
-        }));
-        tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
-      }
-
-      // Submit work experience data
-      if (workExperiences.length > 0) {
-        const updatedWorkExperiences = workExperiences.map((workExperience) => ({
-          ...workExperience,
-          ApplicationID: applicationID,
-        }));
-        tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
-      }
-
-      // Submit address data
-      const updatedAddressData = { ...addressData, ApplicationID: applicationID };
-      tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
-
-      const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
-      tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
-
-      // Submit application files
-      if (applicationFiles.length > 0) {
-        for (const fileData of applicationFiles) {
-          const formData = new FormData();
-          formData.append('ApplicationID', applicationID);
-          formData.append('DocumentName', fileData.DocumentName);
-          formData.append('DocumentType', fileData.DocumentType);
-          if (fileData.FilePath instanceof File) {
-            formData.append('FilePath', fileData.FilePath);
+          if (updatedSiblingsData.length > 0) {
+            tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
           }
-          tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
+
+          console.log('Siblings data sent:', updatedSiblingsData);
+
+          // Submit activities data
+          if (activities.length > 0) {
+            const updatedActivities = activities.map((activity) => ({
+              ...activity,
+              ApplicationID: applicationID,
+            }));
+            tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
+          }
+
+          // Submit scholarship history data
+          if (scholarshipHistory.length > 0) {
+            const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
+              ...scholarship,
+              ApplicationID: applicationID,
+            }));
+            tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
+          }
+
+          // Submit work experience data
+          if (workExperiences.length > 0) {
+            const updatedWorkExperiences = workExperiences.map((workExperience) => ({
+              ...workExperience,
+              ApplicationID: applicationID,
+            }));
+            tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
+          }
+
+          // Submit address data
+          const updatedAddressData = { ...addressData, ApplicationID: applicationID };
+          tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
+
+          const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
+          tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
+
+          // Submit application files
+          if (applicationFiles.length > 0) {
+            for (const fileData of applicationFiles) {
+              const formData = new FormData();
+              formData.append('ApplicationID', applicationID);
+              formData.append('DocumentName', fileData.DocumentName);
+              formData.append('DocumentType', fileData.DocumentType);
+              if (fileData.FilePath instanceof File) {
+                formData.append('FilePath', fileData.FilePath);
+              }
+              tasks.push(ApiApplicationCreateInternalServices.createApplicationFile(formData));
+            }
+          }
+
+          // Execute all tasks in parallel
+          await Promise.all(tasks);
+
+          console.log('All data submitted successfully.');
+
+          // Clear sessionStorage after successful submission
+          sessionStorage.removeItem('step');
+          sessionStorage.removeItem('fatherData');
+          sessionStorage.removeItem('motherData');
+          sessionStorage.removeItem('caretakerData');
+          sessionStorage.removeItem('addressData');
+          sessionStorage.removeItem('currentAddressData');
+          sessionStorage.removeItem('siblingsData');
+          sessionStorage.clear();
+
+          // Show success notification
+          Swal.fire({
+            icon: "success",
+            title: "สมัครทุนเรียบร้อย",
+            showConfirmButton: false,
+            timer: 1500
+          });
+
+          // Navigate to the application page with status=บันทึกแล้ว
+          router.push(`/page/History-Application`);
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            setError('Validation error: ' + error.response?.data.message);
+          } else {
+            setError('Error creating application. Please check the form fields and try again.');
+          }
+          console.error('Error creating application:', error);
+        } finally {
+          setLoading(false); // Stop loading spinner or enable the form
         }
       }
-
-      // Execute all tasks in parallel
-      await Promise.all(tasks);
-
-      console.log('All data submitted successfully.');
-      // Clear sessionStorage after successful submission
-      sessionStorage.removeItem('step');
-      sessionStorage.removeItem('fatherData');
-      sessionStorage.removeItem('motherData');
-      sessionStorage.removeItem('caretakerData');
-      sessionStorage.removeItem('addressData');
-      sessionStorage.removeItem('currentAddressData');
-      sessionStorage.removeItem('siblingsData');
-      sessionStorage.clear();
-
-      // Navigate to the application page with status=บันทึกแล้ว
-      router.push(`/page/History-Application`);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError('Validation error: ' + error.response?.data.message);
-      } else {
-        setError('Error creating application. Please check the form fields and try again.');
-      }
-      console.error('Error creating application:', error);
-    } finally {
-      setLoading(false); // Stop loading spinner or enable the form
-    }
+    });
   };
 
 
@@ -1469,8 +1785,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
           <div>
             <div className="">
 
-              <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-5">
-
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div>
                   <label htmlFor="PrefixName" className="block text-gray-700 mb-2">
                     คำนำหน้า
@@ -1515,7 +1830,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   />
                 </div>
               </div>
-              <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div>
                   <label htmlFor="Course" className="block text-gray-700 mb-2">
                     สาขาวิชา
@@ -1557,7 +1872,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   />
                 </div>
               </div>
-              <div className="mb-4 grid grid-cols-3 sm:grid-cols-3 gap-6">
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div>
                   <label htmlFor="Phone" className="block text-gray-700 mb-2">
                     เบอร์โทร
@@ -1604,7 +1919,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
 
 
               <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
-              <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div>
                   <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
                     เลขที่
@@ -1710,135 +2025,134 @@ console.log('Siblings data sent:', updatedSiblingsData);
                 </div>
 
               </div>
-              <div className="">
-                <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-gray-700">
-                      ที่อยู่ปัจจุบัน
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
-                          setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
-                        }}
-                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
-                      >
-                        ที่อยู่ตามบัตรประชาชน
-                      </button>
-                    </div>
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-gray-700">
+                    ที่อยู่ปัจจุบัน
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
+                        setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
+                      }}
+                      className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
+                    >
+                      ที่อยู่ตามบัตรประชาชน
+                    </button>
                   </div>
-                  <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div>
-                      <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
-                        เลขที่
-                      </label>
-                      <input
-                        type="text"
-                        id="AddressLine"
-                        name="AddressLine"
-                        value={currentAddressData.AddressLine}
-                        onChange={handleChangeCurrentAddress}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      />
-                      {currentAddressErrors.AddressLine && <p className="text-red-500">{currentAddressErrors.AddressLine}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="province" className="block text-gray-700 mb-2">
-                        จังหวัด
-                      </label>
-                      <select
-                        id="province"
-                        name="province"
-                        value={currentAddressData.province}
-                        onChange={handleChangeCurrentAddress}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      >
-                        <option value="">เลือกจังหวัด</option>
-                        {provinces.map((province) => (
-                          <option key={province.id} value={province.name}>
-                            {province.name}
-                          </option>
-                        ))}
-                      </select>
-                      {currentAddressErrors.province && <p className="text-red-500">{currentAddressErrors.province}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="District" className="block text-gray-700 mb-2">
-                        อำเภอ
-                      </label>
-                      <select
-                        id="District"
-                        name="District"
-                        value={currentAddressData.District}
-                        onChange={handleChangeCurrentAddress}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      >
-                        <option value="">เลือกอำเภอ</option>
-                        {districtsForCurrentAddress.map((district) => (
-                          <option key={district.id} value={district.name}>
-                            {district.name}
-                          </option>
-                        ))}
-                      </select>
-                      {currentAddressErrors.District && <p className="text-red-500">{currentAddressErrors.District}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
-                        ตำบล
-                      </label>
-                      <select
-                        id="Subdistrict"
-                        name="Subdistrict"
-                        value={currentAddressData.Subdistrict}
-                        onChange={handleChangeCurrentAddress}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      >
-                        <option value="">เลือกตำบล</option>
-                        {subdistrictsForCurrentAddress.map((subdistrict) => (
-                          <option key={subdistrict.id} value={subdistrict.name}>
-                            {subdistrict.name}
-                          </option>
-                        ))}
-                      </select>
-                      {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
-                    </div>
-
-                    <div>
-                      <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-                        รหัสไปรษณีย์
-                      </label>
-                      <input
-                        type="text"
-                        id="PostalCode"
-                        name="PostalCode"
-                        value={currentAddressData.PostalCode}
-                        onChange={(e) => {
-                          const value = e.target.value;
-
-                          // ดักแค่ตัวเลขและจำกัดความยาวไม่เกิน 5 ตัว
-                          if (/^\d*$/.test(value) && value.length <= 5) {
-                            handleChangeCurrentAddress(e); // อัปเดตค่าถ้าเป็นตัวเลขและไม่เกิน 5 หลัก
-                          } else if (value.length > 5) {
-                            // ตัดให้เหลือแค่ 5 หลัก
-                            handleChangeCurrentAddress({
-                              ...e,
-                              target: {
-                                ...e.target,
-                                value: value.slice(0, 5),
-                              },
-                            });
-                          }
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded"
-                      />
-                      {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
-                    </div>
-
-
+                </div>
+                <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
+                  <div>
+                    <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
+                      เลขที่
+                    </label>
+                    <input
+                      type="text"
+                      id="AddressLine"
+                      name="AddressLine"
+                      value={currentAddressData.AddressLine}
+                      onChange={handleChangeCurrentAddress}
+                      className="w-full p-3 border border-gray-300 rounded"
+                    />
+                    {currentAddressErrors.AddressLine && <p className="text-red-500">{currentAddressErrors.AddressLine}</p>}
                   </div>
+                  <div>
+                    <label htmlFor="province" className="block text-gray-700 mb-2">
+                      จังหวัด
+                    </label>
+                    <select
+                      id="province"
+                      name="province"
+                      value={currentAddressData.province}
+                      onChange={handleChangeCurrentAddress}
+                      className="w-full p-3 border border-gray-300 rounded"
+                    >
+                      <option value="">เลือกจังหวัด</option>
+                      {provinces.map((province) => (
+                        <option key={province.id} value={province.name}>
+                          {province.name}
+                        </option>
+                      ))}
+                    </select>
+                    {currentAddressErrors.province && <p className="text-red-500">{currentAddressErrors.province}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="District" className="block text-gray-700 mb-2">
+                      อำเภอ
+                    </label>
+                    <select
+                      id="District"
+                      name="District"
+                      value={currentAddressData.District}
+                      onChange={handleChangeCurrentAddress}
+                      className="w-full p-3 border border-gray-300 rounded"
+                    >
+                      <option value="">เลือกอำเภอ</option>
+                      {districtsForCurrentAddress.map((district) => (
+                        <option key={district.id} value={district.name}>
+                          {district.name}
+                        </option>
+                      ))}
+                    </select>
+                    {currentAddressErrors.District && <p className="text-red-500">{currentAddressErrors.District}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
+                      ตำบล
+                    </label>
+                    <select
+                      id="Subdistrict"
+                      name="Subdistrict"
+                      value={currentAddressData.Subdistrict}
+                      onChange={handleChangeCurrentAddress}
+                      className="w-full p-3 border border-gray-300 rounded"
+                    >
+                      <option value="">เลือกตำบล</option>
+                      {subdistrictsForCurrentAddress.map((subdistrict) => (
+                        <option key={subdistrict.id} value={subdistrict.name}>
+                          {subdistrict.name}
+                        </option>
+                      ))}
+                    </select>
+                    {currentAddressErrors.Subdistrict && <p className="text-red-500">{currentAddressErrors.Subdistrict}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                      รหัสไปรษณีย์
+                    </label>
+                    <input
+                      type="text"
+                      id="PostalCode"
+                      name="PostalCode"
+                      value={currentAddressData.PostalCode}
+                      onChange={(e) => {
+                        const value = e.target.value;
+
+                        // ดักแค่ตัวเลขและจำกัดความยาวไม่เกิน 5 ตัว
+                        if (/^\d*$/.test(value) && value.length <= 5) {
+                          handleChangeCurrentAddress(e); // อัปเดตค่าถ้าเป็นตัวเลขและไม่เกิน 5 หลัก
+                        } else if (value.length > 5) {
+                          // ตัดให้เหลือแค่ 5 หลัก
+                          handleChangeCurrentAddress({
+                            ...e,
+                            target: {
+                              ...e.target,
+                              value: value.slice(0, 5),
+                            },
+                          });
+                        }
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded"
+                    />
+                    {currentAddressErrors.PostalCode && <p className="text-red-500">{currentAddressErrors.PostalCode}</p>}
+                  </div>
+
 
                 </div>
+
               </div>
+
 
 
               <div className="flex items-end">
@@ -1852,7 +2166,17 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       id="MonthlyIncome"
                       name="MonthlyIncome"
                       value={applicationData.MonthlyIncome}
-                      onChange={handleChangeApplication}
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
+                        if (isNaN(value) || value < 0) value = 0;
+                        if (value > 10000000) value = 10000000; // ไม่เกิน 10 ล้าน
+                        handleChangeApplication({
+                          target: {
+                            name: e.target.name,
+                            value: String(value), // Convert number to string
+                          },
+                        } as React.ChangeEvent<HTMLInputElement>); // Ensure the correct type
+                      }}
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className={`w-80 p-3 border  border-gray-300 rounded`}
@@ -1872,7 +2196,17 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       id="MonthlyExpenses"
                       name="MonthlyExpenses"
                       value={applicationData.MonthlyExpenses}
-                      onChange={handleChangeApplication}
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
+                        if (isNaN(value) || value < 0) value = 0;
+                        if (value > 10000000) value = 10000000; // ไม่เกิน 10 ล้าน
+                        handleChangeApplication({
+                          target: {
+                            name: e.target.name,
+                            value: String(value), // Convert number to string
+                          },
+                        } as React.ChangeEvent<HTMLInputElement>); // Ensure the correct type
+                      }}
                       inputMode="numeric"
                       pattern="[0-9]*"
                       className={`w-80 p-3 border  border-gray-300 rounded`}
@@ -1881,9 +2215,10 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   </div>
                   {errors.MonthlyExpenses && <p className="text-red-500">{errors.MonthlyExpenses}</p>}
                 </div>
-
-
               </div>
+
+
+
             </div>
           </div>
         );
@@ -1892,7 +2227,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
         return (
           <div className="">
             {/* Father's Information */}
-            <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               <div>
                 <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
                 <select
@@ -1900,14 +2235,14 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   name="PrefixName"
                   value={fatherData.PrefixName}
                   onChange={handleChangeFather}
-                  className="w-30 p-3 border border-gray-300 rounded"
-                  disabled={isCaretakerEditing}
+                  className="w-full p-3 border border-gray-300 rounded"
+
                 >
                   <option value="">คำนำหน้า</option>
                   <option value="นาย">นาย</option>
-                  <option value="นาง">นาง</option>
-                  <option value="นางสาว">นางสาว</option>
+
                 </select>
+                {fatherErrors.PrefixName && <p className="text-red-500">{fatherErrors.PrefixName}</p>}
               </div>
 
               <div className="">
@@ -1924,7 +2259,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     }
                   }}
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName || isCaretakerEditing}
+                  disabled={!fatherData.PrefixName}
                 />
                 {fatherErrors.FirstName && <p className="text-red-500">{fatherErrors.FirstName}</p>}
               </div>
@@ -1943,7 +2278,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     }
                   }}
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName || isCaretakerEditing}
+                  disabled={!fatherData.PrefixName}
                 />
                 {fatherErrors.LastName && <p className="text-red-500">{fatherErrors.LastName}</p>}
               </div>
@@ -1954,70 +2289,89 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   type="number"
                   id="FatherAge"
                   name="Age"
-                  value={fatherData.Age}
+                  value={fatherData.Age || ""} // ใช้ค่าว่างถ้าไม่มีค่า
                   onChange={(e) => {
                     const value = parseInt(e.target.value, 10);
-                    if (value >= 1 || e.target.value === "") {
-                      handleChangeFather(e);
+                    if ((value >= 1 && value <= 150) || e.target.value === "") {
+                      handleChangeFather(e); // อัปเดตเฉพาะค่าที่อยู่ในช่วง 1-150 หรือถ้า input เป็นค่าว่าง
                     }
                   }}
                   min="1"
+                  max="150"
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName || isCaretakerEditing}
+                  disabled={!fatherData.PrefixName}
                 />
                 {fatherErrors.Age && <p className="text-red-500">{fatherErrors.Age}</p>}
               </div>
 
+
+
               {/* Father's status */}
               <div>
-                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (พ่อ)</label>
+                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (บิดา)</label>
                 <div className="flex items-center">
                   <input
                     type="radio"
                     id="FatherStatusAlive"
                     name="FatherStatus"
-                    value="มีชีวิต"
-                    checked={fatherData.Status === 'มีชีวิต'}
+                    value="ยังมีชีวิตอยู่"
+                    checked={fatherData.Status === 'ยังมีชีวิตอยู่'}
                     onChange={handleChangeFather}
                     className={`mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!fatherData.PrefixName || isCaretakerEditing}
+                    disabled={!fatherData.PrefixName}
+
                   />{' '}
-                  มีชีวิต
+
+                  ยังมีชีวิตอยู่
                   <input
                     type="radio"
                     id="FatherStatusDeceased"
                     name="FatherStatus"
-                    value="ไม่มีชีวิต"
-                    checked={fatherData.Status === 'ไม่มีชีวิต'}
+                    value="เสียชีวิตแล้ว"
+                    checked={fatherData.Status === 'เสียชีวิตแล้ว'}
                     onChange={handleChangeFather}
                     className={`ml-4 mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!fatherData.PrefixName || isCaretakerEditing}
+                    disabled={!fatherData.PrefixName}
                   />{' '}
-                  ไม่มีชีวิต
+                  เสียชีวิตแล้ว
                 </div>
+                {fatherErrors.Status && <p className="text-red-500">{fatherErrors.Status}</p>}
               </div>
 
               {/* Additional fields based on status */}
-              {fatherData.Status === 'มีชีวิต' && fatherData.PrefixName && (
+              {fatherData.Status === 'ยังมีชีวิตอยู่' && fatherData.PrefixName && (
                 <>
-                  <div className="">
-                    <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
-                    <input
-                      type="text"
-                      id="FatherPhone"
-                      name="Phone"
-                      value={fatherData.Phone}
-                      onChange={(e) => {
-                        const onlyNumbers = e.target.value.replace(/\D/g, '');
-                        if (onlyNumbers.length <= 10) {
-                          handleChangeFather(e);
-                        }
-                      }}
-                      className="w-full p-3 border border-gray-300"
-                      inputMode="numeric"
-                      disabled={isCaretakerEditing}
-                    />
-                  </div>
+        <div className="">
+  <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+  <input
+    type="text"
+    id="FatherPhone"
+    name="Phone"
+    value={fatherData.Phone}
+    onChange={(e) => {
+      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+      if (onlyNumbers.length <= 12) {
+        handleChangeFather({
+          target: {
+            name: e.target.name,
+            value: onlyNumbers,
+          }
+        });
+      } else {
+        handleChangeFather({
+          target: {
+            name: e.target.name,
+            value: onlyNumbers.slice(0, 12), // ตัดตัวเลขเกิน 12 ตัวออก
+          }
+        });
+      }
+    }}
+    className="w-full p-3 border border-gray-300"
+    inputMode="numeric"
+  />
+  {fatherErrors.Phone && <p className="text-red-500">{fatherErrors.Phone}</p>}
+</div>
+
 
                   <div className="">
                     <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
@@ -2026,12 +2380,25 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       id="FatherOccupation"
                       name="Occupation"
                       value={fatherData.Occupation}
-                      onChange={handleChangeFather}
+                      onChange={(e) => {
+                        const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // อนุญาตเฉพาะตัวอักษรไทย, อังกฤษ และช่องว่าง
+                        // Update fatherData directly without simulating the event object
+                        handleChangeFather({
+                          target: {
+                            name: "Occupation",
+                            value: onlyLetters,
+                          }
+                        });
+                      }}
                       className="w-full p-3 border border-gray-300"
-                      inputMode="numeric"
-                      disabled={isCaretakerEditing}
+                      inputMode="text"
+
                     />
+                    {fatherErrors.Occupation && <p className="text-red-500">{fatherErrors.Occupation}</p>}
+
                   </div>
+
+
 
                   <div className="">
                     <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
@@ -2043,8 +2410,9 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       onChange={handleChangeFather}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
-                      disabled={isCaretakerEditing}
+
                     />
+                    {fatherErrors.Income && <p className="text-red-500">{fatherErrors.Income}</p>}
                   </div>
 
                   <div className="">
@@ -2057,8 +2425,9 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       onChange={handleChangeFather}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
-                      disabled={isCaretakerEditing}
+
                     />
+                    {fatherErrors.Workplace && <p className="text-red-500">{fatherErrors.Workplace}</p>}
                   </div>
                 </>
               )}
@@ -2066,200 +2435,221 @@ console.log('Siblings data sent:', updatedSiblingsData);
 
 
             {/* Mother's Information */}
-            <div className="mb-10 grid grid-cols-3 sm:grid-cols-5 gap-2">
-  <div>
-    <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
-    <select
-      id="MotherPrefixName"
-      name="PrefixName"
-      value={motherData.PrefixName}
-      onChange={handleChangeMother}
-      className="w-30 p-3 border border-gray-300 rounded"
-      disabled={isCaretakerEditing} // Disable if caretaker info is being edited
-    >
-      <option value="">คำนำหน้า</option>
-      <option value="นาย">นาย</option>
-      <option value="นาง">นาง</option>
-      <option value="นางสาว">นางสาว</option>
-    </select>
-  </div>
+            <div className="mb-10 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div>
+                <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
+                <select
+                  id="MotherPrefixName"
+                  name="PrefixName"
+                  value={motherData.PrefixName}
+                  onChange={handleChangeMother}
+                  className="w-full p-3 border border-gray-300 rounded"
+                // Disable if caretaker info is being edited
+                >
+                  <option value="">คำนำหน้า</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
+                </select>
+                {motherErrors.PrefixName && <p className="text-red-500">{motherErrors.PrefixName}</p>}
+              </div>
 
-  <div className="">
-    <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">มารดาชื่อ</label>
-    <input
-      type="text"
-      id="MotherFirstName"
-      name="FirstName"
-      value={motherData.FirstName}
-      onChange={(e) => {
-        const value = e.target.value;
-        if (/^[A-Za-zก-๙\s]*$/.test(value)) {
-          handleChangeMother(e); // Only allow alphabetic characters
-        }
-      }}
-      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-      disabled={!motherData.PrefixName || isCaretakerEditing} // Disable if no prefix or caretaker is editing
-    />
-    {motherErrors.FirstName && <p className="text-red-500">{motherErrors.FirstName}</p>}
-  </div>
+              <div className="">
+                <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">มารดาชื่อ</label>
+                <input
+                  type="text"
+                  id="MotherFirstName"
+                  name="FirstName"
+                  value={motherData.FirstName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+                      handleChangeMother(e); // Only allow alphabetic characters
+                    }
+                  }}
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!motherData.PrefixName} // Disable if no prefix or caretaker is editing
+                />
+                {motherErrors.FirstName && <p className="text-red-500">{motherErrors.FirstName}</p>}
+              </div>
 
-  <div className="">
-    <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
-    <input
-      type="text"
-      id="MotherLastName"
-      name="LastName"
-      value={motherData.LastName}
-      onChange={(e) => {
-        const value = e.target.value;
-        if (/^[A-Za-zก-๙\s]*$/.test(value)) {
-          handleChangeMother(e);
-        }
-      }}
-      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-      disabled={!motherData.PrefixName || isCaretakerEditing}
-    />
-    {motherErrors.LastName && <p className="text-red-500">{motherErrors.LastName}</p>}
-  </div>
+              <div className="">
+                <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
+                <input
+                  type="text"
+                  id="MotherLastName"
+                  name="LastName"
+                  value={motherData.LastName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[A-Za-zก-๙\s]*$/.test(value)) {
+                      handleChangeMother(e);
+                    }
+                  }}
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!motherData.PrefixName}
+                />
+                {motherErrors.LastName && <p className="text-red-500">{motherErrors.LastName}</p>}
+              </div>
 
-  <div className="">
-    <label htmlFor="MotherAge" className="block text-gray-700 mb-2">อายุ</label>
-    <input
-      type="number"
-      id="MotherAge"
-      name="Age"
-      value={motherData.Age}
-      onChange={(e) => {
-        const value = parseInt(e.target.value, 10);
-        if (value >= 1 || e.target.value === "") {
-          handleChangeMother(e);
-        }
-      }}
-      min="1"
-      className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-      disabled={!motherData.PrefixName || isCaretakerEditing}
-    />
-    {motherErrors.Age && <p className="text-red-500">{motherErrors.Age}</p>}
-  </div>
+              <div className="">
+                <label htmlFor="MotherAge" className="block text-gray-700 mb-2">อายุ</label>
+                <input
+                  type="number"
+                  id="MotherAge"
+                  name="Age"
+                  value={motherData.Age} // ใช้ motherData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของแม่
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
+                    if ((value >= 1 && value <= 150) || e.target.value === "") {
+                      handleChangeMother(e); // อัปเดตเฉพาะค่าที่อยู่ในช่วง 1-150 หรือถ้า input เป็นค่าว่าง
+                    }
+                  }}
+                  min="1"
+                  max="150"
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled={!motherData.PrefixName}
+                />
+                {motherErrors.Age && <p className="text-red-500">{motherErrors.Age}</p>}
+              </div>
 
-  {/* Mother's status */}
-  <div>
-    <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (แม่)</label>
-    <div className="flex items-center">
-      <input
-        type="radio"
-        id="MotherStatusAlive"
-        name="MotherStatus"
-        value="มีชีวิต"
-        checked={motherData.Status === 'มีชีวิต'}
-        onChange={handleChangeMother}
-        className={`mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-        disabled={!motherData.PrefixName || isCaretakerEditing}
-      />{' '}
-      มีชีวิต
-      <input
-        type="radio"
-        id="MotherStatusDeceased"
-        name="MotherStatus"
-        value="ไม่มีชีวิต"
-        checked={motherData.Status === 'ไม่มีชีวิต'}
-        onChange={handleChangeMother}
-        className={`ml-4 mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-        disabled={!motherData.PrefixName || isCaretakerEditing}
-      />{' '}
-      ไม่มีชีวิต
-    </div>
-  </div>
+              {/* Mother's status */}
+              <div>
+                <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (มารดา)</label>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="MotherStatusAlive"
+                    name="MotherStatus"
+                    value="ยังมีชีวิตอยู่"
+                    checked={motherData.Status === 'ยังมีชีวิตอยู่'}
+                    onChange={handleChangeMother}
+                    className={`mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled={!motherData.PrefixName}
+                  />{' '}
+                  ยังมีชีวิตอยู่
+                  <input
+                    type="radio"
+                    id="MotherStatusDeceased"
+                    name="MotherStatus"
+                    value="เสียชีวิตแล้ว"
+                    checked={motherData.Status === 'เสียชีวิตแล้ว'}
+                    onChange={handleChangeMother}
+                    className={`ml-4 mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled={!motherData.PrefixName}
+                  />{' '}
+                  เสียชีวิตแล้ว
+                </div>
+                {motherErrors.Status && <p className="text-red-500">{motherErrors.Status}</p>}
+              </div>
 
-  {/* Additional fields based on status */}
-  {motherData.Status === 'มีชีวิต' && motherData.PrefixName && (
-    <>
-      <div className="">
-        <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
-        <input
-          type="text"
-          id="MotherPhone"
-          name="Phone"
-          value={motherData.Phone}
-          onChange={(e) => {
-            const onlyNumbers = e.target.value.replace(/\D/g, '');
-            if (onlyNumbers.length <= 10) {
-              handleChangeMother(e);
-            }
-          }}
-          className="w-full p-3 border border-gray-300"
-          inputMode="numeric"
-          disabled={isCaretakerEditing}
-        />
-      </div>
+              {/* Additional fields based on status */}
+              {motherData.Status === 'ยังมีชีวิตอยู่' && motherData.PrefixName && (
+                <>
+                  <div className="">
+                    <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+                    <input
+                      type="text"
+                      id="MotherPhone"
+                      name="Phone"
+                      value={motherData.Phone}
+                      onChange={(e) => {
+                        const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                        if (onlyNumbers.length <= 15) {
+                          // Directly update the state without simulating an event
+                          setMotherData((prevData) => ({
+                            ...prevData,
+                            Phone: onlyNumbers,
+                          }));
+                        }
+                      }}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
 
-      <div className="">
-        <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
-        <input
-          type="text"
-          id="MotherOccupation"
-          name="Occupation"
-          value={motherData.Occupation}
-          onChange={handleChangeMother}
-          className="w-full p-3 border border-gray-300"
-          inputMode="numeric"
-          disabled={isCaretakerEditing}
-        />
-      </div>
+                    />
+                    {motherErrors.Phone && <p className="text-red-500">{motherErrors.Phone}</p>}
+                  </div>
 
-      <div className="">
-        <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
-        <input
-          type="number"
-          id="MotherIncome"
-          name="Income"
-          value={motherData.Income}
-          onChange={handleChangeMother}
-          className="w-full p-3 border border-gray-300"
-          inputMode="numeric"
-          disabled={isCaretakerEditing}
-        />
-      </div>
 
-      <div className="">
-        <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
-        <input
-          type="text"
-          id="MotherWorkplace"
-          name="Workplace"
-          value={motherData.Workplace}
-          onChange={handleChangeMother}
-          className="w-full p-3 border border-gray-300"
-          inputMode="numeric"
-          disabled={isCaretakerEditing}
-        />
-      </div>
-    </>
-  )}
-</div>
+
+
+                  <div className="">
+                    <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
+                    <input
+                      type="text"
+                      id="MotherOccupation"
+                      name="Occupation"
+                      value={motherData.Occupation}
+                      onChange={(e) => {
+                        const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // อนุญาตเฉพาะตัวอักษรไทย, อังกฤษ และช่องว่าง
+                        setMotherData((prevData) => ({
+                          ...prevData,
+                          Occupation: onlyLetters // Update Occupation directly in the state
+                        }));
+                      }}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="text"
+
+                    />
+                    {motherErrors.Occupation && <p className="text-red-500">{motherErrors.Occupation}</p>}
+                  </div>
+
+
+
+
+                  <div className="">
+                    <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
+                    <input
+                      type="number"
+                      id="MotherIncome"
+                      name="Income"
+                      value={motherData.Income}
+                      onChange={handleChangeMother}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+
+                    />
+                    {motherErrors.Income && <p className="text-red-500">{motherErrors.Income}</p>}
+                  </div>
+
+                  <div className="">
+                    <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
+                    <input
+                      type="text"
+                      id="MotherWorkplace"
+                      name="Workplace"
+                      value={motherData.Workplace}
+                      onChange={handleChangeMother}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+
+                    />
+                    {motherErrors.Workplace && <p className="text-red-500">{motherErrors.Workplace}</p>}
+                  </div>
+                </>
+              )}
+            </div>
 
 
             {/* Caretaker Information */}
             <div className="mb-6">
               <div className="flex justify-start items-center space-x-4">
-                <h2 className="text-gray-700">
+                <h2 className={`text-red-500 ${isCaretakerEditing ? 'text-gray-700' : ''}`}>
                   {isCaretakerEditing
                     ? 'กำลังกรอกข้อมูลผู้อุปการะ (ถ้าเป็นบิดามารดาไม่ต้องกรอกข้อมูล)'
-                    : 'ผู้อุปการะ (ถ้าเป็นบิดามารดาไม่ต้องกรอกข้อมูล)'}
+                    : '*ผู้อุปการะ/ผู้เลี้ยงดู (ถ้าเป็นบิดาและมารดาไม่ต้องกรอกข้อมูล)'}
                 </h2>
+
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsCaretakerEditing((prev) => !prev);
-                    setIsParentEditing((prev) => !prev);
-                  }}
+                  onClick={handleToggleCaretakerForm}
                   className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
                 >
-                  {isCaretakerEditing ? 'ปิดการกรอกข้อมูล' : 'กรอกข้อมูล'}
+                  {isCaretakerEditing ? 'คลิกเพื่อปิดการกรอกข้อมูล' : 'คลิกเพื่อกรอกข้อมูล'}
                 </button>
+
               </div>
 
-              <div className="mb-6 grid grid-cols-1 sm:grid-cols-5 gap-6">
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 <div>
                   <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
                     คำนำหน้า
@@ -2269,7 +2659,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     name="PrefixName"
                     value={caretakerData.PrefixName}
                     onChange={handleChangeCaretaker}
-                    className="w-30 p-3 border border-gray-300 rounded"
+                    className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   >
                     <option value="">คำนำหน้า</option>
@@ -2277,7 +2667,10 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     <option value="นาง">นาง</option>
                     <option value="นางสาว">นางสาว</option>
                   </select>
+                  {caretakerErrors.PrefixName && <p className="text-red-500">{caretakerErrors.PrefixName}</p>}
+
                 </div>
+
                 <div className="">
                   <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
                     ชื่อ
@@ -2287,11 +2680,20 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     id="CaretakerFirstName"
                     name="FirstName"
                     value={caretakerData.FirstName}
-                    onChange={handleChangeCaretaker}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        FirstName: onlyLetters,
+                      }));
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.FirstName && <p className="text-red-500">{caretakerErrors.FirstName}</p>}
+
                 </div>
+
                 <div className="">
                   <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
                     นามสกุล
@@ -2301,25 +2703,42 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     id="CaretakerLastName"
                     name="LastName"
                     value={caretakerData.LastName}
-                    onChange={handleChangeCaretaker}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        LastName: onlyLetters,
+                      }));
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.LastName && <p className="text-red-500">{caretakerErrors.LastName}</p>}
+
                 </div>
+
+
                 <div className="">
-                  <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">
-                    อายุ
-                  </label>
+                  <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">อายุ</label>
                   <input
                     type="number"
                     id="CaretakerAge"
                     name="Age"
-                    value={caretakerData.Age}
-                    onChange={handleChangeCaretaker}
-                    className="w-20 p-3 border border-gray-300 rounded"
+                    value={caretakerData.Age} // ใช้ caretakerData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของผู้อุปการะ
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if ((value >= 1 && value <= 150) || e.target.value === "") {
+                        handleChangeCaretaker(e); // อัปเดตเฉพาะค่าที่อยู่ในช่วง 1-150 หรือถ้าค่าว่าง
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    min="1"
+                    max="150"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.Age && <p className="text-red-500">{caretakerErrors.Age}</p>}
                 </div>
+
                 <div className="">
                   <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
                     สถานภาพ
@@ -2329,26 +2748,29 @@ console.log('Siblings data sent:', updatedSiblingsData);
                       type="radio"
                       id="CaretakerStatusAlive"
                       name="Status"
-                      value="มีชีวิต"
-                      checked={caretakerData.Status === 'มีชีวิต'}
+                      value="ยังมีชีวิตอยู่"
+                      checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
                       onChange={handleChangeCaretaker}
                       className="mr-2"
                       disabled={!isCaretakerEditing} // Disable if parent info is being edited
                     />{' '}
-                    มีชีวิต
+                    ยังมีชีวิตอยู่
                     <input
                       type="radio"
                       id="CaretakerStatusDeceased"
                       name="Status"
-                      value="ไม่มีชีวิต"
-                      checked={caretakerData.Status === 'ไม่มีชีวิต'}
+                      value="เสียชีวิตแล้ว"
+                      checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
                       onChange={handleChangeCaretaker}
                       className="ml-4 mr-2"
                       disabled={!isCaretakerEditing} // Disable if parent info is being edited
                     />{' '}
-                    ไม่มีชีวิต
+                    เสียชีวิตแล้ว
                   </div>
+                  {caretakerErrors.Status && <p className="text-red-500">{caretakerErrors.Status}</p>}
+
                 </div>
+
                 <div className="">
                   <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
                     เบอร์โทร
@@ -2358,11 +2780,26 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     id="CaretakerPhone"
                     name="Phone"
                     value={caretakerData.Phone}
-                    onChange={handleChangeCaretaker}
-                    className="w-70 p-3 border border-gray-300 rounded"
+                    onChange={(e) => {
+                      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                      if (onlyNumbers.length <= 15) { // จำกัดไม่เกิน 10 ตัว
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers,
+                        }));
+                      } else {
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers.slice(0, 10), // ตัดตัวเลขเกิน 10 ตัว
+                        }));
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.Phone && <p className="text-red-500">{caretakerErrors.Phone}</p>}
                 </div>
+
                 <div className="">
                   <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
                     อาชีพ
@@ -2372,11 +2809,21 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     id="CaretakerOccupation"
                     name="Occupation"
                     value={caretakerData.Occupation}
-                    onChange={handleChangeCaretaker}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        Occupation: onlyLetters,
+                      }));
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.Occupation && <p className="text-red-500">{caretakerErrors.Occupation}</p>}
+
                 </div>
+
+
                 <div className="">
                   <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
                     รายได้ต่อเดือน
@@ -2390,6 +2837,8 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.Income && <p className="text-red-500">{caretakerErrors.Income}</p>}
+
                 </div>
                 <div className="">
                   <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
@@ -2404,41 +2853,53 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.Workplace && <p className="text-red-500">{caretakerErrors.Workplace}</p>}
+
                 </div>
-                <div>
+                <div className="">
                   <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
                     เกี่ยวข้องเป็น
                   </label>
                   <input
                     type="text"
                     id="CaretakerType"
-                    name="Type"
-                    value={caretakerData.Type}
-                    onChange={handleChangeCaretaker}
+                    name="CaretakerType"
+                    value={caretakerData.CaretakerType}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        CaretakerType: onlyLetters, // Directly update CaretakerType
+                      }));
+                    }}
                     className="w-full p-3 border border-gray-300 rounded"
                     disabled={!isCaretakerEditing} // Disable if parent info is being edited
                   />
+                  {caretakerErrors.CaretakerType && <p className="text-red-500">{caretakerErrors.CaretakerType}</p>}
+
                 </div>
+
+
               </div>
             </div>
 
             {/* Sibling Information */}
-            <div className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-6">
-            <div className="">
-  <label htmlFor="NumberOfSiblings" className="block text-gray-700 mb-2">จำนวนพี่น้อง</label>
-  <input
-    type="number"
-    id="NumberOfSiblings"
-    name="NumberOfSiblings"
-    value={numberOfSiblings}
-    onChange={(e) => {
-      const value = Math.max(0, parseInt(e.target.value, 10)); // กำหนดให้ค่าต่ำสุดเป็น 0
-      handleNumberOfSiblingsChange({ ...e, target: { ...e.target, value: value.toString() } });
-    }}
-    min="0" 
-    className="w-50 p-3 border border-gray-300 rounded"
-  />
-</div>
+            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="">
+                <label htmlFor="NumberOfSiblings" className="block text-gray-700 mb-2">จำนวนพี่น้อง</label>
+                <input
+                  type="number"
+                  id="NumberOfSiblings"
+                  name="NumberOfSiblings"
+                  value={numberOfSiblings}
+                  onChange={(e) => {
+                    const value = Math.max(0, parseInt(e.target.value, 10)); // กำหนดให้ค่าต่ำสุดเป็น 0
+                    handleNumberOfSiblingsChange({ ...e, target: { ...e.target, value: value.toString() } });
+                  }}
+                  min="0"
+                  className="w-50 p-3 border border-gray-300 rounded"
+                />
+              </div>
 
               <div className="">
                 <label htmlFor="NumberOfBrothers" className="block text-gray-700 mb-2">
@@ -2602,6 +3063,11 @@ console.log('Siblings data sent:', updatedSiblingsData);
       case 3:
         return (
           <div>
+            <div className='mb-2'>
+              <p className="text-red-500 font-bold">
+                *ให้กรอกเกรดเฉลี่ยล่าสุดที่คุณได้รับ หรือถ้ายังไม่ได้รับเกรดเฉลี่ยใดๆ ให้ใส่ 0 ลงไป.
+              </p>
+            </div>
             <div className="space-y-4">
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
                 <div className="text-center font-semibold">
@@ -2916,6 +3382,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
                     <option value="อื่น ๆ">อื่น ๆ</option>
                   </select>
+                  {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
                 </div>
                 <div>
                   <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
@@ -2927,6 +3394,8 @@ console.log('Siblings data sent:', updatedSiblingsData);
                     onChange={(e) => handleFileChange(index, e)}
                     className="w-full p-3 border border-gray-300 rounded"
                   />
+                  {/* Show error message */}
+                  {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
                 </div>
                 <div>
                   <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
@@ -2941,8 +3410,6 @@ console.log('Siblings data sent:', updatedSiblingsData);
                   {/* Show error message for each file, if any */}
                   {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
                 </div>
-
-
                 <div className="flex items-end">
                   <button
                     type="button"
@@ -2961,6 +3428,7 @@ console.log('Siblings data sent:', updatedSiblingsData);
             >
               เพิ่มไฟล์
             </button>
+
 
 
           </div>

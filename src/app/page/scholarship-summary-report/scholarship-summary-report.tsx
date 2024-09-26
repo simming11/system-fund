@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
+import { useRouter } from 'next/navigation'; // <-- Correct import
+
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import ApiApplicationInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
@@ -13,6 +15,7 @@ import AdminHeader from '@/app/components/headerAdmin/headerAdmin';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const ScholarshipStats = () => {
+    const router = useRouter(); // <-- Use the router instance from useRouter hook
     const [internalCount, setInternalCount] = useState<number>(0);
     const [externalCount, setExternalCount] = useState<number>(0);
     const [filteredDataCount, setFilteredDataCount] = useState<number>(0);
@@ -27,7 +30,17 @@ const ScholarshipStats = () => {
 
     // Declare scholarshipCountMap in a higher scope
     const [scholarshipCountMap, setScholarshipCountMap] = useState<{ [key: string]: number }>({});
-
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            const Role = localStorage.getItem('UserRole');
+    
+            if (!token || Role?.trim().toLowerCase() !== 'admin') {
+                console.error('Unauthorized access or missing token. Redirecting to login.');
+                router.push('/page/control'); // <-- Using useRouter instance for navigation
+            }
+        }
+    }, [router]);
     useEffect(() => {
         const fetchData = async () => {
             try {

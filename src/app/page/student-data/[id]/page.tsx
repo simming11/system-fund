@@ -29,7 +29,17 @@ export default function StudentDetailsPage() {
     const [student, setStudent] = useState<StudentData | null>(null);
     const { id } = useParams();
     const router = useRouter();
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            const Role = localStorage.getItem('UserRole');
 
+            if (!token || Role?.trim().toLowerCase() !== 'admin') {
+                console.error('Unauthorized access or missing token. Redirecting to login.');
+                router.push('/page/control');
+            }
+        }
+    }, [router]);
     useEffect(() => {
         const fetchStudentDetails = async () => {
             try {

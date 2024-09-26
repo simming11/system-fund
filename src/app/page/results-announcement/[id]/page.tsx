@@ -18,7 +18,7 @@ interface StudentData {
 interface Scholarship {
     ScholarshipID: string;
     ScholarshipName: string;
-    AnnouncementFile: string; 
+    AnnouncementFile: string;
 }
 
 interface Application {
@@ -43,26 +43,26 @@ export default function ResultsAnnouncementPage() {
                 if (scholarshipId) {
                     console.log(`Fetching data for ScholarshipID: ${scholarshipId}`);
                     let response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
-    
+
                     if (!response || response.length === 0) {
                         console.log('No data found in Internal API, fetching from External API.');
                         response = await ApiApplicationExternalServices.getStudentsByScholarshipId(scholarshipId);
                     }
-    
+
                     if (response && response.length > 0) {
                         console.log('All fetched applications:', response);
                         const filteredApplications = response.filter((app: Application) => app.Status === 'ได้รับทุน');
-                        
+
                         console.log('Filtered applications with status "อนุมัติ":', filteredApplications);
                         setApplications(filteredApplications);
-    
+
                         if (filteredApplications.length > 0) {
                             setHasApprovedApplications(true);
                         }
-    
+
                         const scholarshipname = response[0].scholarship.ScholarshipName || 'Unknown';
                         console.log(scholarshipname);
-                        
+
                         setScholarshipName(scholarshipname);
                         setScholarship(response[0].scholarship); // Set scholarship data
                     } else {
@@ -77,9 +77,10 @@ export default function ResultsAnnouncementPage() {
                 setLoading(false);
             }
         };
-    
+
         fetchScholarshipDetails();
     }, [id]);
+
 
     const handleDownload = async () => {
         try {
@@ -90,7 +91,7 @@ export default function ResultsAnnouncementPage() {
                 link.href = url;
 
                 const contentDisposition = response.headers['content-disposition'];
-                let fileName = 'file.pdf'; 
+                let fileName = 'file.pdf';
                 if (contentDisposition) {
                     const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
                     if (fileNameMatch && fileNameMatch.length === 2) fileName = fileNameMatch[1];
@@ -120,12 +121,12 @@ export default function ResultsAnnouncementPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-100">
+        <div className="bg-white min-h-screen flex flex-col bg-gray-100">
             <HeaderHome />
             <Header />
             <div className="flex flex-col items-center p-6">
                 <h2 className="text-3xl font-semibold text-blue-700 mb-4">ประกาศผลทุนการศึกษา</h2>
-                <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+                <div className=" bg-gray-50 shadow-md rounded-lg p-6 w-full max-w-3xl">
                     <h3 className="text-lg font-semibold mb-4">{scholarshipName}</h3>
 
                     {hasApprovedApplications ? (
@@ -143,20 +144,20 @@ export default function ResultsAnnouncementPage() {
                         <p className="text-gray-600">ยังไม่ประกาศ</p> // Message for no approved applications
                     )}
 
-<div className="mt-4">   
-{hasApprovedApplications && scholarship?.AnnouncementFile && (
-    <div className="mt-4">   
-        <p className="text-gray-500 text-sm">ดาวน์โหลดประกาศผล:</p>
-        <a
-            onClick={handleDownload}
-            className="text-blue-500 underline ml-2 cursor-pointer"
-        >
-            {scholarship.AnnouncementFile.split('/').pop()}
-        </a>
-    </div>
-)}
+                    <div className="mt-4">
+                        {hasApprovedApplications && scholarship?.AnnouncementFile && (
+                            <div className="mt-4">
+                                <p className="text-gray-500 text-sm">ดาวน์โหลดประกาศผล:</p>
+                                <a
+                                    onClick={handleDownload}
+                                    className="text-blue-500 underline ml-2 cursor-pointer"
+                                >
+                                    {scholarship.AnnouncementFile.split('/').pop()}
+                                </a>
+                            </div>
+                        )}
 
-</div>
+                    </div>
                 </div>
 
                 <button
@@ -168,7 +169,7 @@ export default function ResultsAnnouncementPage() {
                     </svg>
                 </button>
             </div>
-          
+
         </div>
     );
 }

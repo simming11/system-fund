@@ -59,15 +59,15 @@ export default function AnnouncementOfScholarships() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-100">
+        <div className="bg-white min-h-screen flex flex-col bg-gray-100">
             <HeaderHome />
             <Header />
-            <div className="flex flex-col flex-1 p-6 bg-gray-100">
+            <div className="bg-white flex flex-col flex-1 p-6 bg-gray-100 items-center">
                 {/* Add the current Buddhist year (พ.ศ.) dynamically */}
                 <h2 className="text-3xl font-semibold text-blue-700 mb-4">
                     ประกาศผลทุนการศึกษา {currentYear}
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-4 w-full max-w-2xl">
                     {scholarships.map((scholarship) => (
                         <div
                             key={scholarship.ScholarshipID}
@@ -79,6 +79,7 @@ export default function AnnouncementOfScholarships() {
                     ))}
                 </div>
             </div>
+
             <Footer />
         </div>
     );

@@ -432,7 +432,7 @@ export default function ViewApplicationExternalPage({ params }: PageProps) {
                                 className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'
                                     }`}
                             >
-                                5
+                                2
                             </span>
                             <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
                         </div>
@@ -461,7 +461,7 @@ export default function ViewApplicationExternalPage({ params }: PageProps) {
 
                         </div>
 
-                        {step === 5 && (
+                        {step === 2 && (
                             <div className="flex justify-center mt-6 text-center w-full">
                                 <button
                                     type="button"  // Ensure this is submit type for form submission

@@ -18,7 +18,7 @@ interface AcademicData {
 }
 
 interface LineData {
-  LineNotifyID:string
+  LineNotifyID: string
   notify_client_id?: string;
   client_secret?: string;
 }
@@ -37,6 +37,20 @@ export default function LineNotifyForm() {
   const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
   const [hasLineToken, setHasLineToken] = useState(false); // สร้าง state เพื่อตรวจสอบว่ามี LineToken หรือไม่
   const router = useRouter(); // Move useRouter to the top level of the component
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
+
+      if (!token || Role?.trim().toLowerCase() !== 'admin') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/control');
+      }
+    }
+  }, [router]);
+
+
 
   useEffect(() => {
     // ดึง query parameters จาก URL
@@ -154,35 +168,35 @@ export default function LineNotifyForm() {
     }
   };
 
-// ฟังก์ชันสำหรับลบ LineNotify
-const handleDelete = async (id: string) => {
-  try {
-    const confirmDelete = window.confirm('คุณต้องการลบ LineNotify ใช่หรือไม่?');
-    if (!confirmDelete) return;
+  // ฟังก์ชันสำหรับลบ LineNotify
+  const handleDelete = async (id: string) => {
+    try {
+      const confirmDelete = window.confirm('คุณต้องการลบ LineNotify ใช่หรือไม่?');
+      if (!confirmDelete) return;
 
-    // เรียกใช้ API เพื่อทำการลบ LineNotify
-    await ApiLineNotifyServices.deleteLineNotify(id);
+      // เรียกใช้ API เพื่อทำการลบ LineNotify
+      await ApiLineNotifyServices.deleteLineNotify(id);
 
-    setResponseMessage('ลบข้อมูลสำเร็จแล้ว!');
-    console.log('Line Notify deleted successfully.');
+      setResponseMessage('ลบข้อมูลสำเร็จแล้ว!');
+      console.log('Line Notify deleted successfully.');
 
-    // Clear specific items from localStorage
-    localStorage.removeItem('oauth_code');
-    localStorage.removeItem('oauth_state');
-    localStorage.removeItem('line_notify_token');
-    localStorage.removeItem('oauth_state');
-    localStorage.removeItem('oauth_client_id');
-    localStorage.removeItem('oauth_redirect_uri');
-    localStorage.removeItem('oauth_scope');
+      // Clear specific items from localStorage
+      localStorage.removeItem('oauth_code');
+      localStorage.removeItem('oauth_state');
+      localStorage.removeItem('line_notify_token');
+      localStorage.removeItem('oauth_state');
+      localStorage.removeItem('oauth_client_id');
+      localStorage.removeItem('oauth_redirect_uri');
+      localStorage.removeItem('oauth_scope');
 
-    // Fetch updated LineNotifies after deletion
-    fetchLineNotifies();
-    router.push('https://b2b1-180-180-225-124.ngrok-free.app/page/notify'); // Use router to navigate
-  } catch (error) {
-    console.error('Error deleting Line Notify:', error);
-    setResponseMessage('ไม่สามารถลบข้อมูลได้');
-  }
-};
+      // Fetch updated LineNotifies after deletion
+      fetchLineNotifies();
+      router.push('https://b2b1-180-180-225-124.ngrok-free.app/page/notify'); // Use router to navigate
+    } catch (error) {
+      console.error('Error deleting Line Notify:', error);
+      setResponseMessage('ไม่สามารถลบข้อมูลได้');
+    }
+  };
 
 
   // ฟังก์ชันสำหรับอัพเดต LineToken ลงในฐานข้อมูล
@@ -284,85 +298,88 @@ const handleDelete = async (id: string) => {
         <AdminHeader />
       </div>
       <div className="flex flex-row">
-      <div className="bg-white w-1/8 p-4">
-                    <Sidebar />
-                </div>
         <div className="bg-white w-1/8 p-4">
-          <h1 className="text-2xl font-bold mb-4">Line Notify Form</h1>
-
-          {/* เช็คว่ามี notify_client_id หรือ client_secret อยู่แล้วหรือไม่ */}
-          {lineNotifies.length === 0 || !lineNotifies[0]?.notify_client_id || !lineNotifies[0]?.client_secret ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="notify_client_id" className="block text-sm font-medium text-gray-700">
-                  Notify Client ID
-                </label>
-                <input
-                  type="text"
-                  id="notify_client_id"
-                  name="notify_client_id"
-                  value={formData.notify_client_id}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="client_secret" className="block text-sm font-medium text-gray-700">
-                  Client Secret
-                </label>
-                <input
-                  type="text"
-                  id="client_secret"
-                  name="client_secret"
-                  value={formData.client_secret}
-                  onChange={handleChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-              >
-                Submit
-              </button>
-            </form>
-          ) : (
-            <p className="text-green-500 font-semibold">LINE Notify Client ID และ Client Secret ถูกบันทึกแล้ว</p>
-          )}
-
-          {/* แสดงข้อมูล line-notifies */}
-          <h2 className="text-xl font-bold mt-4">Line Notifies:</h2>
-          <ul>
-            {lineNotifies?.map((notify: LineData, index: number) => (
-              <li key={index} className="mt-2">
-                <strong>Notify ID:</strong> {notify.notify_client_id}<br />
-                <strong>Client Secret:</strong> {notify.client_secret}
-
-                {/* ปุ่มลบ */}
-                <button
-                  onClick={() => handleDelete(notify.LineNotifyID || '')}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 mt-2"
-                >
-                  ลบ Line Notify
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          {responseMessage && <p className="mt-4">{responseMessage}</p>}
-          {!hasLineToken && (
-            <button
-              onClick={() => handleLineOAuth(formData.notify_client_id)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Connect to LINE Notify
-            </button>
-          )}
+          <Sidebar />
         </div>
+        <div className="min-h-screen pb-40 ">
+          <div className="bg-white w-full max-w-lg p-8  ">
+            <h1 className="text-2xl font-bold mb-4">Line Notify Form</h1>
+
+            {/* เช็คว่ามี notify_client_id หรือ client_secret อยู่แล้วหรือไม่ */}
+            {lineNotifies.length === 0 || !lineNotifies[0]?.notify_client_id || !lineNotifies[0]?.client_secret ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="notify_client_id" className="block text-sm font-medium text-gray-700">
+                    Notify Client ID
+                  </label>
+                  <input
+                    type="text"
+                    id="notify_client_id"
+                    name="notify_client_id"
+                    value={formData.notify_client_id}
+                    onChange={handleChange}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="client_secret" className="block text-sm font-medium text-gray-700">
+                    Client Secret
+                  </label>
+                  <input
+                    type="text"
+                    id="client_secret"
+                    name="client_secret"
+                    value={formData.client_secret}
+                    onChange={handleChange}
+                    className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Submit
+                </button>
+              </form>
+            ) : (
+              <p className="text-green-500 font-semibold">LINE Notify Client ID และ Client Secret ถูกบันทึกแล้ว</p>
+            )}
+
+            {/* แสดงข้อมูล line-notifies */}
+            <h2 className="text-xl font-bold mt-4">Line Notifies:</h2>
+            <ul>
+              {lineNotifies?.map((notify: LineData, index: number) => (
+                <li key={index} className="mt-2">
+                  <strong>Notify ID:</strong> {notify.notify_client_id}<br />
+                  <strong>Client Secret:</strong> {notify.client_secret}
+
+                  {/* ปุ่มลบ */}
+                  <button
+                    onClick={() => handleDelete(notify.LineNotifyID || '')}
+                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 mt-2"
+                  >
+                    ลบ Line Notify
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {responseMessage && <p className="mt-4">{responseMessage}</p>}
+            {!hasLineToken && (
+              <button
+                onClick={() => handleLineOAuth(formData.notify_client_id)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mt-4"
+              >
+                Connect to LINE Notify
+              </button>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

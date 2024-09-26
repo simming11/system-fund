@@ -73,7 +73,7 @@ export default function SubmissionHistoryPage() {
       <Header />
       <div className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">ประวัติการสมัคร</h1>
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="bg-white  rounded-lg p-6">
           {applications.length > 0 ? (
             <table className="min-w-full border-collapse border border-gray-200">
               <thead>
@@ -135,7 +135,7 @@ export default function SubmissionHistoryPage() {
               </tbody>
             </table>
           ) : (
-            <div>No applications found</div>
+            <div>ไม่มีข้อมูลประวัติการสมัครทุน</div>
           )}
         </div>
       </div>

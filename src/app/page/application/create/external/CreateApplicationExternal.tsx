@@ -79,27 +79,27 @@ export default function CreateApplicationExternalPage() {
     setApplicationFiles(updatedFiles);
   };
 
-// Handle file upload with validation for PDF and image files
-const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
+  // Handle file upload with validation for PDF and image files
+  const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-  if (file) {
-    const fileType = file.type;
-    const validFileTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (file) {
+      const fileType = file.type;
+      const validFileTypes = ['application/pdf', 'image/jpeg', 'image/png'];
 
-    // Check if the file type is valid
-    if (!validFileTypes.includes(fileType)) {
-      alert('เฉพาะไฟล์ PDF และรูปภาพ (JPEG, PNG) เท่านั้นที่สามารถอัปโหลดได้');
-      return; // Exit if the file type is not valid
+      // Check if the file type is valid
+      if (!validFileTypes.includes(fileType)) {
+        alert('เฉพาะไฟล์ PDF และรูปภาพ (JPEG, PNG) เท่านั้นที่สามารถอัปโหลดได้');
+        return; // Exit if the file type is not valid
+      }
+
+      const updatedFiles = [...applicationFiles];
+      updatedFiles[index].FilePath = file; // Assign the selected file
+      setApplicationFiles(updatedFiles); // Update the state with the new file
+
+      console.log('File uploaded:', file);
     }
-
-    const updatedFiles = [...applicationFiles];
-    updatedFiles[index].FilePath = file; // Assign the selected file
-    setApplicationFiles(updatedFiles); // Update the state with the new file
-
-    console.log('File uploaded:', file);
-  }
-};
+  };
 
 
   // Add a new file entry
@@ -117,71 +117,71 @@ const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>)
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-      // Check if all fields in applicationFiles are filled out
-      for (const file of applicationFiles) {
-        if (!file.DocumentType || !file.DocumentName || !file.FilePath) {
-            setError('กรุณากรอกข้อมูลทุกฟิลด์ให้ครบถ้วน และอัปโหลดไฟล์สำหรับเอกสาร');
-            return; // Prevent form submission if validation fails
-        }
+    // Check if all fields in applicationFiles are filled out
+    for (const file of applicationFiles) {
+      if (!file.DocumentType || !file.DocumentName || !file.FilePath) {
+        setError('กรุณากรอกข้อมูลทุกฟิลด์ให้ครบถ้วน และอัปโหลดไฟล์สำหรับเอกสาร');
+        return; // Prevent form submission if validation fails
+      }
     }
 
 
     try {
-        // Set the status to 'รอประกาศผล'
-        const updatedApplicationData = {
-            ...applicationData,
-            Status: 'รอประกาศผล',
-        };
+      // Set the status to 'รอประกาศผล'
+      const updatedApplicationData = {
+        ...applicationData,
+        Status: 'รอประกาศผล',
+      };
 
-        // Create the application and retrieve the Application_EtID
-        console.log(updatedApplicationData);
+      // Create the application and retrieve the Application_EtID
+      console.log(updatedApplicationData);
 
-        const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
-        const Application_EtID = applicationResponse.Application_EtID;
+      const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
+      const Application_EtID = applicationResponse.Application_EtID;
 
-        const tasks: Promise<any>[] = [];
-      
-        if (applicationFiles.length > 0) {
-            for (const fileData of applicationFiles) {
-                const formData = new FormData();
+      const tasks: Promise<any>[] = [];
 
-                // Append the Application_EtID
-                formData.append('Application_EtID', Application_EtID); // Ensure the backend expects Application_EtID
+      if (applicationFiles.length > 0) {
+        for (const fileData of applicationFiles) {
+          const formData = new FormData();
 
-                // Append Document details
-                formData.append('DocumentName', fileData.DocumentName);
-                formData.append('DocumentType', fileData.DocumentType);
+          // Append the Application_EtID
+          formData.append('Application_EtID', Application_EtID); // Ensure the backend expects Application_EtID
 
-                // Append the file
-                if (fileData.FilePath instanceof File) {
-                    formData.append('FilePath', fileData.FilePath);
-                }
+          // Append Document details
+          formData.append('DocumentName', fileData.DocumentName);
+          formData.append('DocumentType', fileData.DocumentType);
 
-                // Log the FormData contents for debugging
-                for (let [key, value] of formData.entries()) {
-                    console.log(`${key}:`, value);
-                }
+          // Append the file
+          if (fileData.FilePath instanceof File) {
+            formData.append('FilePath', fileData.FilePath);
+          }
 
-                // Send the formData using your API service
-                tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
-            }
+          // Log the FormData contents for debugging
+          for (let [key, value] of formData.entries()) {
+            console.log(`${key}:`, value);
+          }
+
+          // Send the formData using your API service
+          tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
         }
+      }
 
-        // Execute all tasks
-        await Promise.all(tasks);
+      // Execute all tasks
+      await Promise.all(tasks);
 
-        console.log('All data submitted successfully.');
-        sessionStorage.clear();
-        router.push(`/page/History-Application`);
+      console.log('All data submitted successfully.');
+      sessionStorage.clear();
+      router.push(`/page/History-Application`);
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-            setError('Validation error: ' + error.response?.data.message);
-        } else {
-            setError('Error creating application. Please check the form fields and try again.');
-        }
-        console.error('Error creating application:', error);
+      if (axios.isAxiosError(error)) {
+        setError('Validation error: ' + error.response?.data.message);
+      } else {
+        setError('Error creating application. Please check the form fields and try again.');
+      }
+      console.error('Error creating application:', error);
     }
-};
+  };
 
 
 
@@ -219,16 +219,16 @@ const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>)
                 />
               </div>
               <div>
-  <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
-  <input
-    type="file"
-    id={`FilePath-${index}`}
-    name="FilePath"
-    accept=".pdf, image/*" // Restrict the file type to PDF and images
-    onChange={(e) => handleFileUpload(index, e)}
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-</div>
+                <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+                <input
+                  type="file"
+                  id={`FilePath-${index}`}
+                  name="FilePath"
+                  accept=".pdf, image/*" // Restrict the file type to PDF and images
+                  onChange={(e) => handleFileUpload(index, e)}
+                  className="w-full p-3 border border-gray-300 rounded"
+                />
+              </div>
 
               <div className="flex items-end">
                 <button
@@ -249,7 +249,7 @@ const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>)
             เพิ่มไฟล์
           </button>
         </div>
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="bg-white  rounded-lg p-6">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <form onSubmit={handleSubmit}>
 

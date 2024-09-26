@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
 import ApiApplicationFileServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationFileServices';
+import Swal from 'sweetalert2';
 
 // Interfaces
 interface Students {
@@ -104,10 +105,11 @@ interface ApplicationFilesData {
     ApplicationID: string;
     DocumentName: string;
     DocumentType: string;
-    FilePath: string | File;
-    ExistingFilePath?: string; // เพิ่ม ExistingFilePath (อาจจะไม่มีในบางกรณี)
-    error?: string; // Add this property to handle errors
+    FilePath: string | File | null; // FilePath can be string, File, or null
+    ExistingFilePath?: string; // Optional field for existing paths
+    error?: string; // Optional error property to handle errors
 }
+
 
 interface CurrentAddressData extends Address { }
 
@@ -283,10 +285,18 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         { ApplicationID: '', Name: '', JobType: '', Duration: '', Earnings: 0 },
     ]);
 
-    const [application_files, setApplicationFiles] = useState<ApplicationFilesData[]>([
-        { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' },
-    ]);
 
+    const [application_files, setApplicationFiles] = useState<ApplicationFilesData[]>([
+        { 
+          ApplicationID: '', 
+          DocumentType: '', 
+          DocumentName: '', 
+          FilePath: null, 
+          ExistingFilePath: '', 
+          FileName: '',  // Add FileName property here
+          error: '' 
+        }
+      ]);
     const [error, setError] = useState('');
     const [userData, setUserData] = useState<any>(null);
     const [provinces, setProvinces] = useState<{ id: number; name: string }[]>([]);
@@ -820,47 +830,27 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const updatedFiles = [...application_files];
-
+    
         if (file) {
             // เก็บไฟล์ใหม่ใน state
-            updatedFiles[index].FilePath = file;
-            const fileType = file.type;
-            // const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-            // const maxSizeInBytes = 20 * 1024 * 1024; // 20 MB in bytes
-
-            // if (!allowedTypes.includes(fileType)) {
-            //     updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
-            //     setApplicationFiles(updatedFiles);
-            //     return;
-            // }
-
-            // // Validate file size (should be <= 20 MB)
-            // if (file.size > maxSizeInBytes) {
-            //     updatedFiles[index].error = 'ขนาดไฟล์ต้องไม่เกิน 20 MB';
-            //     setApplicationFiles(updatedFiles);
-            //     return;
-            // }
-
-            // // If valid, set the file and clear any error messages
-            updatedFiles[index].FilePath = file;
-            updatedFiles[index].error = ''; // Clear error if successful upload
+            updatedFiles[index].FilePath = file; 
         } else {
             // เก็บ path ไฟล์เดิมใน state
-            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath;
+            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath; 
             // ใช้ path เดิมหากไม่มี ExistingFilePath
         }
-
+    
         setApplicationFiles(updatedFiles);
     };
 
 
-    const addFileEntry = () => {
-        setApplicationFiles([
-            ...application_files,
-            { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' } // เพิ่มฟิลด์ FileName
-        ]);
-
-    };
+// Function to add a new file entry
+const addFileEntry = () => {
+    setApplicationFiles([
+        ...application_files,
+        { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' } // Added FileName field
+    ]);
+};
 
     // ฟังก์ชันลบไฟล์
     const removeFileEntry = (index: number) => {
@@ -875,42 +865,30 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     };
 
-    // // Validate all file entries before submission
-    // const validateFiles = (): boolean => {
-    //     const updatedFiles = [...application_files];
-    //     let isValid = true;
-
-    //     for (const [index, file] of updatedFiles.entries()) {
-    //         // If FilePath is provided, validate all fields
-    //         if (file.FilePath) {
-    //             if (!file.DocumentType || !file.DocumentName) {
-    //                 updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
-    //                 isValid = false;
-    //             } else if (!['application/pdf', 'image/jpeg', 'image/png'].includes((file.FilePath as File)?.type)) {
-    //                 updatedFiles[index].error = 'อัปโหลดเฉพาะไฟล์ PDF หรือรูปภาพ (JPEG, PNG) เท่านั้น';
-    //                 isValid = false;
-    //             } else {
-    //                 updatedFiles[index].error = ''; // Clear error if valid
-    //             }
-    //         } else {
-    //             updatedFiles[index].error = ''; // Clear error if no file is uploaded
-    //         }
-    //     }
-
-    //     setApplicationFiles(updatedFiles); // Update state with any errors
-    //     return isValid;
-    // };
-
-    // useEffect (() => {
-    //     console.log("Id : ", params.id);
-    //     }, [params.id]);
-
+    // Validate all file entries before submission
+    const validateFiles = () => {
+        const updatedFiles = [...application_files];
+        let isValid = true;
+    
+        updatedFiles.forEach((file, index) => {
+          if (!file.DocumentType || !file.DocumentName || (!file.FilePath && !file.ExistingFilePath)) {
+            updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วนและอัปโหลดไฟล์';
+            isValid = false;
+          } else {
+            updatedFiles[index].error = ''; // Clear error if everything is filled
+          }
+        });
+    
+        setApplicationFiles(updatedFiles);
+        return isValid;
+      };
+ 
     // Ensure applicationID is used correctly when saving
     const handleSave = async () => {
-        // if (!validateFiles()) {
-        //     setError('กรุณากรอกข้อมูลให้ครบถ้วน');
-        //     return; // Prevent submission if validation fails
-        // }
+        if (!validateFiles()) {
+            setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+            return; // Prevent submission if validation fails
+        }
         try {
             setLoading(true); // Start loading
             if (!id) {
@@ -1168,6 +1146,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             sessionStorage.removeItem('EditNumberOfSiblings');
             sessionStorage.removeItem('EditSiblingsData');
             sessionStorage.clear();
+            Swal.fire({
+                icon: "success",
+                title: "บันทึกเรียบร้อย",
+                showConfirmButton: false,
+                timer: 1500
+              });
             // Redirect to history page
             router.push(`/page/History-Application`);
         } catch (error) {
@@ -1181,10 +1165,24 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         }
     };
     const handleSubmit = async () => {
-        // if (!validateFiles()) {
-        //     setError('กรุณากรอกข้อมูลให้ครบถ้วน');
-        //     return; // Prevent submission if validation fails
-        // }
+        if (!validateFiles()) {
+            setError('กรุณากรอกข้อมูลให้ครบถ้วน');
+            return; // Prevent submission if validation fails
+        }
+            // Show confirmation dialog
+    Swal.fire({
+        title: "คุณแน่ใจหรือไม่?",
+        text: "คุณจะไม่สามารถแก้ไขข้อมูลหลังจากการส่งได้!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "ใช่, ส่งข้อมูล!",
+        cancelButtonText: "ยกเลิก"
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          // Proceed with submission
+          setLoading(true); // Optionally, set loading state to disable the form or show a spinner
         try {
             setLoading(true); // Start loading
             if (!id) {
@@ -1440,6 +1438,12 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             sessionStorage.removeItem('EditNumberOfSiblings');
             sessionStorage.removeItem('EditSiblingsData');
             sessionStorage.clear();
+            Swal.fire({
+                icon: "success",
+                title: "สมัครทุนเรียบร้อย",
+                showConfirmButton: false,
+                timer: 1500
+              });
             // Redirect to history page
             router.push(`/page/History-Application`);
         } catch (error) {
@@ -1451,6 +1455,8 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 setError('Error updating application. Please check the form fields and try again.');
             }
         }
+    }
+});
     };
 
 
@@ -1463,7 +1469,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     <div>
                         <div className="">
 
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
 
                                 <div>
                                     <label htmlFor="PrefixName" className="block text-gray-700 mb-2">
@@ -1506,7 +1512,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                             </div>
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="Course" className="block text-gray-700 mb-2">
                                         สาขาวิชา
@@ -1546,7 +1552,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                             </div>
-                            <div className="mb-4 grid grid-cols-3 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="Phone" className="block text-gray-700 mb-2">
                                         เบอร์โทร
@@ -1588,7 +1594,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                 </div>
                             </div>
                             <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
                                         เลขที่
@@ -1673,7 +1679,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     />
                                 </div>
                             </div>
-                            <div className="">
                                 <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="text-gray-700">
@@ -1776,7 +1781,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+
                             <div className="flex items-end">
                                 <div className="flex-1">
                                     <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">
@@ -1823,7 +1828,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 return (
                     <div className="">
                         {/* Father's Information */}
-                        <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             <div>
                                 <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">
                                     คำนำหน้า
@@ -1971,7 +1976,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                         </div>
 
                         {/* Mother's Information */}
-                        <div className="mb-10 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="mb-10 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             <div>
                                 <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">
                                     คำนำหน้า
@@ -2751,73 +2756,72 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             case 5:
                 return (
                     <div>
-                        {application_files.map((file, index) => (
-                            <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
-                                <div>
-                                    <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
-                                    <select
-                                        id={`DocumentType-${index}`}
-                                        name="DocumentType"
-                                        value={file.DocumentType}
-                                        onChange={(e) => handleFileChange(index, e)}
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                    >
-                                        <option value="">เลือกประเภทไฟล์</option>
-                                        <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
-                                        <option value="ใบสมัคร">ใบสมัคร</option>
-                                        <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
-                                        <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
-                                        <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
-                                        <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
-                                        <option value="อื่น ๆ">อื่น ๆ</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
-                                    <input
-                                        type="text"
-                                        id={`DocumentName-${index}`}
-                                        name="DocumentName"
-                                        value={file.DocumentName}
-                                        onChange={(e) => handleFileChange(index, e)}
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
-                                    <input
-                                        type="file"
-                                        id={`FilePath-${index}`}
-                                        name="FilePath"
-                                        accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
-                                        onChange={(e) => handleFileUpload(index, e)}
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                    />
-                                    {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
-                                    {/* แสดงชื่อไฟล์ที่ถูกเลือกหรือไฟล์เดิมที่มีอยู่ */}
-                                    {typeof file.FilePath === 'string' && (
-                                        <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
-                                    )}
-
-                                </div>
-                                <div className="flex items-end">
-                                    <button
-                                        type="button"
-                                        onClick={() => removeFileEntry(index)}
-                                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                                    >
-                                        ลบ
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={addFileEntry}
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                        >
-                            เพิ่มไฟล์
-                        </button>
+                      {application_files.map((file, index) => (
+          <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
+            <div>
+              <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
+              <select
+                id={`DocumentType-${index}`}
+                name="DocumentType"
+                value={file.DocumentType}
+                onChange={(e) => handleFileChange(index, e)}
+                className="w-full p-3 border border-gray-300 rounded"
+              >
+                <option value="">เลือกประเภทไฟล์</option>
+                <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
+                <option value="ใบสมัคร">ใบสมัคร</option>
+                <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
+                <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
+                <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
+                <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
+                <option value="อื่น ๆ">อื่น ๆ</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
+              <input
+                type="text"
+                id={`DocumentName-${index}`}
+                name="DocumentName"
+                value={file.DocumentName}
+                onChange={(e) => handleFileChange(index, e)}
+                className="w-full p-3 border border-gray-300 rounded"
+              />
+            </div>
+            <div>
+              <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+              <input
+                type="file"
+                id={`FilePath-${index}`}
+                name="FilePath"
+                accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
+                onChange={(e) => handleFileUpload(index, e)}
+                className="w-full p-3 border border-gray-300 rounded"
+              />
+              {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
+              {/* Display selected file name */}
+              {typeof file.FilePath === 'string' && (
+                <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
+              )}
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => removeFileEntry(index)}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                ลบ
+              </button>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addFileEntry}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          เพิ่มไฟล์
+        </button>
                     </div>
                 );
 

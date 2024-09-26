@@ -122,115 +122,115 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
     const token = localStorage.getItem('token');
     const [loading, setLoading] = useState(false); // Use one global loading state for all data fetching or individual ones if needed
 
-// State declarations
-const [step, setStep] = useState<number>(1); // ตั้งค่าเริ่มต้นเป็น 1
+    // State declarations
+    const [step, setStep] = useState<number>(1); // ตั้งค่าเริ่มต้นเป็น 1
 
-const [Students, setStudents] = useState<Students>({
-    StudentID: '',
-    PrefixName: '',
-    Course: '',
-    Year_Entry: '',
-    DOB: '',
-}); // ตั้งค่าเริ่มต้นเป็นข้อมูลว่างเปล่า
+    const [Students, setStudents] = useState<Students>({
+        StudentID: '',
+        PrefixName: '',
+        Course: '',
+        Year_Entry: '',
+        DOB: '',
+    }); // ตั้งค่าเริ่มต้นเป็นข้อมูลว่างเปล่า
 
-const [applicationData, setApplicationData] = useState<ApplicationInternalData>({
-    StudentID: idStudent || '',
-    ScholarshipID: '',
-    ApplicationDate: '',
-    Status: 'รออนุมัติ',
-    MonthlyIncome: 1,
-    MonthlyExpenses: 1,
-    NumberOfSisters: 0,
-    NumberOfBrothers: 0,
-    NumberOfSiblings: 0,  // Ensure this is initialized
-    GPAYear1: 1,
-    GPAYear2: 1,
-    GPAYear3: 1,
-    AdvisorName: '',
-    addresses: [], // Initialize as empty array
-    activities: [], // Fix: Add empty array for activities
-    guardians: [], // Initialize as empty array
-    scholarship_histories: [], // Initialize as empty array
-    work_experiences: [], // Initialize as empty array
-    siblings: [], // Initialize as empty array
-    application_files: [] // Initialize as empty array
-});
-
-
+    const [applicationData, setApplicationData] = useState<ApplicationInternalData>({
+        StudentID: idStudent || '',
+        ScholarshipID: '',
+        ApplicationDate: '',
+        Status: 'รออนุมัติ',
+        MonthlyIncome: 1,
+        MonthlyExpenses: 1,
+        NumberOfSisters: 0,
+        NumberOfBrothers: 0,
+        NumberOfSiblings: 0,  // Ensure this is initialized
+        GPAYear1: 1,
+        GPAYear2: 1,
+        GPAYear3: 1,
+        AdvisorName: '',
+        addresses: [], // Initialize as empty array
+        activities: [], // Fix: Add empty array for activities
+        guardians: [], // Initialize as empty array
+        scholarship_histories: [], // Initialize as empty array
+        work_experiences: [], // Initialize as empty array
+        siblings: [], // Initialize as empty array
+        application_files: [] // Initialize as empty array
+    });
 
 
-const [addressData, setAddressData] = useState<Address>({
-    ApplicationID: id,
-    AddressLine: '',
-    Subdistrict: '',
-    province: '',
-    District: '',
-    PostalCode: '',
-    Type: 'ที่อยู่ตามบัตรประชาชน',
-});
 
-const [currentAddressData, setCurrentAddressData] = useState<CurrentAddressData>({
-    ApplicationID: id,
-    AddressLine: '',
-    Subdistrict: '',
-    province: '',
-    District: '',
-    PostalCode: '',
-    Type: 'ที่อยู่ปัจจุบัน',
-});
 
-const [fatherData, setFatherData] = useState<GuardiansData>({
-    ApplicationID: id || '',
-    FirstName: '',
-    LastName: '',
-    PrefixName: '',
-    Type: 'พ่อ',
-    Occupation: '',
-    Income: 0,
-    Age: 0,
-    Status: '',
-    Workplace: '',
-    Phone: '',
-});
+    const [addressData, setAddressData] = useState<Address>({
+        ApplicationID: id,
+        AddressLine: '',
+        Subdistrict: '',
+        province: '',
+        District: '',
+        PostalCode: '',
+        Type: 'ที่อยู่ตามบัตรประชาชน',
+    });
 
-const [motherData, setMotherData] = useState<GuardiansData>({
-    ApplicationID: id || '',
-    FirstName: '',
-    LastName: '',
-    PrefixName: '',
-    Type: 'แม่',
-    Occupation: '',
-    Income: 0,
-    Age: 0,
-    Status: '',
-    Workplace: '',
-    Phone: '',
-});
+    const [currentAddressData, setCurrentAddressData] = useState<CurrentAddressData>({
+        ApplicationID: id,
+        AddressLine: '',
+        Subdistrict: '',
+        province: '',
+        District: '',
+        PostalCode: '',
+        Type: 'ที่อยู่ปัจจุบัน',
+    });
 
-const [caretakerData, setCaretakerData] = useState<GuardiansData>({
-    ApplicationID: id || '',
-    PrefixName: '',
-    FirstName: '',
-    LastName: '',
-    Age: 0,
-    Status: '',
-    Phone: '',
-    Occupation: '',
-    Income: 0,
-    Type: '',
-    Workplace: '',
-});
+    const [fatherData, setFatherData] = useState<GuardiansData>({
+        ApplicationID: id || '',
+        FirstName: '',
+        LastName: '',
+        PrefixName: '',
+        Type: 'พ่อ',
+        Occupation: '',
+        Income: 0,
+        Age: 0,
+        Status: '',
+        Workplace: '',
+        Phone: '',
+    });
 
-const [siblingData, setSiblingData] = useState<SiblingsData>({
-    ApplicationID: '',
-    PrefixName: '',
-    Fname: '',
-    Lname: '',
-    Occupation: '',
-    EducationLevel: '',
-    Income: 0,
-    Status: '',
-});
+    const [motherData, setMotherData] = useState<GuardiansData>({
+        ApplicationID: id || '',
+        FirstName: '',
+        LastName: '',
+        PrefixName: '',
+        Type: 'แม่',
+        Occupation: '',
+        Income: 0,
+        Age: 0,
+        Status: '',
+        Workplace: '',
+        Phone: '',
+    });
+
+    const [caretakerData, setCaretakerData] = useState<GuardiansData>({
+        ApplicationID: id || '',
+        PrefixName: '',
+        FirstName: '',
+        LastName: '',
+        Age: 0,
+        Status: '',
+        Phone: '',
+        Occupation: '',
+        Income: 0,
+        Type: '',
+        Workplace: '',
+    });
+
+    const [siblingData, setSiblingData] = useState<SiblingsData>({
+        ApplicationID: '',
+        PrefixName: '',
+        Fname: '',
+        Lname: '',
+        Occupation: '',
+        EducationLevel: '',
+        Income: 0,
+        Status: '',
+    });
 
 
     const [activities, setActivities] = useState<ActivitiesData[]>([
@@ -305,12 +305,12 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
 
                 if (idCardAddress) {
                     setAddressData(idCardAddress);
-                  
+
                 }
 
                 if (currentAddress) {
                     setCurrentAddressData(currentAddress);
-                
+
                 }
 
                 const guardians: GuardiansData[] = response.guardians || [];
@@ -400,7 +400,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                     <div>
                         <div className="">
 
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
 
                                 <div>
                                     <label htmlFor="PrefixName" className="block text-gray-700 mb-2">
@@ -446,7 +446,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                                     />
                                 </div>
                             </div>
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="Course" className="block text-gray-700 mb-2">
                                         สาขาวิชา
@@ -488,7 +488,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                                     />
                                 </div>
                             </div>
-                            <div className="mb-4 grid grid-cols-3 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="Phone" className="block text-gray-700 mb-2">
                                         เบอร์โทร
@@ -533,7 +533,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                                 </div>
                             </div>
                             <div className="text-gray-700 mb-1 mt-5">ที่อยู่ตามบัตรประชาชน</div>
-                            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                                 <div>
                                     <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
                                         เลขที่
@@ -604,87 +604,86 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                                     />
                                 </div>
                             </div>
-                            <div className="">
-                                <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="text-gray-700">
-                                            ที่อยู่ปัจจุบัน
-                                        </div>
+                            <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-gray-700">
+                                        ที่อยู่ปัจจุบัน
                                     </div>
-                                    <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                        <div>
-                                            <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
-                                                เลขที่
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="AddressLine"
-                                                name="AddressLine"
-                                                value={currentAddressData.AddressLine || ""}
+                                </div>
+                                <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                    <div>
+                                        <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
+                                            เลขที่
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="AddressLine"
+                                            name="AddressLine"
+                                            value={currentAddressData.AddressLine || ""}
 
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                                disabled
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="province" className="block text-gray-700 mb-2">
-                                                จังหวัด
-                                            </label>
-                                            <input
-                                                id="province"
-                                                name="province"
-                                                value={currentAddressData.province || ""}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                            disabled
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="province" className="block text-gray-700 mb-2">
+                                            จังหวัด
+                                        </label>
+                                        <input
+                                            id="province"
+                                            name="province"
+                                            value={currentAddressData.province || ""}
 
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                                disabled
-                                            />
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                            disabled
+                                        />
 
-                                        </div>
-                                        <div>
-                                            <label htmlFor="District" className="block text-gray-700 mb-2">
-                                                อำเภอ
-                                            </label>
-                                            <input
-                                                id="District"
-                                                name="District"
-                                                value={currentAddressData.District || ""}
+                                    </div>
+                                    <div>
+                                        <label htmlFor="District" className="block text-gray-700 mb-2">
+                                            อำเภอ
+                                        </label>
+                                        <input
+                                            id="District"
+                                            name="District"
+                                            value={currentAddressData.District || ""}
 
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                                disabled
-                                            />
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                            disabled
+                                        />
 
-                                        </div>
-                                        <div>
-                                            <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
-                                                ตำบล
-                                            </label>
-                                            <input
-                                                id="Subdistrict"
-                                                name="Subdistrict"
-                                                value={currentAddressData.Subdistrict || ""}
+                                    </div>
+                                    <div>
+                                        <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
+                                            ตำบล
+                                        </label>
+                                        <input
+                                            id="Subdistrict"
+                                            name="Subdistrict"
+                                            value={currentAddressData.Subdistrict || ""}
 
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                                disabled
-                                            />
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                            disabled
+                                        />
 
-                                        </div>
-                                        <div>
-                                            <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-                                                รหัสไปรษณีย์
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="PostalCode"
-                                                name="PostalCode"
-                                                value={currentAddressData.PostalCode || ""}
+                                    </div>
+                                    <div>
+                                        <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                                            รหัสไปรษณีย์
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="PostalCode"
+                                            name="PostalCode"
+                                            value={currentAddressData.PostalCode || ""}
 
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                                disabled
-                                            />
-                                        </div>
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                            disabled
+                                        />
                                     </div>
                                 </div>
                             </div>
+
                             <div className="flex items-end">
                                 <div className="flex-1">
                                     <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">
@@ -733,7 +732,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                 return (
                     <div className="">
                         {/* Father's Information */}
-                        <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             <div>
                                 <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">
                                     คำนำหน้า
@@ -869,7 +868,7 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                         </div>
 
                         {/* Mother's Information */}
-                        <div className="mb-10 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div className="mb-10 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                             <div>
                                 <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">
                                     คำนำหน้า
@@ -1004,6 +1003,171 @@ const [siblingData, setSiblingData] = useState<SiblingsData>({
                                 />
                             </div>
                         </div>
+
+                        {/* Caretaker Information */}
+                        <div className="mb-6">
+                            <div className="flex justify-start items-center space-x-4 mb-5">
+                                <h1>ผู้อุปการะ</h1>
+                            </div>
+
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                                <div>
+                                    <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
+                                        คำนำหน้า
+                                    </label>
+                                    <input
+                                        id="CaretakerPrefixName"
+                                        name="PrefixName"
+                                        value={caretakerData.PrefixName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                        />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
+                                        ชื่อ
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerFirstName"
+                                        name="FirstName"
+                                        value={caretakerData.FirstName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
+                                        นามสกุล
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerLastName"
+                                        name="LastName"
+                                        value={caretakerData.LastName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">
+                                        อายุ
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="CaretakerAge"
+                                        name="Age"
+                                        value={caretakerData.Age}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
+                                        สถานภาพ
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            id="CaretakerStatusAlive"
+                                            name="Status"
+                                            value="ยังมีชีวิตอยู่"
+                                            checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
+
+                                            className="mr-2"
+                                            disabled
+                                        />{' '}
+                                        ยังมีชีวิตอยู่
+                                        <input
+                                            type="radio"
+                                            id="CaretakerStatusDeceased"
+                                            name="Status"
+                                            value="เสียชีวิตแล้ว"
+                                            checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
+
+                                            className="ml-4 mr-2"
+                                            disabled
+                                        />{' '}
+                                        เสียชีวิตแล้ว
+                                    </div>
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
+                                        เบอร์โทร
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerPhone"
+                                        name="Phone"
+                                        value={caretakerData.Phone}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
+                                        อาชีพ
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerOccupation"
+                                        name="Occupation"
+                                        value={caretakerData.Occupation}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
+                                        รายได้ต่อเดือน
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="CaretakerIncome"
+                                        name="Income"
+                                        value={caretakerData.Income}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
+                                        สถานที่ทำงาน
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerWorkplace"
+                                        name="Workplace"
+                                        value={caretakerData.Workplace}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
+                                        เกี่ยวข้องเป็น
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerType"
+                                        name="Type"
+                                        value={caretakerData.Type}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Sibling Information */}
                         <div className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-6">
                             <div className="">

@@ -49,7 +49,17 @@ export default function StudentInternalDetailsPage() {
     const [scholarshipName, setScholarshipName] = useState<string>('');
     const [applicationFilesData, setApplicationFilesData] = useState<ApplicationFilesData[]>([]);
     const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            const Role = localStorage.getItem('UserRole');
 
+            if (!token || Role?.trim().toLowerCase() !== 'admin') {
+                console.error('Unauthorized access or missing token. Redirecting to login.');
+                router.push('/page/control');
+            }
+        }
+    }, [router]);
     const handleDownloadFile = async (fileId: string, fileName: string) => {
         try {
             await ApiApplicationFileServices.downloadFile(fileId, fileName);

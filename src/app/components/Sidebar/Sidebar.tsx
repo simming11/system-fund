@@ -17,8 +17,9 @@ const Sidebar = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setHasToken(!!localStorage.getItem('token'));
-      setUserRole(!!localStorage.getItem('UserRole'));
+      setUserRole(!!localStorage.getItem('UserRole')); 
     }
+
 
     const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {

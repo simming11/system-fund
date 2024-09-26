@@ -1,19 +1,14 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import HeaderHome from "@/app/components/headerHome/headerHome";
 import AdminHeader from "@/app/components/headerAdmin/headerAdmin";
 import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import Swal from "sweetalert2";
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
 
 interface Scholarship {
     StartDate: Date;
@@ -32,6 +27,7 @@ interface Scholarship {
     qualifications: Qualification[];
     type: { TypeID: number; TypeName: string };
     creator: { AcademicID: string };
+    status: string
 }
 
 interface Course {
@@ -54,15 +50,7 @@ interface Qualification {
 
 export default function ManageExternalScholarshipsPage() {
     const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-
-    
-
-
-
     const router = useRouter();
-
-
-
     useEffect(() => {
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('token');
@@ -74,7 +62,6 @@ export default function ManageExternalScholarshipsPage() {
           }
         }
       }, [router]);
-
     useEffect(() => {
         const fetchScholarships = async () => {
             try {
@@ -95,46 +82,52 @@ export default function ManageExternalScholarshipsPage() {
         router.push(`/page/scholarships/Manage-external-scholarships/Edit?id=${id}`);
     };
 
-    const handleDelete = async (id: number) => {
+    const handleHide = async (id: string) => {
         Swal.fire({
-            title: 'ต้องการลบข้อมูลหรือไม่?',
-            text: "",
+            title: 'ต้องการซ่อนข้อมูลหรือไม่?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
             confirmButtonText: 'ใช่',
             cancelButtonText: 'ไม่',
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await ApiServiceScholarships.deleteScholarship(id);
-                    Swal.fire({
-                        title: "Deleted!",
-                        text: "Scholarship has been deleted.",
-                        icon: "success",
-                        timer: 2000,
-                    });
-                    // Optionally, refresh the list of scholarships after deletion
-                    setScholarships(prevScholarships => prevScholarships.filter(scholarship => scholarship.ScholarshipID !== id));
+                    await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'hidden' });
+                    Swal.fire('ซ่อนแล้ว!', '', 'success');
+                    setScholarships(prevScholarships =>
+                        prevScholarships.map(scholarship =>
+                            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'hidden' } : scholarship
+                        )
+                    );
                 } catch (error) {
-                    Swal.fire({
-                        title: "Failed!",
-                        text: "ลบข้อมูลเรียบร้อย.",
-                        icon: "error",
-                    });
-                    console.error("Failed to delete scholarship:", error);
+                    Swal.fire('ล้มเหลว!', 'ไม่สามารถซ่อนข้อมูลได้', 'error');
                 }
             }
         });
     };
 
-    const isScholarshipOpen = (startDate: Date, endDate: Date): boolean => {
-        const now = dayjs().tz('Asia/Bangkok');
-        const start = dayjs(startDate).tz('Asia/Bangkok');
-        const end = dayjs(endDate).tz('Asia/Bangkok');
-
-        return now.isAfter(start) && now.isBefore(end);
+    const handleUnhide = async (id: string) => {
+        Swal.fire({
+            title: 'ต้องการเลิกซ่อนข้อมูลหรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่',
+            cancelButtonText: 'ไม่',
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'active' });
+                    Swal.fire('เลิกซ่อนแล้ว!', '', 'success');
+                    setScholarships(prevScholarships =>
+                        prevScholarships.map(scholarship =>
+                            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'active' } : scholarship
+                        )
+                    );
+                } catch (error) {
+                    Swal.fire('ล้มเหลว!', 'ไม่สามารถเลิกซ่อนได้', 'error');
+                }
+            }
+        });
     };
 
     return (
@@ -165,32 +158,60 @@ export default function ManageExternalScholarshipsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {scholarships.map((scholarship, index) => (
-                                    <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100">
-                                        <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                        <td className="border border-gray-300 p-2">{scholarship.ScholarshipName}</td>
-                                        <td className="border border-gray-300 p-2">
-                                            {scholarship.courses.map(course => course.CourseName).join(', ')}
-                                            ชั้นปี: {scholarship.YearLevel} เกรด: {scholarship.Minimum_GPA}
-                                            <br />
-                                            คุณสมบัติ: {scholarship.qualifications.map(qualification => qualification.QualificationText).join(', ')}
-                                            <br />
-                                            เอกสารประกอบการขอทุน: {scholarship.documents.map(document => document.DocumentText).join(', ')}
-                                        </td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                            {isScholarshipOpen(scholarship.StartDate, scholarship.EndDate) ? 'เปิดรับอยู่' : 'ปิดรับแล้ว'}
-                                        </td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                            <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">
-                                                ✏️
-                                            </button>
-                                            <button onClick={() => handleDelete(scholarship.ScholarshipID)}>
-                                                🗑️
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
+  {scholarships.map((scholarship, index) => (
+    <tr
+      key={scholarship.ScholarshipID}
+      className={`hover:bg-gray-100 ${scholarship.status === 'hidden' ? 'bg-gray-200 text-gray-500 italic' : ''}`}
+    >
+      <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+      <td className="border border-gray-300 p-2">{scholarship.ScholarshipName}</td>
+      <td className="border border-gray-300 p-2">
+        ปีการศึกษา: {scholarship.Year} <br />
+        เกรด: {scholarship.Minimum_GPA} <br />
+        ชั้นปี: {scholarship.YearLevel} <br />
+        หลักสูตรที่สมัครได้: {scholarship.courses.map(course => course.CourseName).join(', ')} <br />
+        <div className="scholarship-qualifications">
+          คุณสมบัติ:{' '}
+          {scholarship.qualifications.map((qualification, index) => {
+            const text = qualification.QualificationText;
+            return (
+              <span key={index}>
+                {text.length > 50 ? (
+                  <React.Fragment>
+                    {text.substring(0, 50)}... <br /> {text.substring(50)}
+                  </React.Fragment>
+                ) : (
+                  text
+                )}
+                {index < scholarship.qualifications.length - 1 && ', '}
+              </span>
+            );
+          })}
+        </div>
+        <br />
+        เอกสารประกอบการขอทุน: {scholarship.documents.map(document => document.DocumentText).join(', ')}
+      </td>
+      <td className="border border-gray-300 p-2 text-center">
+        {scholarship.status === 'hidden' ? (
+          'ซ่อนไว้'
+        ) : new Date(scholarship.EndDate) < new Date() ? (
+          'ปิดรับ'
+        ) : (
+          'เปิดรับอยู่'
+        )}
+      </td>
+      <td className="border border-gray-300 p-2 text-center">
+        <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">✏️</button>
+        {scholarship.status === 'hidden' ? (
+          <button onClick={() => handleUnhide(scholarship.ScholarshipID.toString())} className="mr-2">👁️</button>
+        ) : (
+          <button onClick={() => handleHide(scholarship.ScholarshipID.toString())}>🚫</button>
+        )}
+      </td>
+    </tr>
+  ))}
+</tbody>
+
                         </table>
                     </div>
                 </div>
