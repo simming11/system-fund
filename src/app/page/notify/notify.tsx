@@ -144,9 +144,9 @@ export default function LineNotifyForm() {
     try {
       const confirmDelete = window.confirm('คุณต้องการลบ LineNotify ใช่หรือไม่?');
       if (!confirmDelete) return;
-
+  
       await ApiLineNotifyServices.deleteLineNotify(id);
-
+  
       setResponseMessage('ลบข้อมูลสำเร็จแล้ว!');
       localStorage.removeItem('oauth_code');
       localStorage.removeItem('oauth_state');
@@ -154,11 +154,9 @@ export default function LineNotifyForm() {
       localStorage.removeItem('oauth_redirect_uri');
       localStorage.removeItem('oauth_client_id');
       localStorage.removeItem('oauth_scope');
-
-
-
-      router.push('/page/notify');
-      fetchLineNotifies();
+  
+      // ใช้ window.location.href เพื่อรีโหลดหน้าเว็บหลังจากลบเสร็จสิ้น
+      window.location.href = '/page/notify'; 
     } catch (error) {
       console.error('Error deleting Line Notify:', error);
       setResponseMessage('ไม่สามารถลบข้อมูลได้');
