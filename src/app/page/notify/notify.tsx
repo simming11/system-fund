@@ -208,10 +208,18 @@ export default function LineNotifyForm() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    
+    // Log the name of the input and its current value
+    console.log(`${e.target.name}: ${e.target.value}`);
   };
+  
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Log the formData before submitting
+    console.log("Submitting form data:", formData);
+    
     try {
       const response = await ApiLineNotifyServices.createLineNotify(formData);
       setResponseMessage('Data sent successfully!');
@@ -220,7 +228,7 @@ export default function LineNotifyForm() {
       setResponseMessage('Failed to send data.');
     }
   };
-
+  
   if (!isMounted) {
     return null; // Prevents rendering on the server side
   }
