@@ -259,7 +259,7 @@ export default function RegisterPage() {
       <Header />
       <div className="flex flex-grow flex-col lg:flex-row items-center justify-center">
         <div className="w-full lg:w-1/2 p-4  md:w-1/2  flex justify-center">
-        <Image src="/images/TsuMove.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2"  />
+        <Image src="/images/sci.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2"  />
         </div>
         <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center mr-10">
           <div className="w-full">
