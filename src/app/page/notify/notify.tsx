@@ -85,7 +85,7 @@ export default function LineNotifyForm() {
           notify_client_id: notify_client_id || '',
         }));
   
-        // Call your server-side API route instead of making a direct request to the LINE Notify API
+        // Call your server-side API route
         const responseToken = await axios.post('/api/line-notify-token', {
           code,
           notify_client_id,
@@ -107,6 +107,7 @@ export default function LineNotifyForm() {
       console.error('Error fetching Line Notifies or token:', error);
     }
   };
+  
   
 
   const fetchLineNotifies = async () => {

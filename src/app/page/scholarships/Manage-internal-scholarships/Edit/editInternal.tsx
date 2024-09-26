@@ -14,6 +14,7 @@ export default function EditInternalScholarshipPage() {
   const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get('scholarshipId');
 
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
@@ -68,11 +69,13 @@ export default function EditInternalScholarshipPage() {
 
   useEffect(() => {
     sessionStorage.setItem('editInternalScholarshipForm', JSON.stringify(formData));
+    console.log(id);
   }, [formData]);
 
   useEffect(() => {
     const fetchScholarshipData = async () => {
       if (id) {
+        console.log("Scholarship ID from URL:", id); // Log the id value
         try {
           const response = await ApiServiceScholarships.getScholarship(Number(id));
           const data = response.data;
