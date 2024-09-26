@@ -22,8 +22,6 @@ interface Application {
 export default function SubmissionHistoryPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const status = searchParams.get('status');
 
   useEffect(() => {
     const fetchApplications = async () => {
