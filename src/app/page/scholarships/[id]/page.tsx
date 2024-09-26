@@ -170,7 +170,7 @@ export default function ScholarshipDetailPage() {
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
                   <ul className="list-disc list-inside text-gray-600">
-                    <li>เกรดเฉลี่ยขั้นต่ำ {scholarship.Minimum_GPA}</li>       
+                    <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>       
                     {scholarship.qualifications.map((qualification, index) => (
                       <li key={index}>{qualification.QualificationText}</li>
                     ))}
@@ -239,7 +239,7 @@ export default function ScholarshipDetailPage() {
 
         <div className="mt-4 flex justify-center">
   {hasApplied ? (
-    <p className="text-green-500 font-semibold text-2xl">สมัครแล้ว</p>
+    <p className="text-green-500 font-semibold text-2xl">ท่านได้สมัครทุนแล้ว</p>
   ) : (
     <button
       onClick={handleApplyNow}
