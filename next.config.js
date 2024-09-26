@@ -27,7 +27,7 @@ const nextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "*,'https://notify-bot.line.me/oauth" }, // Change "*" to your specific origin if needed
+          { key: "Access-Control-Allow-Origin", value: "*,https://notify-bot.line.me/oauth,https://notify-bot.line.me/oauth/token" }, // Change "*" to your specific origin if needed
           { key: "Access-Control-Allow-Methods", value: "GET, DELETE, PATCH, POST, PUT" },
           {
             key: "Access-Control-Allow-Headers",
