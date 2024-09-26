@@ -196,7 +196,6 @@ export default function CreateApplicationExternalPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <div className="flex-1 container mx-auto px-4 py-8">
-      <Suspense fallback={<div>Loading...</div>}>
         <div>
           {applicationFiles.map((file, index) => (
             <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
@@ -257,7 +256,7 @@ export default function CreateApplicationExternalPage() {
             เพิ่มไฟล์
           </button>
         </div>
-          </Suspense>
+
         <div className="bg-white  rounded-lg p-6">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <form onSubmit={handleSubmit}>
