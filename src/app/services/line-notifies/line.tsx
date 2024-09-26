@@ -43,8 +43,7 @@ class ApiLineNotifyServices {
         try {
             const response = await axios.post(`${API_URL}/line-notifies`, lineNotifyData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true',
+                    Authorization: `Bearer ${token}`
                 },
             });
             return response.data;
