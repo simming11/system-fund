@@ -56,7 +56,7 @@ export default function ResultsAnnouncementPage() {
                         console.log('Filtered applications with status "อนุมัติ":', filteredApplications);
                         setApplications(filteredApplications);
 
-                        if (filteredApplications.length > 0) {
+                        if (filteredApplications.length) {
                             setHasApprovedApplications(true);
                         }
 
