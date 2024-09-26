@@ -217,11 +217,20 @@ export default function LineNotifyForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    // ดึงค่า AcademicID จาก localStorage
+    const AcademicID = localStorage.getItem('AcademicID') || '';
+  
+    // อัปเดต formData ด้วยค่า AcademicID
+    const updatedFormData = {
+      ...formData,
+      AcademicID: AcademicID,
+    };
+  
     // Log the formData before submitting
-    console.log("Submitting form data:", formData);
+    console.log("Submitting form data:", updatedFormData);
     
     try {
-      const response = await ApiLineNotifyServices.createLineNotify(formData);
+      const response = await ApiLineNotifyServices.createLineNotify(updatedFormData);
       setResponseMessage('Data sent successfully!');
     } catch (error) {
       console.error('Error submitting form:', error);
