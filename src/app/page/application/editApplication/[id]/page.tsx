@@ -1315,7 +1315,7 @@ const addFileEntry = () => {
             }
 
             // Handle guardians data update
-            const guardiansPayload = [fatherData, motherData, caretakerData].filter(guardian => guardian.FirstName || guardian.LastName);
+            const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
             console.log('Guardian data being sent:', guardiansPayload);
 
             if (guardiansPayload.length > 0) {

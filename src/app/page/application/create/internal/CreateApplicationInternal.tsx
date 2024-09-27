@@ -1461,56 +1461,28 @@ export default function CreateApplicationInternalPage() {
 
       const tasks: Promise<any>[] = [];
 
+          // Function to update guardian data (caretaker, father, mother)
+          const createGuardian = (guardianData: GuardiansData) => {
+            const updatedGuardianData = {
+              ...guardianData,
+              ApplicationID: applicationID,
+              FirstName: guardianData.FirstName || '-',
+              LastName: guardianData.LastName || '-',
+              PrefixName: guardianData.PrefixName || '-',
+              Occupation: guardianData.Occupation || '-',
+              Phone: guardianData.Phone || '-',
+              Workplace: guardianData.Workplace || '-',
+              Status: guardianData.Status || '-',
+              Age: guardianData.Age || 0,  // Set Age to 0 if not provided
+            };
+            return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
+          };
 
-      // Update and submit fatherData if it's filled out, or replace empty values with "-"
-      const updatedFatherData = {
-        ...fatherData,
-        ApplicationID: applicationID,
-        FirstName: fatherData.FirstName || '-',
-        LastName: fatherData.LastName || '-',
-        PrefixName: fatherData.PrefixName || '-',
-        Occupation: fatherData.Occupation || '-',
-        Phone: fatherData.Phone || '-',
-        Workplace: fatherData.Workplace || '-',
-        Status: fatherData.Status || '-',
-        Age: fatherData.Age || 0,  // Set Age to 0 if not provided
-      };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedFatherData));
-      console.log('Father data sent:', updatedFatherData);
+          // Submit caretaker, father, and mother data
+          // tasks.push(createGuardian(caretakerData));
+          tasks.push(createGuardian(fatherData));
+          tasks.push(createGuardian(motherData));
 
-      // Update and submit motherData if it's filled out, or replace empty values with "-"
-      const updatedMotherData = {
-        ...motherData,
-        ApplicationID: applicationID,
-        FirstName: motherData.FirstName || '-',
-        LastName: motherData.LastName || '-',
-        PrefixName: motherData.PrefixName || '-',
-        Occupation: motherData.Occupation || '-',
-        Phone: motherData.Phone || '-',
-        Workplace: motherData.Workplace || '-',
-        Status: motherData.Status || '-',
-        Age: motherData.Age || 0,  // Set Age to 0 if not provided
-      };
-      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
-      console.log('Mother data sent:', updatedMotherData);
-
-
-            // // Update and submit caretakerData if it's filled out, or replace empty values with "-"
-            // const updatedCaretakerData = {
-            //   ...caretakerData,
-            //   ApplicationID: applicationID,
-            //   FirstName: caretakerData.FirstName || '-',
-            //   LastName: caretakerData.LastName || '-',
-            //   PrefixName: caretakerData.PrefixName || '-',
-            //   Occupation: caretakerData.Occupation || '-',
-            //   Phone: caretakerData.Phone || '-',
-            //   Workplace: caretakerData.Workplace || '-',
-            //   Status: caretakerData.Status || '-',
-            //   Type: caretakerData.Type || '-',
-            //   Age: caretakerData.Age || 0,  // Set Age to 0 if not provided
-            // };
-            // tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedCaretakerData));
-            // console.log('Caretaker data sent:', updatedCaretakerData);
 
       // รวม siblingsData และ siblingData เข้าไปด้วยกัน
       const updatedSiblingsData = [...siblingsData, siblingData]

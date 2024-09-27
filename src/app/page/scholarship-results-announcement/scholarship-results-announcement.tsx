@@ -130,45 +130,48 @@ export default function ApplicationDataPage() {
 
 
                         <table className="w-full table-auto border-collapse border border-gray-300">
-                            <thead>
-                                <tr className="bg-gray-200">
-                                    <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
-                                    <th className="border border-gray-300 p-2">สถานะ</th>
-                                    <th className="border border-gray-300 p-2">รายละเอียด</th>
-                                </tr>
-                            </thead>
-                            {/* Sort scholarships so that "ยังไม่ประกาศผล" is displayed first */}
-                            <tbody>
-                                {filteredScholarships
-                                    .sort((a, b) => (a.AnnouncementFile ? 1 : -1)) // Sort so that scholarships without AnnouncementFile come first
-                                    .map((scholarship) => (
-                                        <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
-                                            <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName} ปีการศึกษา {scholarship.Year}</td>
-                                            <td className="border border-gray-300 p-2 text-center">
-                                                {scholarship.AnnouncementFile ? "ประกาศผลแล้ว" : "ยังไม่ประกาศผล"}
-                                            </td>
-                                            <td className="border border-gray-300 p-2 text-center">
-                                                {!canAnnounce(scholarship.EndDate) ? (
-                                                    <span className="text-red-500">ไม่สามารถประกาศผลได้เนื่องจากยังไม่ปิดรับสมัคร</span>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (!scholarship.AnnouncementFile) {
-                                                                handleRowClick(scholarship.ScholarshipID);
-                                                            }
-                                                        }}
-                                                        className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
-                                                        disabled={!!scholarship.AnnouncementFile}
-                                                    >
-                                                        <FontAwesomeIcon icon={faEye} size="lg" />
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                            </tbody>
+  <thead>
+    <tr className="bg-gray-200">
+      <th className="border border-gray-300 p-2">ลำดับที่</th> {/* Add column for row number */}
+      <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
+      <th className="border border-gray-300 p-2">สถานะ</th>
+      <th className="border border-gray-300 p-2">รายละเอียด</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredScholarships
+      .sort((a, b) => (a.AnnouncementFile ? 1 : -1)) // Sort so that scholarships without AnnouncementFile come first
+      .map((scholarship, index) => (
+        <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
+          <td className="border border-gray-300 p-2 text-center">{index + 1}</td> {/* Add row number */}
+          <td className="border border-gray-300 p-2 text-center">
+            {scholarship.ScholarshipName} ปีการศึกษา {scholarship.Year}
+          </td>
+          <td className="border border-gray-300 p-2 text-center">
+            {scholarship.AnnouncementFile ? "ประกาศผลแล้ว" : "ยังไม่ประกาศผล"}
+          </td>
+          <td className="border border-gray-300 p-2 text-center">
+            {!canAnnounce(scholarship.EndDate) ? (
+              <span className="text-red-500">ไม่สามารถประกาศผลได้เนื่องจากยังไม่ปิดรับสมัคร</span>
+            ) : (
+              <button
+                onClick={() => {
+                  if (!scholarship.AnnouncementFile) {
+                    handleRowClick(scholarship.ScholarshipID);
+                  }
+                }}
+                className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
+                disabled={!!scholarship.AnnouncementFile}
+              >
+                <FontAwesomeIcon icon={faEye} size="lg" />
+              </button>
+            )}
+          </td>
+        </tr>
+      ))}
+  </tbody>
+</table>
 
-                        </table>
                     </div>
                 </div>
             </div>
