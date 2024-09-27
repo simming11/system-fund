@@ -151,8 +151,10 @@ export default function ScholarshipDetailPage() {
       </div>
     );
   }
+  const isApplyDisabled = scholarship
+  ? new Date() < new Date(scholarship.StartDate) || new Date() > new Date(scholarship.EndDate)
+  : true;
 
-  const isApplyDisabled = scholarship ? new Date(scholarship.StartDate) > new Date(scholarship.EndDate) : true;
 
   return (
     <div className="min-h-screen flex flex-col">
