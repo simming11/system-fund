@@ -59,6 +59,8 @@ export default function ScholarshipResultsAnnouncementPage() {
     const [file, setFile] = useState<File | null>(null);
     const AcademicID = localStorage.getItem('AcademicID') ?? ''; // ใช้ empty string ถ้า AcademicID เป็น null
     const [lineToken, setLineToken] = useState<string | null>(null); // Store LineToken in state
+    const [fileError, setFileError] = useState<string | null>(null); // To show file validation errors
+    const [formError, setFormError] = useState<string | null>(null); // General form error
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('token');
@@ -71,31 +73,31 @@ export default function ScholarshipResultsAnnouncementPage() {
         }
     }, [router]);
     const fetchLineNotifies = async () => {
-      try {
-        if (!AcademicID) {
-          throw new Error('AcademicID is missing');
+        try {
+            if (!AcademicID) {
+                throw new Error('AcademicID is missing');
+            }
+            const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
+
+            if (response.length > 0) {
+                // Extract client_secret, notify_client_id, and LineToken from the response
+                const { client_secret, notify_client_id, LineToken } = response[0];
+
+                // Store LineToken in state
+                setLineToken(response[0].LineToken);
+                console.log(response[0].LineToken);
+
+                console.log('Updated formData with client_secret and notify_client_id:', {
+                    client_secret,
+                    notify_client_id,
+                    LineToken,
+                });
+            }
+
+            console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
+        } catch (error) {
+            console.error('Error fetching line notifies:', error);
         }
-        const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID); // Call API
-    
-        if (response.length > 0) {
-          // Extract client_secret, notify_client_id, and LineToken from the response
-          const { client_secret, notify_client_id, LineToken } = response[0];
-    
-          // Store LineToken in state
-          setLineToken(response[0].LineToken);
-          console.log(response[0].LineToken);
-          
-          console.log('Updated formData with client_secret and notify_client_id:', {
-            client_secret,
-            notify_client_id,
-            LineToken,
-          });
-        }
-    
-        console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
-      } catch (error) {
-        console.error('Error fetching line notifies:', error);
-      }
     };
     useEffect(() => {
         fetchLineNotifies()
@@ -164,19 +166,24 @@ export default function ScholarshipResultsAnnouncementPage() {
     };
 
 
-// Handle file change
-const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0] || null;
-    if (selectedFile) {
-        const maxFileSize = 20 * 1024 * 1024; // กำหนดขนาดไฟล์สูงสุดเป็น 20 MB
-        if (selectedFile.size > maxFileSize) {
-            alert('ขนาดไฟล์เกิน 20 MB กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 20 MB');
-            setFile(null); // รีเซ็ตไฟล์หากขนาดเกิน
-        } else {
-            setFile(selectedFile);
+    // Handle file change
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = event.target.files?.[0] || null;
+        const maxFileSize = 20 * 1024 * 1024; // Max file size 20 MB
+
+        if (selectedFile) {
+            if (selectedFile.size > maxFileSize) {
+                setFileError('ขนาดไฟล์เกิน 20 MB กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า 20 MB');
+                setFile(null); // Clear file if invalid
+            } else if (selectedFile.type !== 'application/pdf') {
+                setFileError('กรุณาอัพโหลดเฉพาะไฟล์ PDF');
+                setFile(null); // Clear file if invalid
+            } else {
+                setFileError(null); // Clear any previous errors if the file is valid
+                setFile(selectedFile); // Set valid file
+            }
         }
-    }
-};
+    };
 
     const calculateAcademicYear = (yearEntry: number | null) => {
         if (yearEntry === null) return 'N/A';
@@ -192,45 +199,34 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
         return 'จบการศึกษาแล้ว'; // For years more than 4
     };
-    
-// Submit updates
-// Submit updates
-const handleSubmit = async () => {
-    try {
-        console.log('Starting update process for all applications.');
 
-        if (!ApplicationINEX || ApplicationINEX.length === 0) {
-            console.log('No applications to process.');
-            return;
-        }
+    // Submit updates
+    // Submit updates
+    const handleSubmit = async () => {
+         // Reset form and file errors
+         setFormError(null);
 
-        // Ensure scholarshipId is a string
-        const scholarshipId = Array.isArray(id) ? id[0] : id;
+         // Validate file upload
+         if (!file) {
+             setFileError('กรุณาอัพโหลดไฟล์เอกสาร');
+             return; // Prevent submission if no file is uploaded
+         }
+        try {
+            console.log('Starting update process for all applications.');
 
-        const tasks: Promise<any>[] = ApplicationINEX.map(async (application, index) => {
-            try {
-                const {
-                    ApplicationID,
-                    Application_EtID,
-                    Status,
-                    AdvisorName,
-                    ApplicationDate,
-                    GPAYear1,
-                    GPAYear2,
-                    GPAYear3,
-                    MonthlyExpenses,
-                    MonthlyIncome,
-                    NumberOfBrothers,
-                    NumberOfSiblings,
-                    NumberOfSisters,
-                    ScholarshipID,
-                    StudentID
-                } = application;
+            if (!ApplicationINEX || ApplicationINEX.length === 0) {
+                console.log('No applications to process.');
+                return;
+            }
 
-                console.log(`Submitting Application ${index} with Status: ${Status}`);
+            // Ensure scholarshipId is a string
+            const scholarshipId = Array.isArray(id) ? id[0] : id;
 
-                if (ApplicationID) {
-                    const internalPayload = {
+            const tasks: Promise<any>[] = ApplicationINEX.map(async (application, index) => {
+                try {
+                    const {
+                        ApplicationID,
+                        Application_EtID,
                         Status,
                         AdvisorName,
                         ApplicationDate,
@@ -243,59 +239,78 @@ const handleSubmit = async () => {
                         NumberOfSiblings,
                         NumberOfSisters,
                         ScholarshipID,
-                        StudentID,
-                    };
+                        StudentID
+                    } = application;
 
-                    console.log('Internal application payload:', JSON.stringify(internalPayload, null, 2));
+                    console.log(`Submitting Application ${index} with Status: ${Status}`);
 
-                    const response = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
+                    if (ApplicationID) {
+                        const internalPayload = {
+                            Status,
+                            AdvisorName,
+                            ApplicationDate,
+                            GPAYear1,
+                            GPAYear2,
+                            GPAYear3,
+                            MonthlyExpenses,
+                            MonthlyIncome,
+                            NumberOfBrothers,
+                            NumberOfSiblings,
+                            NumberOfSisters,
+                            ScholarshipID,
+                            StudentID,
+                        };
 
-                    if (lineToken) {
-                        const message = ` ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/results-announcement/${scholarshipId}`;
-                        await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
-                      } else {
-                        console.error("LINE Notify token is null");
-                      }
-                    console.log('Internal update response:', JSON.stringify(response, null, 2));
-                    return response;
+                        console.log('Internal application payload:', JSON.stringify(internalPayload, null, 2));
 
-                } else if (Application_EtID) {
-                    const externalPayload = {
-                        Status,
-                    };
+                        const response = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
 
-                    console.log('External application payload:', JSON.stringify(externalPayload, null, 2));
+                        if (lineToken) {
+                            const message = ` ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/results-announcement/${scholarshipId}`;
+                            await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
+                        } else {
+                            console.error("LINE Notify token is null");
+                        }
+                        console.log('Internal update response:', JSON.stringify(response, null, 2));
+                        return response;
 
-                    const response = await ApiApplicationExternalServices.updateApplication(Application_EtID, externalPayload);
+                    } else if (Application_EtID) {
+                        const externalPayload = {
+                            Status,
+                        };
 
-                    console.log('External update response:', JSON.stringify(response, null, 2));
-                    return response;
-                } else {
-                    console.warn(`No valid ID found for application: ${JSON.stringify(application, null, 2)}`);
-                    return null;
+                        console.log('External application payload:', JSON.stringify(externalPayload, null, 2));
+
+                        const response = await ApiApplicationExternalServices.updateApplication(Application_EtID, externalPayload);
+
+                        console.log('External update response:', JSON.stringify(response, null, 2));
+                        return response;
+                    } else {
+                        console.warn(`No valid ID found for application: ${JSON.stringify(application, null, 2)}`);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error(`Error processing application:`, error);
                 }
-            } catch (error) {
-                console.error(`Error processing application:`, error);
+            });
+
+            console.log('Executing updates for all applications...');
+            const results = await Promise.all(tasks.filter(task => task));
+            console.log('Results from all updates:', JSON.stringify(results, null, 2));
+
+            // Check if a file was selected and upload it
+            if (file) {
+                console.log('Uploading announcement file...');
+                const fileUploadResponse = await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
+                console.log('File uploaded successfully:', fileUploadResponse);
             }
-        });
 
-        console.log('Executing updates for all applications...');
-        const results = await Promise.all(tasks.filter(task => task));
-        console.log('Results from all updates:', JSON.stringify(results, null, 2));
-
-        // Check if a file was selected and upload it
-        if (file) {
-            console.log('Uploading announcement file...');
-            const fileUploadResponse = await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
-            console.log('File uploaded successfully:', fileUploadResponse);
+            console.log('All tasks executed successfully.');
+        } catch (error) {
+            console.error('Error in handleSubmit:', error);
         }
-
-        console.log('All tasks executed successfully.');
-    } catch (error) {
-        console.error('Error in handleSubmit:', error);
-    }
-    router.push(`/page/scholarship-results-announcement`);
-};
+        router.push(`/page/scholarship-results-announcement`);
+    };
 
 
 
@@ -317,14 +332,14 @@ const handleSubmit = async () => {
     if (!applications || applications.length === 0) {
         return (
             <div className="min-h-screen flex flex-col bg-gray-100">
-                            <HeaderHome />
-                            <AdminHeader />
-                            <div className="flex flex-row">
-                            <div className="bg-white w-1/8 p-4">
-                    <Sidebar />
+                <HeaderHome />
+                <AdminHeader />
+                <div className="flex flex-row">
+                    <div className="bg-white w-1/8 p-4">
+                        <Sidebar />
+                    </div>
+                    <p className="text-gray-600">ไม่มีข้อมูลการสมัคร</p>
                 </div>
-                <p className="text-gray-600">Scholarship not found or no students available.</p>
-                            </div>
             </div>
         );
     }
@@ -354,44 +369,46 @@ const handleSubmit = async () => {
                                 </tr>
                             </thead>
                             <tbody>
-    {applications.map((app, index) => {
-        const student = app.student;
-        const academicYear = calculateAcademicYear(student?.Year_Entry); // Use the function to calculate academic year
+                                {applications.map((app, index) => {
+                                    const student = app.student;
+                                    const academicYear = calculateAcademicYear(student?.Year_Entry); // Use the function to calculate academic year
 
-        return (
-            <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
-                <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
-                <td className="border border-gray-300 p-2 text-center">{academicYear}</td> {/* Updated */}
-                <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
-                <td className="border border-gray-300 p-2 text-center">
-                    <select
-                        value={ApplicationINEX[index].Status || "เลือก"}
-                        onChange={(e) => handleStatusChange(index, e)}
-                        className="p-2 border border-gray-300 rounded">
-                        <option value="">เลือก</option>
-                        <option value="ได้รับทุน">ได้รับทุน</option>
-                        <option value="ไม่ได้รับทุน">ไม่ได้รับทุน</option>
-                    </select>
-                </td>
-            </tr>
-        );
-    })}
-</tbody>
+                                    return (
+                                        <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
+                                            <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+                                            <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
+                                            <td className="border border-gray-300 p-2 text-center">{academicYear}</td> {/* Updated */}
+                                            <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                <select
+                                                    value={ApplicationINEX[index].Status || "เลือก"}
+                                                    onChange={(e) => handleStatusChange(index, e)}
+                                                    className="p-2 border border-gray-300 rounded">
+                                                    <option value="">เลือก</option>
+                                                    <option value="ได้รับทุน">ได้รับทุน</option>
+                                                    <option value="ไม่ได้รับทุน">ไม่ได้รับทุน</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
 
                         </table>
                     </div>
 
-                    <div className="mt-6">
-    <label htmlFor="fileUpload" className="block text-gray-700 mb-2">ไฟล์เอกสาร</label>
-    <input 
-        type="file" 
-        id="fileUpload" 
-        onChange={handleFileChange} 
-        className="border border-gray-300 p-2 rounded" 
-        accept=".pdf" // กำหนดให้รับเฉพาะไฟล์ PDF
-    />
-</div>
+                     {/* File upload input */}
+                     <div className="mt-6">
+                        <label htmlFor="fileUpload" className="block text-gray-700 mb-2">ไฟล์เอกสาร</label>
+                        <input
+                            type="file"
+                            id="fileUpload"
+                            onChange={handleFileChange}
+                            className="border border-gray-300 p-2 rounded"
+                            accept=".pdf" // Allow only PDF files
+                        />
+                        {fileError && <p className="text-red-500 text-sm mt-1">{fileError}</p>}
+                    </div>
 
 
                     <button onClick={handleSubmit} className="bg-green-500 text-white px-4 py-2 mt-4 rounded hover:bg-green-600">

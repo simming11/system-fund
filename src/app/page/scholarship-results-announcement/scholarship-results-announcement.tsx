@@ -15,11 +15,16 @@ interface ScholarshipData {
     ScholarshipName: string;
     Description: string;
     AnnouncementFile?: string | null; // Optional, as it may not exist
+    StartDate: string; // Assuming StartDate is a string in Thai Buddhist calendar format
+    EndDate: string;   // Assuming EndDate is a string in Thai Buddhist calendar format
+    Year: string;
 }
 
-
 export default function ApplicationDataPage() {
-    const [scholarships, setScholarships] = useState<ScholarshipData[]>([]);
+    const [scholarships, setScholarships] = useState<ScholarshipData[]>([]); // Define scholarship state with ScholarshipData[]
+    const [filteredScholarships, setFilteredScholarships] = useState<ScholarshipData[]>([]); // Same here for filtering
+    const [availableYears, setAvailableYears] = useState<string[]>([]); // Expect string[]
+    const [selectedYear, setSelectedYear] = useState<string>(''); // State for selected year
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -39,9 +44,14 @@ export default function ApplicationDataPage() {
         const fetchScholarships = async () => {
             try {
                 const response = await ApiServiceScholarships.getAllScholarships();
-                const scholarshipsWithTypeID1 = response.data
-                setScholarships(scholarshipsWithTypeID1);
-                console.log(scholarshipsWithTypeID1);
+                const scholarshipsWithTypeID1: ScholarshipData[] = response.data; // Explicitly define the type
+
+                setScholarships(scholarshipsWithTypeID1); // Set scholarships with correct type
+                setFilteredScholarships(scholarshipsWithTypeID1); // Initially show all scholarships
+
+                // Extract unique years from the scholarships
+                const years = [...new Set(scholarshipsWithTypeID1.map((scholarship: ScholarshipData) => scholarship.Year))];
+                setAvailableYears(years.sort().reverse()); // Sort years in descending order
 
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
@@ -56,6 +66,27 @@ export default function ApplicationDataPage() {
     const handleRowClick = (scholarshipId: string) => {
         // Navigate to the details page of the selected scholarship
         router.push(`/page/scholarship-results-announcement/${scholarshipId}`);
+    };
+
+    const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = event.target.value;
+        setSelectedYear(selected);
+
+        // If "ทั้งหมด" is selected, show all scholarships
+        if (selected === "") {
+            setFilteredScholarships(scholarships); // Show all scholarships if no year is selected
+        } else {
+            // Otherwise, filter by the selected year
+            const filtered = scholarships.filter(scholarship => scholarship.Year == selected);
+            setFilteredScholarships(filtered);
+        }
+    };
+
+    // Function to check if the current date is after the EndDate
+    const canAnnounce = (endDate: string): boolean => {
+        const currentDate = new Date();
+        const end = new Date(endDate);
+        return currentDate >= end; // true if current date is after or equal to EndDate
     };
 
     if (loading) {
@@ -75,9 +106,29 @@ export default function ApplicationDataPage() {
                 <div className="bg-white w-1/8 p-4">
                     <Sidebar />
                 </div>
-                <div className="bg-white flex-1 w-7/8">
+                <div className="bg-white flex-1 w-7/8 p-6">
                     <div className="bg-white rounded-lg p-6">
                         <h2 className="text-2xl font-semibold mb-6">ประกาศทุนการศึกษา</h2>
+
+                        {/* Dropdown for selecting year */}
+                        <div className="mb-4">
+                            <label htmlFor="year" className="block text-gray-700 mb-2">เลือกปีการศึกษา:</label>
+                            <select
+                                id="year"
+                                value={selectedYear}
+                                onChange={handleYearChange}
+                                className="border border-gray-300 p-2 rounded"
+                            >
+                                <option value="">ทั้งหมด</option> {/* Option to display all years */}
+                                {availableYears.map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
                                 <tr className="bg-gray-200">
@@ -86,32 +137,36 @@ export default function ApplicationDataPage() {
                                     <th className="border border-gray-300 p-2">รายละเอียด</th>
                                 </tr>
                             </thead>
+                            {/* Sort scholarships so that "ยังไม่ประกาศผล" is displayed first */}
                             <tbody>
-                                {scholarships.map((scholarship) => (
-                                    <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
-                                        <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName}</td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                            {scholarship.AnnouncementFile ? "ประกาศแล้ว" : "ยังไม่ประกาศ"}
-                                        </td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                            <button
-                                                onClick={() => {
-                                                    if (!scholarship.AnnouncementFile) {
-                                                        handleRowClick(scholarship.ScholarshipID);
-                                                    }
-                                                }}
-                                                className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
-                                                disabled={!!scholarship.AnnouncementFile} // Convert to boolean to avoid error
-                                            >
-                                                <FontAwesomeIcon icon={faEye} size="lg" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {filteredScholarships
+                                    .sort((a, b) => (a.AnnouncementFile ? 1 : -1)) // Sort so that scholarships without AnnouncementFile come first
+                                    .map((scholarship) => (
+                                        <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
+                                            <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName} ปีการศึกษา {scholarship.Year}</td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                {scholarship.AnnouncementFile ? "ประกาศผลแล้ว" : "ยังไม่ประกาศผล"}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                {!canAnnounce(scholarship.EndDate) ? (
+                                                    <span className="text-red-500">ไม่สามารถประกาศผลได้เนื่องจากยังไม่ปิดรับสมัคร</span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!scholarship.AnnouncementFile) {
+                                                                handleRowClick(scholarship.ScholarshipID);
+                                                            }
+                                                        }}
+                                                        className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                        disabled={!!scholarship.AnnouncementFile}
+                                                    >
+                                                        <FontAwesomeIcon icon={faEye} size="lg" />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
-
-
-
 
                         </table>
                     </div>

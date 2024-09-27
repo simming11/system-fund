@@ -14,6 +14,7 @@ interface ScholarshipData {
     ScholarshipID: string;
     ScholarshipName: string;
     Description: string;
+    Year:string
 }
 
 export default function InternalApplicationDataPage() {
@@ -88,7 +89,7 @@ export default function InternalApplicationDataPage() {
                                 {scholarships.map((scholarship, index) => (
                                     <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
                                         <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                        <td className="border border-gray-300 p-2 text-center ">{scholarship.ScholarshipName}</td>
+                                        <td className="border border-gray-300 p-2 text-center "> {scholarship.ScholarshipName} {scholarship.Year} </td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             <button
                                                 onClick={() => handleRowClick(scholarship.ScholarshipID)}
