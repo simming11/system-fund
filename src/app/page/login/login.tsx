@@ -95,7 +95,7 @@ export default function LoginPage() {
       <Header />
       <div className="flex flex-grow items-center justify-center">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-          <h2 className="text-center text-3xl font-bold mb-10 text-blue-800">เข้าสู่ระบบ</h2> 
+          <h2 className="text-center text-3xl font-bold mb-10 text-blue-800">เข้าสู่ระบบสำหรับนิสิต</h2> 
           <form className="w-full" onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
