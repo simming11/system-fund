@@ -10,7 +10,7 @@ import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createS
 import ApiLineNotifyServices from "@/app/services/line-notifies/line";
 import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; // Adjust the path accordingly
 const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
-export default function  CreateExternalScholarshipPage() {
+export default function CreateExternalScholarshipPage() {
   const router = useRouter();
   const [errors, setErrors] = useState({
     ScholarshipName: "",
@@ -257,6 +257,7 @@ export default function  CreateExternalScholarshipPage() {
     });
   };
 
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const imageFile = e.target.files[0];
@@ -310,6 +311,7 @@ export default function  CreateExternalScholarshipPage() {
       setError("กรุณากรอกข้อมูลในฟิลด์ ชั้นปี");
       return;
     }
+
 
     if (!formData.Num_scholarship || isNaN(Number(formData.Num_scholarship))) {
       setError("กรุณากรอกข้อมูลในฟิลด์ จำนวนทุน");
@@ -370,6 +372,7 @@ export default function  CreateExternalScholarshipPage() {
       },
     });
 
+
     try {
       // Fetch all scholarships and check for duplicates
       const response = await ScholarshipService.getAllScholarships();
@@ -381,7 +384,6 @@ export default function  CreateExternalScholarshipPage() {
           scholarship.Year === formData.Year
       );
 
-
       if (duplicate) {
         Swal.fire({
           title: "พบทุนการศึกษาที่ซ้ำกัน",
@@ -390,6 +392,7 @@ export default function  CreateExternalScholarshipPage() {
         });
         return;
       }
+
 
       // Prepare the form data
       const submitFormData = {
@@ -474,6 +477,7 @@ export default function  CreateExternalScholarshipPage() {
         icon: "success"
       });
 
+
       // Clear session storage and redirect
       sessionStorage.clear();
       router.push("/page/scholarships/Manage-external-scholarships");
@@ -483,20 +487,18 @@ export default function  CreateExternalScholarshipPage() {
       if (error.response && error.response.data && error.response.data.error) {
         Swal.fire({
           title: "Error",
-          text: error.response.data.error, // ข้อความที่ได้รับจาก API
+          text: error.response.data.error,
           icon: "error",
         });
-        
       } else {
         // Fallback for any other errors
         setError("Failed to create scholarship. Please try again.");
         console.error("Error creating scholarship:", error);
         Swal.fire({
           title: "Error",
-          text: error.response.data.error, // ข้อความที่ได้รับจาก API
+          text: error.response.data.error,
           icon: "error",
         });
-        
       }
     }
   };
@@ -637,6 +639,8 @@ export default function  CreateExternalScholarshipPage() {
                         {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>}
                       </div>
                     </div>
+
+
 
 
 
