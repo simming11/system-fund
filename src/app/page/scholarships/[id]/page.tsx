@@ -74,20 +74,20 @@ export default function ScholarshipDetailPage() {
   useEffect(() => {
     const checkAndClearSession = () => {
       const lastId = sessionStorage.getItem('lastScholarshipId');
-     
+
       if (lastId && lastId !== id) {
         sessionStorage.removeItem('lastScholarshipId'); // ลบข้อมูลเก่าออก
         sessionStorage.clear(); // ลบข้อมูลทั้งหมดใน sessionStorage
       }
       sessionStorage.setItem('lastScholarshipId', id || ''); // บันทึก id ใหม่
     };
-    
+
 
     const fetchScholarshipData = async () => {
       try {
         if (id) {
           checkAndClearSession(); // ตรวจสอบและลบ session ก่อน
-          
+
           const response = await ApiServiceScholarships.getScholarship(Number(id));
           setScholarship(response.data);
           const getimages = response.data.images;
@@ -152,7 +152,7 @@ export default function ScholarshipDetailPage() {
     );
   }
 
-  const isApplyDisabled = scholarship ? new Date() > new Date(scholarship.EndDate) : true;
+  const isApplyDisabled = scholarship ? new Date(scholarship.StartDate) > new Date(scholarship.EndDate) : true;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -170,8 +170,8 @@ export default function ScholarshipDetailPage() {
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
                   <ul className="list-disc list-inside text-gray-600">
-                    <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>       
-                    <li>ชั้นปี{scholarship.YearLevel} </li>     
+                    <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>
+                    <li>ชั้นปี{scholarship.YearLevel} </li>
                     {scholarship.qualifications.map((qualification, index) => (
                       <li key={index}>{qualification.QualificationText}</li>
                     ))}
@@ -239,18 +239,18 @@ export default function ScholarshipDetailPage() {
         </div>
 
         <div className="mt-4 flex justify-center">
-  {hasApplied ? (
-    <p className="text-green-500 font-semibold text-2xl">ท่านได้สมัครทุนแล้ว</p>
-  ) : (
-    <button
-      onClick={handleApplyNow}
-      className={`px-4 py-2 rounded mt-4 text-white ${isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-      disabled={isApplyDisabled}
-    >
-      {isApplyDisabled ? 'ปิดรับสมัครแล้ว' : 'สมัครตอนนี้'}
-    </button>
-  )}
-</div>
+          {hasApplied ? (
+            <p className="text-green-500 font-semibold text-2xl">ท่านได้สมัครทุนแล้ว</p>
+          ) : (
+            <button
+              onClick={handleApplyNow}
+              className={`px-4 py-2 rounded mt-4 text-white ${isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+              disabled={isApplyDisabled}
+            >
+              {isApplyDisabled ? 'ปิดรับสมัครแล้ว' : 'สมัครตอนนี้'}
+            </button>
+          )}
+        </div>
 
 
       </div>
