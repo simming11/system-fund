@@ -49,7 +49,7 @@ export default function ApplyScholarShipsPage() {
   const [isScrolled, setIsScrolled] = useState(false);
    // Pagination states for each category
 
-  const itemsPerPage = 5; // Number of scholarships per page
+  const itemsPerPage = 3; // Number of scholarships per page
    // Pagination states for each category
    const [recommendedPage, setRecommendedPage] = useState(1);
    const [openPage, setOpenPage] = useState(1);
