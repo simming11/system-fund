@@ -24,6 +24,7 @@ interface StudentData {
     scholarshipHistory?: ScholarshipHistory[];
 }
 
+
 export default function StudentDetailsPage() {
     const [loading, setLoading] = useState(true); // Loading state
     const [student, setStudent] = useState<StudentData | null>(null);

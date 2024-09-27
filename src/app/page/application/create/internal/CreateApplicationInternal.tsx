@@ -1462,28 +1462,37 @@ export default function CreateApplicationInternalPage() {
       const tasks: Promise<any>[] = [];
 
 
+      // Update and submit fatherData if it's filled out, or replace empty values with "-"
+      const updatedFatherData = {
+        ...fatherData,
+        ApplicationID: applicationID,
+        FirstName: fatherData.FirstName || '-',
+        LastName: fatherData.LastName || '-',
+        PrefixName: fatherData.PrefixName || '-',
+        Occupation: fatherData.Occupation || '-',
+        Phone: fatherData.Phone || '-',
+        Workplace: fatherData.Workplace || '-',
+        Status: fatherData.Status || '-',
+        Age: fatherData.Age || 0,  // Set Age to 0 if not provided
+      };
+      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedFatherData));
+      console.log('Father data sent:', updatedFatherData);
 
-          // Function to update guardian data (caretaker, father, mother)
-          const createGuardian = (guardianData: GuardiansData) => {
-            const updatedGuardianData = {
-              ...guardianData,
-              ApplicationID: applicationID,
-              FirstName: guardianData.FirstName || '-',
-              LastName: guardianData.LastName || '-',
-              PrefixName: guardianData.PrefixName || '-',
-              Occupation: guardianData.Occupation || '-',
-              Phone: guardianData.Phone || '-',
-              Workplace: guardianData.Workplace || '-',
-              Status: guardianData.Status || '-',
-              Age: guardianData.Age || 0,  // Set Age to 0 if not provided
-            };
-            return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
-          };
-
-          // Submit caretaker, father, and mother data
-          // tasks.push(createGuardian(caretakerData));
-          tasks.push(createGuardian(motherData));
-          tasks.push(createGuardian(fatherData));
+      // Update and submit motherData if it's filled out, or replace empty values with "-"
+      const updatedMotherData = {
+        ...motherData,
+        ApplicationID: applicationID,
+        FirstName: motherData.FirstName || '-',
+        LastName: motherData.LastName || '-',
+        PrefixName: motherData.PrefixName || '-',
+        Occupation: motherData.Occupation || '-',
+        Phone: motherData.Phone || '-',
+        Workplace: motherData.Workplace || '-',
+        Status: motherData.Status || '-',
+        Age: motherData.Age || 0,  // Set Age to 0 if not provided
+      };
+      tasks.push(ApiApplicationCreateInternalServices.createGuardian(updatedMotherData));
+      console.log('Mother data sent:', updatedMotherData);
 
 
             // // Update and submit caretakerData if it's filled out, or replace empty values with "-"
@@ -2626,258 +2635,6 @@ export default function CreateApplicationInternalPage() {
             </div>
 
 
-            {/* Caretaker Information */}
-            {/* <div className="mb-6">
-              <div className="flex justify-start items-center space-x-4">
-                <h2 className={`text-red-500 ${isCaretakerEditing ? 'text-gray-700' : ''}`}>
-                  {isCaretakerEditing
-                    ? 'กำลังกรอกข้อมูลผู้อุปการะ (ถ้าเป็นบิดามารดาไม่ต้องกรอกข้อมูล)'
-                    : '*ผู้อุปการะ/ผู้เลี้ยงดู (ถ้าเป็นบิดาและมารดาไม่ต้องกรอกข้อมูล)'}
-                </h2>
-
-                <button
-                  type="button"
-                  onClick={handleToggleCaretakerForm}
-                  className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
-                >
-                  {isCaretakerEditing ? 'คลิกเพื่อปิดการกรอกข้อมูล' : 'คลิกเพื่อกรอกข้อมูล'}
-                </button>
-
-              </div>
-
-              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                <div>
-                  <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
-                    คำนำหน้า
-                  </label>
-                  <select
-                    id="CaretakerPrefixName"
-                    name="PrefixName"
-                    value={caretakerData.PrefixName}
-                    onChange={handleChangeCaretaker}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  >
-                    <option value="">คำนำหน้า</option>
-                    <option value="นาย">นาย</option>
-                    <option value="นาง">นาง</option>
-                    <option value="นางสาว">นางสาว</option>
-                  </select>
-                  {caretakerErrors.PrefixName && <p className="text-red-500">{caretakerErrors.PrefixName}</p>}
-
-                </div>
-
-                <div className="">
-                  <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
-                    ชื่อ
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerFirstName"
-                    name="FirstName"
-                    value={caretakerData.FirstName}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
-                      setCaretakerData((prevState) => ({
-                        ...prevState,
-                        FirstName: onlyLetters,
-                      }));
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.FirstName && <p className="text-red-500">{caretakerErrors.FirstName}</p>}
-
-                </div>
-
-                <div className="">
-                  <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
-                    นามสกุล
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerLastName"
-                    name="LastName"
-                    value={caretakerData.LastName}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
-                      setCaretakerData((prevState) => ({
-                        ...prevState,
-                        LastName: onlyLetters,
-                      }));
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.LastName && <p className="text-red-500">{caretakerErrors.LastName}</p>}
-
-                </div>
-
-
-                <div className="">
-                  <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">อายุ</label>
-                  <input
-                    type="number"
-                    id="CaretakerAge"
-                    name="Age"
-                    value={caretakerData.Age} // ใช้ caretakerData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของผู้อุปการะ
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      if ((value >= 1 && value <= 150) || e.target.value === "") {
-                        handleChangeCaretaker(e); // อัปเดตเฉพาะค่าที่อยู่ในช่วง 1-150 หรือถ้าค่าว่าง
-                      }
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    min="1"
-                    max="150"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.Age && <p className="text-red-500">{caretakerErrors.Age}</p>}
-                </div>
-
-                <div className="">
-                  <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
-                    สถานภาพ
-                  </label>
-                  <div className="flex items-center">
-                    <input
-                      type="radio"
-                      id="CaretakerStatusAlive"
-                      name="Status"
-                      value="ยังมีชีวิตอยู่"
-                      checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
-                      onChange={handleChangeCaretaker}
-                      className="mr-2"
-                      disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                    />{' '}
-                    ยังมีชีวิตอยู่
-                    <input
-                      type="radio"
-                      id="CaretakerStatusDeceased"
-                      name="Status"
-                      value="เสียชีวิตแล้ว"
-                      checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
-                      onChange={handleChangeCaretaker}
-                      className="ml-4 mr-2"
-                      disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                    />{' '}
-                    เสียชีวิตแล้ว
-                  </div>
-                  {caretakerErrors.Status && <p className="text-red-500">{caretakerErrors.Status}</p>}
-
-                </div>
-
-                <div className="">
-                  <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
-                    เบอร์โทร
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerPhone"
-                    name="Phone"
-                    value={caretakerData.Phone}
-                    onChange={(e) => {
-                      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
-                      if (onlyNumbers.length <= 15) { // จำกัดไม่เกิน 10 ตัว
-                        setCaretakerData((prevState) => ({
-                          ...prevState,
-                          Phone: onlyNumbers,
-                        }));
-                      } else {
-                        setCaretakerData((prevState) => ({
-                          ...prevState,
-                          Phone: onlyNumbers.slice(0, 10), // ตัดตัวเลขเกิน 10 ตัว
-                        }));
-                      }
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.Phone && <p className="text-red-500">{caretakerErrors.Phone}</p>}
-                </div>
-
-                <div className="">
-                  <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
-                    อาชีพ
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerOccupation"
-                    name="Occupation"
-                    value={caretakerData.Occupation}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
-                      setCaretakerData((prevState) => ({
-                        ...prevState,
-                        Occupation: onlyLetters,
-                      }));
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.Occupation && <p className="text-red-500">{caretakerErrors.Occupation}</p>}
-
-                </div>
-
-
-                <div className="">
-                  <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
-                    รายได้ต่อเดือน
-                  </label>
-                  <input
-                    type="number"
-                    id="CaretakerIncome"
-                    name="Income"
-                    value={caretakerData.Income}
-                    onChange={handleChangeCaretaker}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.Income && <p className="text-red-500">{caretakerErrors.Income}</p>}
-
-                </div>
-                <div className="">
-                  <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
-                    สถานที่ทำงาน
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerWorkplace"
-                    name="Workplace"
-                    value={caretakerData.Workplace}
-                    onChange={handleChangeCaretaker}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.Workplace && <p className="text-red-500">{caretakerErrors.Workplace}</p>}
-
-                </div>
-                <div className="">
-                  <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
-                    เกี่ยวข้องเป็น
-                  </label>
-                  <input
-                    type="text"
-                    id="CaretakerType"
-                    name="CaretakerType"
-                    value={caretakerData.CaretakerType}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
-                      setCaretakerData((prevState) => ({
-                        ...prevState,
-                        CaretakerType: onlyLetters, // Directly update CaretakerType
-                      }));
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded"
-                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
-                  />
-                  {caretakerErrors.CaretakerType && <p className="text-red-500">{caretakerErrors.CaretakerType}</p>}
-
-                </div>
-
-
-              </div>
-            </div> */}
 
             {/* Sibling Information */}
             <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">

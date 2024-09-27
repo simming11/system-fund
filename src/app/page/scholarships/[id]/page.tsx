@@ -171,6 +171,7 @@ export default function ScholarshipDetailPage() {
                   <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
                   <ul className="list-disc list-inside text-gray-600">
                     <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>       
+                    <li>ชั้นปี{scholarship.YearLevel} </li>     
                     {scholarship.qualifications.map((qualification, index) => (
                       <li key={index}>{qualification.QualificationText}</li>
                     ))}
