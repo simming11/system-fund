@@ -249,10 +249,6 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
       return "เปิดรับอยู่";  // Close if it's the last day (same as end date)
     }
 
-    // If today's date is within the start and end range, excluding the end date
-    if (now >= start && now < end) {
-      return "เปิดรับอยู่";  // Open if it's before the end date
-    }
 
     return "ปิดรับแล้ว";  // If it's past the end date or outside the range, show closed
   }
