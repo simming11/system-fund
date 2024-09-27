@@ -91,7 +91,7 @@ export default function ApplyScholarShipsPage() {
         const closedScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return now > start || now > end;
+          return  now > end;
         });
 
         setScholarships(updatedScholarships);
@@ -378,7 +378,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
        {/* Closed Scholarships */}
        {closedScholarships.length > 0 && (
             <div>
-              <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่รับแล้ว</h2>
+              <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่ปิดรับแล้ว</h2>
               <div className="flex flex-wrap justify-start">
                 {paginate(closedScholarships, closedPage).map((scholarship) => (
                   <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
