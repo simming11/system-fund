@@ -68,7 +68,7 @@ export default function LoginPage() {
         title: "เข้าสู่ระบบสำเร็จ",
         showConfirmButton: false,
       });
-
+      sessionStorage.clear(); // Clears all session storage
       router.push('./scholarships/ApplyScholarship');
     } catch (error) {
       if (axios.isAxiosError(error)) {

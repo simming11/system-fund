@@ -338,8 +338,10 @@ export default function CreateApplicationInternalPage() {
 
       if (!token || Role?.trim().toLowerCase() !== 'student') {
         console.error('Unauthorized access or missing token. Redirecting to login.');
-        sessionStorage.clear();
         router.push('/page/login');
+       
+       
+        
       }
     }
   }, [router]);
