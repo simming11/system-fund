@@ -9,7 +9,7 @@ import HeaderHome from '@/app/components/headerHome/headerHome';
 import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 import ApiScholarshipsAllImage from '@/app/services/scholarships/ApiScholarshipsImage';
 import ApiStudentServices from '@/app/services/students/ApiStudent';
-import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices'; 
+import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
 import styles from './ApplyScholarships.module.css'; // Import styles
 
@@ -76,7 +76,7 @@ export default function ApplyScholarShipsPage() {
         const openScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return now >= start && now <= end;
+          return now > start && now < end;
         });
 
         const closedScholarships = updatedScholarships.filter(scholarship => {
@@ -215,26 +215,6 @@ export default function ApplyScholarShipsPage() {
             </div>
           )}
 
-          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
-          <div className="flex flex-wrap justify-start">
-            {allScholarships.map((scholarship) => (
-              <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
-                <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                  <p className="text-gray-600">{scholarship.Description}</p>
-                  <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
-
-                  {hasApplied(scholarship.ScholarshipID) ? (
-                    <p className="text-green-500 font-semibold">สมัครแล้ว</p>
-                  ) : (
-                    ""
-                  )}
-                </a>
-              </Link>
-            ))}
-          </div>
 
           <main className="flex-1">
             {openScholarships.length > 0 && (
@@ -282,6 +262,27 @@ export default function ApplyScholarShipsPage() {
                 </div>
               </div>
             )}
+            <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
+            <div className="flex flex-wrap justify-start">
+              {allScholarships.map((scholarship) => (
+                <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+                  <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                    <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
+                    <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+                    <p className="text-gray-600">{scholarship.Description}</p>
+                    <p className="text-gray-500 text-sm">โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
+                    <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
+
+                    {hasApplied(scholarship.ScholarshipID) ? (
+                      <p className="text-green-500 font-semibold">สมัครแล้ว</p>
+                    ) : (
+                      ""
+                    )}
+                  </a>
+                </Link>
+              ))}
+            </div>
+
           </main>
         </main>
       </div>
