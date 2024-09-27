@@ -215,7 +215,7 @@ export default function CreateExternalScholarshipPage() {
       }
 
       // Check if file size is less than 20MB
-      const fileSizeInMB = file.size / 1024 / 1024;
+      const fileSizeInMB = file.size / 10240 / 10240;
       if (fileSizeInMB > 20) {
         const newErrors = [...fileErrors];
         newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
