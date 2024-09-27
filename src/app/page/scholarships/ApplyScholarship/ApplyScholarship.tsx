@@ -240,10 +240,6 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
     const start = new Date(startDate);
     const end = new Date(endDate);
     
-    if (start < end) {
-      return "เปิดรับอยู่";  // Handle case where start date is greater than end date
-    }
-  
     // If today's date is the same as `endDate`, return "ปิดรับแล้ว"
     if (now.toDateString() === end.toDateString()) {
       return "เปิดรับอยู่";  // Close if it's the last day (same as end date)
