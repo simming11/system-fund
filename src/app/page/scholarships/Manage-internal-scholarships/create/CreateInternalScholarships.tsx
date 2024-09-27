@@ -215,14 +215,13 @@ export default function CreateInternalScholarshipPage() {
       }
 
       // Check if file size is less than 20MB
-      const fileSizeInMB = file.size / 1024 ;
-      if (fileSizeInMB > 1) {
+      const fileSizeInMB = file.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
         const newErrors = [...fileErrors];
         newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
         setFileErrors(newErrors);
         return;
       }
-
 
       // If no error, clear any existing errors for this index
       const newErrors = [...fileErrors];
@@ -263,14 +262,13 @@ export default function CreateInternalScholarshipPage() {
     if (e.target.files && e.target.files.length > 0) {
       const imageFile = e.target.files[0];
 
-// Check file size (limit to 1KB)
-const fileSizeInKB = imageFile.size / 1024;
-if (fileSizeInKB > 1) {
-  setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 1KB"); // Set error message
-  e.target.value = ""; // Clear the input value
-  return;
-}
-
+      // Check file size (limit to 20MB)
+      const fileSizeInMB = imageFile.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 20MB"); // Set error message
+        e.target.value = ""; // Clear the input value
+        return;
+      }
 
       // Check file type (image)
       const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
