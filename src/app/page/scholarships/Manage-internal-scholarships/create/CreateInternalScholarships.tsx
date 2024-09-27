@@ -215,13 +215,14 @@ export default function CreateInternalScholarshipPage() {
       }
 
       // Check if file size is less than 20MB
-      const fileSizeInMB = file.size / 1024 / 1024;
-      if (fileSizeInMB > 20) {
+      const fileSizeInMB = file.size / 1024 ;
+      if (fileSizeInMB > 1) {
         const newErrors = [...fileErrors];
         newErrors[index] = 'ขนาดไฟล์ไม่ควรเกิน 20MB';
         setFileErrors(newErrors);
         return;
       }
+
 
       // If no error, clear any existing errors for this index
       const newErrors = [...fileErrors];
