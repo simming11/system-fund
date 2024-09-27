@@ -361,8 +361,6 @@ export default function CreateInternalScholarshipPage() {
       return;
     }
 
-    // Log the formData before submission
-    console.log("FormData before submission:", formData);
     // Show loading spinner only after all validations have passed
     Swal.fire({
       title: "",
@@ -375,134 +373,134 @@ export default function CreateInternalScholarshipPage() {
     });
 
 
-    // try {
-    //   // Fetch all scholarships and check for duplicates
-    //   const response = await ScholarshipService.getAllScholarships();
-    //   const scholarships = response.data;
+    try {
+      // Fetch all scholarships and check for duplicates
+      const response = await ScholarshipService.getAllScholarships();
+      const scholarships = response.data;
 
-    //   const duplicate = scholarships.find(
-    //     (scholarship: any) =>
-    //       scholarship.ScholarshipName.trim().toLowerCase() === formData.ScholarshipName.trim().toLowerCase() &&
-    //       scholarship.Year === formData.Year
-    //   );
+      const duplicate = scholarships.find(
+        (scholarship: any) =>
+          scholarship.ScholarshipName.trim().toLowerCase() === formData.ScholarshipName.trim().toLowerCase() &&
+          scholarship.Year === formData.Year
+      );
 
-    //   if (duplicate) {
-    //     Swal.fire({
-    //       title: "พบทุนการศึกษาที่ซ้ำกัน",
-    //       text: "พบทุนการศึกษาที่ซ้ำกัน ทุนการศึกษาชื่อนี้มีอยู่แล้วในปีเดียวกัน",
-    //       icon: "error"
-    //     });
-    //     return;
-    //   }
-
-
-    //   // Prepare the form data
-    //   const submitFormData = {
-    //     ...formData,
-    //     information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
-    //     Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
-    //   };
-
-    //   const payload = new FormData();
-    //   for (const [key, value] of Object.entries(submitFormData)) {
-    //     if (Array.isArray(value)) {
-    //       value.forEach((item: string) => {
-    //         payload.append(`${key}[]`, item);
-    //       });
-    //     } else if (value instanceof Blob) {
-    //       payload.append(key, value);
-    //     } else {
-    //       payload.append(key, value as string);
-    //     }
-    //   }
-
-    //   // Create Scholarship
-    //   const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-
-    //   // Send notification if lineToken exists
-    //   if (lineToken) {
-    //     const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
-    //     await ApiLineNotifyServices.sendLineNotify(message, lineToken);
-    //   } else {
-    //     console.error("LINE Notify token is null");
-    //   }
-
-    //   // Create Courses
-    //   if (formData.Major.length > 0) {
-    //     await ApiAllcreateServiceScholarships.createCourses({
-    //       ScholarshipID: scholarshipID,
-    //       CourseName: formData.Major,
-    //     });
-    //   }
-
-    //   // Create Documents
-    //   if (submitFormData.information.length > 0 || formData.otherDocument) {
-    //     await ApiAllcreateServiceScholarships.createDocuments({
-    //       ScholarshipID: scholarshipID,
-    //       documents: submitFormData.information,
-    //       otherDocument: formData.otherDocument
-    //     });
-    //   }
-
-    //   // Create Qualifications
-    //   if (submitFormData.Description.length > 0) {
-    //     await ApiAllcreateServiceScholarships.createQualifications({
-    //       ScholarshipID: scholarshipID,
-    //       qualifications: submitFormData.Description,
-    //       otherQualificationText: submitFormData.otherQualificationText
-    //     });
-    //   }
-
-    //   // Upload the image file
-    //   if (formData.Image) {
-    //     await ApiAllcreateServiceScholarships.createImage({
-    //       ScholarshipID: scholarshipID,
-    //       ImagePath: formData.Image,
-    //     });
-    //   }
-
-    //   // Upload other files
-    //   for (const file of formData.Files) {
-    //     if (file) {
-    //       await ApiAllcreateServiceScholarships.createFile({
-    //         ScholarshipID: scholarshipID,
-    //         FileType: "ไฟล์",
-    //         FilePath: file,
-    //       });
-    //     }
-    //   }
-
-    //   // Success message
-    //   Swal.fire({
-    //     title: "",
-    //     text: "สร้างทุนการศึกษาเรียบร้อยแล้ว!",
-    //     icon: "success"
-    //   });
+      if (duplicate) {
+        Swal.fire({
+          title: "พบทุนการศึกษาที่ซ้ำกัน",
+          text: "พบทุนการศึกษาที่ซ้ำกัน ทุนการศึกษาชื่อนี้มีอยู่แล้วในปีเดียวกัน",
+          icon: "error"
+        });
+        return;
+      }
 
 
-    //   // Clear session storage and redirect
-    //   sessionStorage.clear();
-    //   router.push("/page/scholarships/Manage-internal-scholarships");
+      // Prepare the form data
+      const submitFormData = {
+        ...formData,
+        information: formData.information.filter((item: string) => item !== "อื่น ๆ"),
+        Description: formData.Description.filter((item: string) => item !== "อื่น ๆ"),
+      };
 
-    // } catch (error: any) {
-    //   // If there is a response with an error message, display it
-    //   if (error.response && error.response.data && error.response.data.error) {
-    //     Swal.fire({
-    //       title: "Error",
-    //       text: error.response.data.error,
-    //       icon: "error",
-    //     });
-    //   } else {
-    //     // Fallback for any other errors
-    //     setError("Failed to create scholarship. Please try again.");
-    //     console.error("Error creating scholarship:", error);
-    //     Swal.fire({
-    //       title: "Error",
-    //       text: error.response.data.error,
-    //       icon: "error",
-    //     });
-    //   }
-    // }
+      const payload = new FormData();
+      for (const [key, value] of Object.entries(submitFormData)) {
+        if (Array.isArray(value)) {
+          value.forEach((item: string) => {
+            payload.append(`${key}[]`, item);
+          });
+        } else if (value instanceof Blob) {
+          payload.append(key, value);
+        } else {
+          payload.append(key, value as string);
+        }
+      }
+
+      // Create Scholarship
+      const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
+
+      // Send notification if lineToken exists
+      if (lineToken) {
+        const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
+        await ApiLineNotifyServices.sendLineNotify(message, lineToken);
+      } else {
+        console.error("LINE Notify token is null");
+      }
+
+      // Create Courses
+      if (formData.Major.length > 0) {
+        await ApiAllcreateServiceScholarships.createCourses({
+          ScholarshipID: scholarshipID,
+          CourseName: formData.Major,
+        });
+      }
+
+      // Create Documents
+      if (submitFormData.information.length > 0 || formData.otherDocument) {
+        await ApiAllcreateServiceScholarships.createDocuments({
+          ScholarshipID: scholarshipID,
+          documents: submitFormData.information,
+          otherDocument: formData.otherDocument
+        });
+      }
+
+      // Create Qualifications
+      if (submitFormData.Description.length > 0) {
+        await ApiAllcreateServiceScholarships.createQualifications({
+          ScholarshipID: scholarshipID,
+          qualifications: submitFormData.Description,
+          otherQualificationText: submitFormData.otherQualificationText
+        });
+      }
+
+      // Upload the image file
+      if (formData.Image) {
+        await ApiAllcreateServiceScholarships.createImage({
+          ScholarshipID: scholarshipID,
+          ImagePath: formData.Image,
+        });
+      }
+
+      // Upload other files
+      for (const file of formData.Files) {
+        if (file) {
+          await ApiAllcreateServiceScholarships.createFile({
+            ScholarshipID: scholarshipID,
+            FileType: "ไฟล์",
+            FilePath: file,
+          });
+        }
+      }
+
+      // Success message
+      Swal.fire({
+        title: "",
+        text: "สร้างทุนการศึกษาเรียบร้อยแล้ว!",
+        icon: "success"
+      });
+
+
+      // Clear session storage and redirect
+      sessionStorage.clear();
+      router.push("/page/scholarships/Manage-internal-scholarships");
+
+    } catch (error: any) {
+      // If there is a response with an error message, display it
+      if (error.response && error.response.data && error.response.data.error) {
+        Swal.fire({
+          title: "Error",
+          text: error.response.data.error,
+          icon: "error",
+        });
+      } else {
+        // Fallback for any other errors
+        setError("Failed to create scholarship. Please try again.");
+        console.error("Error creating scholarship:", error);
+        Swal.fire({
+          title: "Error",
+          text: error.response.data.error,
+          icon: "error",
+        });
+      }
+    }
   };
 
 

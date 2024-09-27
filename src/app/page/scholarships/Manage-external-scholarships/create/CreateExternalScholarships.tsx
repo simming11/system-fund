@@ -10,7 +10,7 @@ import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createS
 import ApiLineNotifyServices from "@/app/services/line-notifies/line";
 import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; // Adjust the path accordingly
 const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
-export default function CreateExternalScholarshipPage() {
+export default function  CreateExternalScholarshipPage() {
   const router = useRouter();
   const [errors, setErrors] = useState({
     ScholarshipName: "",
@@ -19,49 +19,34 @@ export default function CreateExternalScholarshipPage() {
     Num_scholarship: "",
     // Add other fields as needed
   });
+
   const [formData, setFormData] = useState(() => {
-    // Check if we are in the browser before accessing sessionStorage
-    if (typeof window !== 'undefined') {
-      const savedFormData = sessionStorage.getItem('createExternalScholarshipForm');
-      return savedFormData
-        ? JSON.parse(savedFormData)
-        : {
-            ScholarshipName: "",
-            Year: "",
-            Num_scholarship: "",
-            Minimum_GPA: "",
-            TypeID: "2",
-            YearLevel: "",
-            StartDate: "",
-            EndDate: "",
-            otherQualificationText: "",  
-            otherDocument: "",         
-            CreatedBy: localStorage.getItem('AcademicID') ? localStorage.getItem('AcademicID') : '',
-            Major: [] as string[],  
-            Description: [] as string[],  
-            information: [] as string[],  
-            Files: [] as File[],  
-            Image: [] as File[],  
-          };
-    }
-    return {
-      ScholarshipName: "",
-      Year: "",
-      Num_scholarship: "",
-      Minimum_GPA: "",
-      TypeID: "2",
-      YearLevel: "",
-      StartDate: "",
-      EndDate: "",
-      otherQualificationText: "",  
-      otherDocument: "",         
-      CreatedBy: '',
-      Major: [] as string[],  
-      Description: [] as string[],  
-      information: [] as string[],  
-      Files: [] as File[],  
-      Image: [] as File[],  
-    };
+    const savedFormData = sessionStorage.getItem('CreateExternalScholarshipForm');
+    return savedFormData
+      ? JSON.parse(savedFormData)
+      : {
+        ScholarshipName: "",
+        Year: "",
+        Num_scholarship: "",
+        Minimum_GPA: "",
+        TypeID: "2",
+        YearLevel: "",
+        StartDate: "",
+        EndDate: "",
+        otherQualificationText: "",  // Initialize as an empty string
+        otherDocument: "",           // Initialize as an empty string
+        CreatedBy: localStorage.getItem('AcademicID') || '',
+        Major: [] as string[],  // Initialize as an empty array
+        Description: [] as string[],  // Initialize as an empty array
+        information: [] as string[],  // Initialize as an empty array
+        Files: [] as File[],  // Initialize as an empty array
+        Image: [] as File[],  // Initialize Image as null
+      };
+  });
+  const [LineData, setLineData] = useState({
+    notify_client_id: '',
+    client_secret: '',
+    AcademicID: '', // AcademicID กำหนดเป็น string ที่ว่างเปล่าเริ่มต้น
   });
   const [fileInputs, setFileInputs] = useState([0]);
   const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
@@ -70,63 +55,65 @@ export default function CreateExternalScholarshipPage() {
   const [error, setError] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
   const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
-  const [ academicID, setAcademicID ] = useState('');
-
+  const [lineToken, setLineToken] = useState<string | null>(null);
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
     files: true,
   });
-
+  const AcademicID = typeof window !== "undefined" ? localStorage.getItem('AcademicID') ?? '' : '';
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token') ? localStorage.getItem('token') : '';
-      const Role = localStorage.getItem('UserRole') ? localStorage.getItem('UserRole') : '';
-      const AcademicID = localStorage.getItem('AcademicID') ? localStorage.getItem('AcademicID') : '';
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
 
       if (!token || Role?.trim().toLowerCase() !== 'admin') {
         console.error('Unauthorized access or missing token. Redirecting to login.');
         router.push('/page/control');
       }
-
-      if(AcademicID) {
-        setAcademicID(AcademicID);
-        setFormData((prev: any) => ({
-          ...prev,
-          CreatedBy: AcademicID
-        }))
-      }
     }
   }, [router]);
-  
-  const [lineToken, setLineToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedFormData = sessionStorage.getItem('CreateExternalScholarshipForm');
+      if (savedFormData) {
+        setFormData(JSON.parse(savedFormData));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('CreateExternalScholarshipForm', JSON.stringify(formData));
+    }
+  }, [formData]);
+
   const fetchLineNotifies = async () => {
     try {
-      if (!academicID) {
+      if (!AcademicID) {
         throw new Error('AcademicID is missing');
       }
-      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(academicID);
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID);
 
       if (response.length > 0) {
-        // Extract client_secret, notify_client_id, and LineToken from the response
         const { client_secret, notify_client_id, LineToken } = response[0];
-
-        // Store LineToken in state
-        setLineToken(response[0].LineToken);
-        console.log(response[0].LineToken);
-
+        setLineToken(LineToken);
         console.log('Updated formData with client_secret and notify_client_id:', {
           client_secret,
           notify_client_id,
           LineToken,
         });
       }
-
-
     } catch (error) {
       console.error('Error fetching line notifies:', error);
     }
   };
+
+  useEffect(() => {
+    fetchLineNotifies();
+    fetchScholarship();
+  }, []);
 
   const fetchScholarship = async () => {
     try {
@@ -136,14 +123,6 @@ export default function CreateExternalScholarshipPage() {
       console.error("Error fetching applications:", error);
     }
   };
-
-  useEffect(() => {
-    fetchLineNotifies()
-    fetchScholarship();
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('createExternalScholarshipForm', JSON.stringify(formData));
-    }
-  }, [formData]);
   const handleArrayChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     arrayName: string,
