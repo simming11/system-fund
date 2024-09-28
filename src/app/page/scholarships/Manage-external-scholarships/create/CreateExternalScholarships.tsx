@@ -419,7 +419,7 @@ export default function CreateExternalScholarshipPage() {
 
       // Send notification if lineToken exists
       if (lineToken) {
-        const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
+        const message = `ทุนการศึกษาใหม่ ${formData.ScholarshipName} \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
         await ApiLineNotifyServices.sendLineNotify(message, lineToken);
       } else {
         console.error("LINE Notify token is null");
