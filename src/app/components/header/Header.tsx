@@ -128,7 +128,7 @@ const Header = () => {
   return (
     <header className="bg-white  p-4 flex justify-between items-center  fixed relative">
     <div className="flex items-center">
-      <img src="/images/TsuMove.png" alt="Logo" className="h-10 mr-4" />
+      <img src="/images/sci.png" alt="Logo" className="h-10 mr-4" />
       <nav className="hidden md:flex space-x-4">
         <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
         <button

@@ -340,6 +340,7 @@ export default function RegisterPage() {
                   <option value="วิทยาการคอมพิวเตอร์และสารสนเทศ">วิทยาการคอมพิวเตอร์และสารสนเทศ</option>
                   <option value="ชีววิทยาศาสตร์">ชีววิทยาศาสตร์</option>
                   <option value="ฟิสิกส์">ฟิสิกส์</option>
+                  <option value="วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ">วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ</option>
 
                 </select>
                 {errors.Course && <p className="text-red-500 text-sm">{errors.Course}</p>}
