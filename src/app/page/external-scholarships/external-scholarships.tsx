@@ -31,6 +31,7 @@ interface Scholarship {
   Description: string;
   ImagePath: string;
   TypeID: number; // Assuming this field exists in the API response
+  Year:string
 }
 
 export default function ExternalScholarShipsPage() {
@@ -144,12 +145,11 @@ export default function ExternalScholarShipsPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (now > start && now < end) {
-        return "เปิดรับอยู่";
+        return "เปิดรับอยู่"; // Open status
       }
     }
-    return "ปิดรับแล้ว";
+    return "ปิดรับแล้ว"; // Closed status
   };
-
 
   // Check if a scholarship has been applied
   const hasApplied = (scholarshipID: number): boolean => {
@@ -173,22 +173,35 @@ export default function ExternalScholarShipsPage() {
         <main className="flex-1">
           <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาภายนอก</h2>
           <div className="flex flex-wrap justify-start mb-60">
-            {scholarships.map((scholarship) => (
-              <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
-                <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-                  <img src={scholarship.ImagePath} alt={scholarship.ScholarshipName} className="w-full h-80 object-cover rounded-lg" />
-                  <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-                  <p className="text-gray-600">{scholarship.Description}</p>
-                  <p className="text-gray-500 text-sm">Posted on: {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-gray-500 text-sm">{getStatus(scholarship.StartDate, scholarship.EndDate)}</p>
-                  {hasApplied(scholarship.ScholarshipID) ? (
-                    <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
-                  ) : (
-                    ""
-                  )}
-                </a>
-              </Link>
-            ))}
+          {scholarships.map((scholarship) => {
+  const status = getStatus(scholarship.StartDate, scholarship.EndDate);
+  const statusColor = status === "ปิดรับแล้ว" ? "text-red-500" : "text-green-500"; // Set color based on status
+
+  return (
+    <Link key={scholarship.ScholarshipID} href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`} legacyBehavior>
+      <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+        <img
+          src={scholarship.ImagePath}
+          alt={scholarship.ScholarshipName}
+          className="w-full h-80 object-cover rounded-lg"
+        />
+        <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
+        <p className="text-sm text-gray-600 mt-1">ปีการศึกษา {scholarship.Year}</p>
+              <p className="text-gray-600">{scholarship.Description}</p>
+              <p className="text-gray-500 text-sm">
+                โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
+              </p>
+        {/* Show status with color */}
+        <p className={`text-sm ${statusColor}`}>{status}</p>
+        {hasApplied(scholarship.ScholarshipID) ? (
+          <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
+        ) : (
+          ""
+        )}
+      </a>
+    </Link>
+  );
+})}
           </div>
         </main>
       </div>

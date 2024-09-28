@@ -339,9 +339,9 @@ export default function CreateApplicationInternalPage() {
       if (!token || Role?.trim().toLowerCase() !== 'student') {
         console.error('Unauthorized access or missing token. Redirecting to login.');
         router.push('/page/login');
-       
-       
-        
+
+
+
       }
     }
   }, [router]);
@@ -1461,27 +1461,27 @@ export default function CreateApplicationInternalPage() {
 
       const tasks: Promise<any>[] = [];
 
-          // Function to update guardian data (caretaker, father, mother)
-          const createGuardian = (guardianData: GuardiansData) => {
-            const updatedGuardianData = {
-              ...guardianData,
-              ApplicationID: applicationID,
-              FirstName: guardianData.FirstName || '-',
-              LastName: guardianData.LastName || '-',
-              PrefixName: guardianData.PrefixName || '-',
-              Occupation: guardianData.Occupation || '-',
-              Phone: guardianData.Phone || '-',
-              Workplace: guardianData.Workplace || '-',
-              Status: guardianData.Status || '-',
-              Age: guardianData.Age || 0,  // Set Age to 0 if not provided
-            };
-            return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
-          };
+      // Function to update guardian data (caretaker, father, mother)
+      const createGuardian = (guardianData: GuardiansData) => {
+        const updatedGuardianData = {
+          ...guardianData,
+          ApplicationID: applicationID,
+          FirstName: guardianData.FirstName || '-',
+          LastName: guardianData.LastName || '-',
+          PrefixName: guardianData.PrefixName || '-',
+          Occupation: guardianData.Occupation || '-',
+          Phone: guardianData.Phone || '-',
+          Workplace: guardianData.Workplace || '-',
+          Status: guardianData.Status || '-',
+          Age: guardianData.Age || 0,  // Set Age to 0 if not provided
+        };
+        return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
+      };
 
-          // Submit caretaker, father, and mother data
-          // tasks.push(createGuardian(caretakerData));
-          tasks.push(createGuardian(fatherData));
-          tasks.push(createGuardian(motherData));
+      // Submit caretaker, father, and mother data
+      // tasks.push(createGuardian(caretakerData));
+      tasks.push(createGuardian(fatherData));
+      tasks.push(createGuardian(motherData));
 
 
       // รวม siblingsData และ siblingData เข้าไปด้วยกัน
@@ -2135,7 +2135,7 @@ export default function CreateApplicationInternalPage() {
               <div className="flex items-end">
                 <div className="flex-1">
                   <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">
-                    รายได้ของนิสิตเดือนละ
+                    รายได้ของนิสิตเดือนละ  &nbsp;&nbsp;  *ไม่เกิน 5 แสนบาท
                   </label>
                   <div className="flex items-center">
                     <input
@@ -2145,27 +2145,37 @@ export default function CreateApplicationInternalPage() {
                       value={applicationData.MonthlyIncome}
                       onChange={(e) => {
                         let value = parseInt(e.target.value, 10);
-                        if (isNaN(value) || value < 0) value = 0;
-                        if (value > 10000000) value = 10000000; // ไม่เกิน 10 ล้าน
+
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
+
+                        // ส่งค่าไปยัง handleChangeApplication โดยแปลงค่าจากตัวเลขเป็นสตริง
                         handleChangeApplication({
                           target: {
                             name: e.target.name,
-                            value: String(value), // Convert number to string
+                            value: String(value), // แปลงตัวเลขเป็นสตริง
                           },
-                        } as React.ChangeEvent<HTMLInputElement>); // Ensure the correct type
+                        } as React.ChangeEvent<HTMLInputElement>);
                       }}
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className={`w-80 p-3 border  border-gray-300 rounded`}
+                      className="w-80 p-3 border border-gray-300 rounded"
                     />
                     <span className="ml-2">บาท</span>
                   </div>
                   {errors.MonthlyIncome && <p className="text-red-500">{errors.MonthlyIncome}</p>}
                 </div>
 
+
                 <div className="flex-1">
                   <label htmlFor="MonthlyExpenses" className="block text-gray-700 mb-2">
-                    รายจ่ายของนิสิตเดือนละ
+                    รายจ่ายของนิสิตเดือนละ  &nbsp;&nbsp;   *ไม่เกิน 5 แสนบาท
                   </label>
                   <div className="flex items-center">
                     <input
@@ -2175,23 +2185,35 @@ export default function CreateApplicationInternalPage() {
                       value={applicationData.MonthlyExpenses}
                       onChange={(e) => {
                         let value = parseInt(e.target.value, 10);
-                        if (isNaN(value) || value < 0) value = 0;
-                        if (value > 10000000) value = 10000000; // ไม่เกิน 10 ล้าน
+
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
+
+                        // ส่งค่าไปยัง handleChangeApplication โดยแปลงค่าจากตัวเลขเป็นสตริง
                         handleChangeApplication({
                           target: {
                             name: e.target.name,
-                            value: String(value), // Convert number to string
+                            value: String(value), // แปลงตัวเลขเป็นสตริง
                           },
-                        } as React.ChangeEvent<HTMLInputElement>); // Ensure the correct type
+                        } as React.ChangeEvent<HTMLInputElement>);
                       }}
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className={`w-80 p-3 border  border-gray-300 rounded`}
+                      className="w-80 p-3 border border-gray-300 rounded"
+                      min={0}
+                      max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
                     />
                     <span className="ml-2">บาท</span>
                   </div>
                   {errors.MonthlyExpenses && <p className="text-red-500">{errors.MonthlyExpenses}</p>}
                 </div>
+
               </div>
 
 
@@ -2318,36 +2340,36 @@ export default function CreateApplicationInternalPage() {
               {/* Additional fields based on status */}
               {fatherData.Status === 'ยังมีชีวิตอยู่' && fatherData.PrefixName && (
                 <>
-        <div className="">
-  <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
-  <input
-    type="text"
-    id="FatherPhone"
-    name="Phone"
-    value={fatherData.Phone}
-    onChange={(e) => {
-      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
-      if (onlyNumbers.length <= 12) {
-        handleChangeFather({
-          target: {
-            name: e.target.name,
-            value: onlyNumbers,
-          }
-        });
-      } else {
-        handleChangeFather({
-          target: {
-            name: e.target.name,
-            value: onlyNumbers.slice(0, 12), // ตัดตัวเลขเกิน 12 ตัวออก
-          }
-        });
-      }
-    }}
-    className="w-full p-3 border border-gray-300"
-    inputMode="numeric"
-  />
-  {fatherErrors.Phone && <p className="text-red-500">{fatherErrors.Phone}</p>}
-</div>
+                  <div className="">
+                    <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+                    <input
+                      type="text"
+                      id="FatherPhone"
+                      name="Phone"
+                      value={fatherData.Phone}
+                      onChange={(e) => {
+                        const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                        if (onlyNumbers.length <= 10) {
+                          handleChangeFather({
+                            target: {
+                              name: e.target.name,
+                              value: onlyNumbers,
+                            }
+                          });
+                        } else {
+                          handleChangeFather({
+                            target: {
+                              name: e.target.name,
+                              value: onlyNumbers.slice(0, 12), // ตัดตัวเลขเกิน 12 ตัวออก
+                            }
+                          });
+                        }
+                      }}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                    />
+                    {fatherErrors.Phone && <p className="text-red-500">{fatherErrors.Phone}</p>}
+                  </div>
 
 
                   <div className="">
@@ -2384,13 +2406,34 @@ export default function CreateApplicationInternalPage() {
                       id="FatherIncome"
                       name="Income"
                       value={fatherData.Income}
-                      onChange={handleChangeFather}
-                      className="w-full p-3 border border-gray-300"
-                      inputMode="numeric"
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
 
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
+
+                        // ส่งค่าไปยัง handleChangeFather
+                        handleChangeFather({
+                          target: {
+                            name: e.target.name,
+                            value: String(value), // แปลงตัวเลขเป็นสตริง
+                          },
+                        } as React.ChangeEvent<HTMLInputElement>);
+                      }}
+                      inputMode="numeric"
+                      className="w-full p-3 border border-gray-300"
+                      min={0}
+                      max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
                     />
                     {fatherErrors.Income && <p className="text-red-500">{fatherErrors.Income}</p>}
                   </div>
+
 
                   <div className="">
                     <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
@@ -2531,7 +2574,7 @@ export default function CreateApplicationInternalPage() {
                       value={motherData.Phone}
                       onChange={(e) => {
                         const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
-                        if (onlyNumbers.length <= 15) {
+                        if (onlyNumbers.length <= 10) {
                           // Directly update the state without simulating an event
                           setMotherData((prevData) => ({
                             ...prevData,
@@ -2580,13 +2623,34 @@ export default function CreateApplicationInternalPage() {
                       id="MotherIncome"
                       name="Income"
                       value={motherData.Income}
-                      onChange={handleChangeMother}
-                      className="w-full p-3 border border-gray-300"
-                      inputMode="numeric"
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
 
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
+
+                        // ส่งค่าไปยัง handleChangeMother
+                        handleChangeMother({
+                          target: {
+                            name: e.target.name,
+                            value: String(value), // แปลงตัวเลขเป็นสตริง
+                          },
+                        } as React.ChangeEvent<HTMLInputElement>);
+                      }}
+                      inputMode="numeric"
+                      className="w-full p-3 border border-gray-300"
+                      min={0}
+                      max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
                     />
                     {motherErrors.Income && <p className="text-red-500">{motherErrors.Income}</p>}
                   </div>
+
 
                   <div className="">
                     <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
@@ -2628,30 +2692,66 @@ export default function CreateApplicationInternalPage() {
 
               <div className="">
                 <label htmlFor="NumberOfBrothers" className="block text-gray-700 mb-2">
-                  จำนวนพี่น้องชาย
+                  จำนวนพี่-น้องผู้ชาย
                 </label>
                 <input
                   type="number"
                   id="NumberOfBrothers"
                   name="NumberOfBrothers"
                   value={applicationData.NumberOfBrothers}
-                  onChange={handleChangeApplication}
+                  onChange={(e) => {
+                    let value = parseInt(e.target.value, 10);
+
+                    // ถ้าค่าที่ป้อนน้อยกว่า 0 ให้ปรับเป็น 0
+                    if (isNaN(value) || value < 0) {
+                      value = 0;
+                    }
+
+                    // ส่งค่าไปยัง handleChangeApplication
+                    handleChangeApplication({
+                      target: {
+                        name: e.target.name,
+                        value: String(value), // แปลงตัวเลขเป็นสตริง
+                      },
+                    } as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  inputMode="numeric"
                   className="w-50 p-3 border border-gray-300 rounded"
+                  min={0} // ตั้งค่า min ใน input HTML เพื่อป้องกันการป้อนค่าที่น้อยกว่า 0
                 />
               </div>
+
               <div className="">
-                <label htmlFor="NumberOfSisters" className="block text-gray-700 mb-2">
-                  จำนวนพี่น้องหญิง
-                </label>
-                <input
-                  type="number"
-                  id="NumberOfSisters"
-                  name="NumberOfSisters"
-                  value={applicationData.NumberOfSisters}
-                  onChange={handleChangeApplication}
-                  className="w-50 p-3 border border-gray-300 rounded"
-                />
-              </div>
+  <label htmlFor="NumberOfSisters" className="block text-gray-700 mb-2">
+    จำนวนพี่-น้องผู้หญิง
+  </label>
+  <input
+    type="number"
+    id="NumberOfSisters"
+    name="NumberOfSisters"
+    value={applicationData.NumberOfSisters}
+    onChange={(e) => {
+      let value = parseInt(e.target.value, 10);
+
+      // ถ้าค่าที่ป้อนน้อยกว่า 0 ให้ปรับเป็น 0
+      if (isNaN(value) || value < 0) {
+        value = 0;
+      }
+
+      // ส่งค่าไปยัง handleChangeApplication
+      handleChangeApplication({
+        target: {
+          name: e.target.name,
+          value: String(value), // แปลงตัวเลขเป็นสตริง
+        },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }}
+    inputMode="numeric"
+    className="w-50 p-3 border border-gray-300 rounded"
+    min={0} // ตั้งค่า min ใน input HTML เพื่อป้องกันการป้อนค่าที่น้อยกว่า 0
+  />
+</div>
+
             </div>
 
 
@@ -2743,23 +2843,40 @@ export default function CreateApplicationInternalPage() {
                     <option value="ปวส.">ปวส.</option>
                     <option value="ปริญญาตรี">ปริญญาตรี</option>
                     <option value="ปริญญาโท">ปริญญาโท</option>
+                    <option value="ปริญญาเอก">ปริญญาเอก</option>
                   </select>
                   {siblingsErrors[index]?.EducationLevel && <p className="text-red-500">{siblingsErrors[index].EducationLevel}</p>}
                 </div>
 
                 {/* Income */}
                 <div>
-                  <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
-                  <input
-                    type="number"
-                    id={`Income-${index}`}
-                    name="Income"
-                    value={sibling.Income}
-                    onChange={(e) => handleChangeSibling(index, 'Income', e.target.value)} // Corrected here
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                  {siblingsErrors[index]?.Income && <p className="text-red-500">{siblingsErrors[index].Income}</p>}
-                </div>
+  <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
+  <input
+    type="number"
+    id={`Income-${index}`}
+    name="Income"
+    value={sibling.Income}
+    onChange={(e) => {
+      let value = parseInt(e.target.value, 10);
+
+      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+      if (isNaN(value) || value < 0) {
+        value = 0;
+      }
+
+      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+      if (value > 500000) {
+        value = 500000;
+      }
+
+      // เรียกฟังก์ชัน handleChangeSibling พร้อมค่าที่ปรับแล้ว
+      handleChangeSibling(index, 'Income', value);
+    }}
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+  {siblingsErrors[index]?.Income && <p className="text-red-500">{siblingsErrors[index].Income}</p>}
+</div>
+
 
                 {/* Status */}
                 <div>
@@ -2984,16 +3101,39 @@ export default function CreateApplicationInternalPage() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor={`AmountReceived-${index}`} className="block text-gray-700 mb-2">จำนวนเงินทุน (บาท/ปี)</label>
-                    <input
-                      type="number"
-                      id={`AmountReceived-${index}`}
-                      name="AmountReceived"
-                      value={scholarship.AmountReceived}
-                      onChange={(e) => handleScholarshipChange(index, e)}
-                      className="w-full p-3 border border-gray-300 rounded"
-                    />
-                  </div>
+  <label htmlFor={`AmountReceived-${index}`} className="block text-gray-700 mb-2">จำนวนเงินทุน (บาท/ปี)</label>
+  <input
+    type="number"
+    id={`AmountReceived-${index}`}
+    name="AmountReceived"
+    value={scholarship.AmountReceived}
+    onChange={(e) => {
+      let value = parseInt(e.target.value, 10);
+
+      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+      if (isNaN(value) || value < 0) {
+        value = 0;
+      }
+
+      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+      if (value > 500000) {
+        value = 500000;
+      }
+
+      // เรียกฟังก์ชัน handleScholarshipChange เพื่อจัดการการเปลี่ยนแปลง
+      handleScholarshipChange(index, {
+        target: {
+          name: e.target.name,
+          value: String(value), // แปลงค่าตัวเลขเป็นสตริงก่อนส่งไป
+        },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }}
+    inputMode="numeric"
+    pattern="[0-9]*"
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+</div>
+
                   <div className="flex items-end">
                     <button
                       type="button"
@@ -3052,16 +3192,37 @@ export default function CreateApplicationInternalPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor={`Earnings-${index}`} className="block text-gray-700 mb-2">รายได้</label>
-                  <input
-                    type="number"
-                    id={`Earnings-${index}`}
-                    name="Earnings"
-                    value={experience.Earnings}
-                    onChange={(e) => handleWorkExperienceChange(index, e)}
-                    className="w-full p-3 border border-gray-300 rounded"
-                  />
-                </div>
+  <label htmlFor={`Earnings-${index}`} className="block text-gray-700 mb-2">รายได้</label>
+  <input
+    type="number"
+    id={`Earnings-${index}`}
+    name="Earnings"
+    value={experience.Earnings}
+    onChange={(e) => {
+      let value = parseInt(e.target.value, 10);
+
+      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+      if (isNaN(value) || value < 0) {
+        value = 0;
+      }
+
+      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+      if (value > 500000) {
+        value = 500000;
+      }
+
+      // เรียกฟังก์ชัน handleWorkExperienceChange พร้อมค่าที่ปรับแล้ว
+      handleWorkExperienceChange(index, {
+        target: {
+          name: 'Earnings',
+          value: String(value),
+        },
+      } as React.ChangeEvent<HTMLInputElement>);
+    }}
+    className="w-full p-3 border border-gray-300 rounded"
+  />
+</div>
+
                 <div className="flex items-end">
                   <button
                     type="button"

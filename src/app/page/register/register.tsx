@@ -47,6 +47,20 @@ export default function RegisterPage() {
     form: ""
   });
 
+
+  const showPopup = () => {
+    Swal.fire({
+      title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
+      imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
+      imageWidth: 100, // Set the width of the image
+      imageHeight: 100, // Set the height of the image
+      html: `
+       
+      `,
+      confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
+    });
+  };
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -188,6 +202,8 @@ export default function RegisterPage() {
 
       // Redirect to the login page
       router.push("/page/scholarships/ApplyScholarship");
+      showPopup()
+
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorResponse = error.response?.data.errors;

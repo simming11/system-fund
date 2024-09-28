@@ -210,10 +210,14 @@ export default function CreateApplicationExternalPage() {
                   onChange={(e) => handleFileChange(index, e)}
                   className="w-full p-3 border border-gray-300 rounded"
                 >
-                  <option value="">เลือกประเภทไฟล์</option>
-                  <option value="รูปภาพหน้าตรง">รูปภาพหน้าตรง</option>
-                  <option value="ผลการเรียน">ผลการเรียน</option>
-                  <option value="เอกสารอื่นๆ">เอกสารอื่นๆ</option>
+                       <option value="">เลือกประเภทไฟล์</option>
+                    <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
+                    <option value="ใบสมัคร">ใบสมัคร</option>
+                    <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
+                    <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
+                    <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
+                    <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
+                    <option value="อื่น ๆ">อื่น ๆ</option>
                 </select>
               </div>
               <div>

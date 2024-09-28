@@ -7,6 +7,18 @@ import ApiAuthService from '@/app/services/auth/ApiAuth';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import Header from '@/app/components/header/Header';
 import Swal from 'sweetalert2';
+const showPopup = () => {
+  Swal.fire({
+    title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
+    imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
+    imageWidth: 100, // Set the width of the image
+    imageHeight: 100, // Set the height of the image
+    html: `
+     
+    `,
+    confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
+  });
+};
 
 
 export default function LoginPage() {
@@ -69,7 +81,9 @@ export default function LoginPage() {
         showConfirmButton: false,
       });
       sessionStorage.clear(); // Clears all session storage
+
       router.push('./scholarships/ApplyScholarship');
+      showPopup()
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setError('' + (error.response?.data.message || error.message));
