@@ -6,6 +6,7 @@ import axios from 'axios';
 import ApiAuthService from '@/app/services/auth/ApiAuth';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import Header from '@/app/components/header/Header';
+import Swal from 'sweetalert2';
 
 export default function LoginControlPage() {
   const [identifier, setIdentifier] = useState('');
@@ -42,6 +43,12 @@ export default function LoginControlPage() {
         localStorage.removeItem('savedIdentifier');
         localStorage.removeItem('savedPassword');
       }
+      Swal.fire({
+        icon: "success",
+        title: "เข้าสู่ระบบสำเร็จ",
+        showConfirmButton: false,
+      });
+      sessionStorage.clear(); // Clears all session storage
       router.push('./management');
     } catch (error) {
       if (axios.isAxiosError(error)) {
