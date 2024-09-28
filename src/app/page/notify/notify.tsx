@@ -91,9 +91,18 @@ export default function LineNotifyForm() {
         const { access_token } = responseToken;
         console.log('Access Token:', access_token);
         setHasLineToken(!LineToken);
+  
+        // Save token to localStorage
         localStorage.setItem('line_notify_token', access_token);
   
-        await updateLineNotifyInDB(access_token);
+        // Retrieve token from localStorage (not necessary since you already have it)
+        const tokenFromStorage = localStorage.getItem('line_notify_token');
+        if (tokenFromStorage) {
+          // Pass the retrieved token to the updateLineNotifyInDB function
+          await updateLineNotifyInDB(tokenFromStorage);
+        } else {
+          console.error('Token not found in localStorage');
+        }
   
         return access_token;
       } else {
@@ -103,6 +112,7 @@ export default function LineNotifyForm() {
       console.error('Error fetching Line Notifies or token:', error);
     }
   };
+  
   
   const fetchLineNotifies = async () => {
     try {
@@ -156,13 +166,13 @@ export default function LineNotifyForm() {
     }
   };
 
-  const updateLineNotifyInDB = async (accessToken: string) => {
+  const updateLineNotifyInDB = async (token: string) => {
     try {
       const lineNotifyData = {
-        LineToken: accessToken,
+        LineToken: token,
         AcademicID: formData.AcademicID,
       };
-
+  
       const response = await ApiLineNotifyServices.updateLineNotify(formData.AcademicID, lineNotifyData);
       console.log('Line Notify updated:', response);
     } catch (error) {

@@ -6,7 +6,7 @@ import HeaderHome from "./components/headerHome/headerHome";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ทุนการศึกษา",
+  title: "ระบบจัดการทุนการศึกษาคณะวิทยาศาสตร์และนวัตกรรมดิจิทัล มหาวิทยาลัยทักษิณ",
   description: "ทุนการศึกษาของมหาวิทยาลัย",
 };
 
