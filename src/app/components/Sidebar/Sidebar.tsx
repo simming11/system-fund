@@ -148,11 +148,6 @@ const Sidebar = () => {
                   รายงานสรุปทุนการศึกษา
                 </Link>
               </li>
-              <li>
-                <Link href="/page/notify" className="text-gray-700 hover:text-blue-500">
-                  Notify
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
