@@ -13,19 +13,7 @@ import ApiApplicationServices from '@/app/services/ApiApplicationInternalService
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
 import styles from './ApplyScholarships.module.css'; // Import styles
 import Swal from 'sweetalert2';
-// Define your popup function here
-const showPopup = () => {
-  Swal.fire({
-    title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
-    imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
-    imageWidth: 100, // Set the width of the image
-    imageHeight: 100, // Set the height of the image
-    html: `
-     
-    `,
-    confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
-  });
-};
+
 
 
 interface Student {
@@ -74,7 +62,7 @@ export default function ApplyScholarShipsPage() {
 
   // Fetch all scholarships and student applications
   useEffect(() => {
-    showPopup();
+
     const fetchData = async () => {
       try {
         // Fetch all scholarships
@@ -263,12 +251,16 @@ export default function ApplyScholarShipsPage() {
       }
   
       // If today's date is within the start and end range, excluding the end date
-      if (now >= start && now < end) {
+      if (now <= start && now < end) {
         return "เปิดรับอยู่";  // Open if it's before the end date
       }
   
       if (now > start && now > end) {
         return "ปิดรับแล้ว";  // If it's past the end date or outside the range, show closed
+      }
+
+      if (now > start && now < end) {
+        return "เปิดรับอยู่";  // If it's past the end date or outside the range, show closed
       }
     }
     return "ไม่มีข้อมูล";  // If no dates are provided

@@ -7,12 +7,13 @@ import ApiAuthService from '@/app/services/auth/ApiAuth';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import Header from '@/app/components/header/Header';
 import Swal from 'sweetalert2';
+// Define your popup function here
 const showPopup = () => {
   Swal.fire({
     title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
     imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
-    imageWidth: 100, // Set the width of the image
-    imageHeight: 100, // Set the height of the image
+    imageWidth: 200, // Set the width of the image
+    imageHeight: 200, // Set the height of the image
     html: `
      
     `,

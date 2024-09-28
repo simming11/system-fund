@@ -152,8 +152,8 @@ export default function ScholarshipDetailPage() {
     );
   }
   const isApplyDisabled = scholarship
-  ? new Date() < new Date(scholarship.StartDate) || new Date() > new Date(scholarship.EndDate)
-  : true;
+    ? new Date() >new Date(scholarship.StartDate) && new Date() > new Date(scholarship.EndDate)
+    : true;
 
 
   return (
@@ -161,99 +161,99 @@ export default function ScholarshipDetailPage() {
       <HeaderHome />
       <Header />
       <div className="container mx-auto px-4 py-8">
-  {/* ตรวจสอบว่า scholarship มีค่าหรือไม่ ก่อนที่จะแสดงข้อมูล */}
-  <h2 className="text-4xl font-bold text-center break-words">
-    {scholarship?.ScholarshipName ?? 'Scholarship not found'}
-  </h2>
-  <div className="flex flex-col md:flex-row">
-    <div className="w-full md:w-1/2 p-4">
-      {imagePath && (
-        <div className="flex justify-center items-start mt-5">
-          <div className="">
-            <img
-              src={imagePath}
-              alt="ไฟล์ประกอบการสมัคร"
-              width={350}
-              height={350}
-              className="rounded-lg shadow-lg"
-            />
+        {/* ตรวจสอบว่า scholarship มีค่าหรือไม่ ก่อนที่จะแสดงข้อมูล */}
+        <h2 className="text-4xl font-bold text-center break-words">
+          {scholarship?.ScholarshipName ?? 'Scholarship not found'}
+        </h2>
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-1/2 p-4">
+            {imagePath && (
+              <div className="flex justify-center items-start mt-5">
+                <div className="">
+                  <img
+                    src={imagePath}
+                    alt="ไฟล์ประกอบการสมัคร"
+                    width={350}
+                    height={350}
+                    className="rounded-lg shadow-lg"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full md:w-1/2 p-4">
+            {scholarship ? (
+              <div className="">
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>
+                    <li>ชั้นปี{scholarship.YearLevel} </li>
+                    {scholarship.qualifications.map((qualification, index) => (
+                      <li key={index}>{qualification.QualificationText}</li>
+                    ))}
+                  </ul>
+                  <div className="mt-2">
+                    <h3 className="text-lg font-semibold mb-1">สาขาที่ต้องการ:</h3>
+                    <ul className="list-disc list-inside text-gray-600">
+                      {scholarship.courses.map((course, index) => (
+                        <li key={index}>{course.CourseName}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <h3 className="text-lg font-semibold mb-1">เอกสารประกอบการสมัคร:</h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    {scholarship.documents.map((document, index) => (
+                      <li key={index}>{document.DocumentText}</li>
+                    ))}
+                  </ul>
+                </div>
+                {documents && documents.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-semibold mb-1">เอกสารอื่นๆ:</h3>
+                    <ul className=" list-inside text-gray-600">
+                      {documents.map((file, index) => (
+                        <li key={index}>
+                          <a
+                            onClick={() => handleDownloadFile(file.FileID, file.FilePath.split('/').pop()!)}
+                            className="text-blue-500 underline cursor-pointer"
+                          >
+                            {file.FilePath.split('/').pop()}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="mt-10">
+                  <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
+                  <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
+                  <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-red-500">ไม่มี</p>
+            )}
           </div>
         </div>
-      )}
-    </div>
 
-    <div className="w-full md:w-1/2 p-4">
-      {scholarship ? (
-        <div className="">
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
-            <ul className="list-disc list-inside text-gray-600">
-              <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>
-              <li>ชั้นปี{scholarship.YearLevel} </li>
-              {scholarship.qualifications.map((qualification, index) => (
-                <li key={index}>{qualification.QualificationText}</li>
-              ))}
-            </ul>
-            <div className="mt-2">
-              <h3 className="text-lg font-semibold mb-1">สาขาที่ต้องการ:</h3>
-              <ul className="list-disc list-inside text-gray-600">
-                {scholarship.courses.map((course, index) => (
-                  <li key={index}>{course.CourseName}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="mt-2">
-            <h3 className="text-lg font-semibold mb-1">เอกสารประกอบการสมัคร:</h3>
-            <ul className="list-disc list-inside text-gray-600">
-              {scholarship.documents.map((document, index) => (
-                <li key={index}>{document.DocumentText}</li>
-              ))}
-            </ul>
-          </div>
-          {documents && documents.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-1">เอกสารอื่นๆ:</h3>
-              <ul className=" list-inside text-gray-600">
-                {documents.map((file, index) => (
-                  <li key={index}>
-                    <a
-                      onClick={() => handleDownloadFile(file.FileID, file.FilePath.split('/').pop()!)}
-                      className="text-blue-500 underline cursor-pointer"
-                    >
-                      {file.FilePath.split('/').pop()}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="mt-4 flex justify-center">
+          {hasApplied ? (
+            <p className="text-green-500 font-semibold text-2xl">ท่านได้สมัครทุนแล้ว</p>
+          ) : (
+            <button
+              onClick={handleApplyNow}
+              className={`px-4 py-2 rounded mt-4 text-white ${isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+              disabled={isApplyDisabled}
+            >
+              {isApplyDisabled ? 'ปิดรับสมัครแล้ว' : 'สมัครตอนนี้'}
+            </button>
           )}
-          <div className="mt-10">
-            <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
-            <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
-            <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
-          </div>
         </div>
-      ) : (
-        <p className="text-red-500">ไม่มี</p>
-      )}
-    </div>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-    {hasApplied ? (
-      <p className="text-green-500 font-semibold text-2xl">ท่านได้สมัครทุนแล้ว</p>
-    ) : (
-      <button
-        onClick={handleApplyNow}
-        className={`px-4 py-2 rounded mt-4 text-white ${isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-        disabled={isApplyDisabled}
-      >
-        {isApplyDisabled ? 'ปิดรับสมัครแล้ว' : 'สมัครตอนนี้'}
-      </button>
-    )}
-  </div>
-</div>
+      </div>
 
     </div>
   );
