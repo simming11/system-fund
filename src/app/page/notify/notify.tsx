@@ -85,26 +85,36 @@ export default function LineNotifyForm() {
           notify_client_id: notify_client_id || '',
         }));
   
-        // Call the `getToken` method from `ApiLineNotifyServices` with the correct arguments
-        const responseToken = await ApiLineNotifyServices.getToken(code, notify_client_id, client_secret);
+        // Call the new API route in Next.js for fetching the token
+        const responseToken = await fetch('/api/line-notify-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code,
+            notify_client_id,
+            client_secret,
+          }),
+        });
   
-        const { access_token } = responseToken;
-        console.log('Access Token:', access_token);
-        setHasLineToken(!LineToken);
+        if (responseToken.ok) {
+          const tokenData = await responseToken.json();
+          const { access_token } = tokenData;
+          console.log('Access Token:', access_token);
+          setHasLineToken(!LineToken);
   
-        // Save token to localStorage
-        localStorage.setItem('line_notify_token', access_token);
+          // Save token to localStorage
+          localStorage.setItem('line_notify_token', access_token);
   
-        // Retrieve token from localStorage (not necessary since you already have it)
-        const tokenFromStorage = localStorage.getItem('line_notify_token');
-        if (tokenFromStorage) {
-          // Pass the retrieved token to the updateLineNotifyInDB function
-          await updateLineNotifyInDB(tokenFromStorage);
+          // Update Line Notify in DB with the new token
+          await updateLineNotifyInDB(access_token);
+  
+          return access_token;
         } else {
-          console.error('Token not found in localStorage');
+          const errorData = await responseToken.json();
+          console.error('Error fetching token:', errorData.error);
         }
-  
-        return access_token;
       } else {
         throw new Error('No Line Notify data found.');
       }
@@ -113,7 +123,8 @@ export default function LineNotifyForm() {
     }
   };
   
-  
+
+
   const fetchLineNotifies = async () => {
     try {
       const AcademicID = localStorage.getItem('AcademicID');
@@ -147,9 +158,9 @@ export default function LineNotifyForm() {
     try {
       const confirmDelete = window.confirm('คุณต้องการลบ LineNotify ใช่หรือไม่?');
       if (!confirmDelete) return;
-  
+
       await ApiLineNotifyServices.deleteLineNotify(id);
-  
+
       setResponseMessage('ลบข้อมูลสำเร็จแล้ว!');
       localStorage.removeItem('oauth_code');
       localStorage.removeItem('oauth_state');
@@ -157,9 +168,9 @@ export default function LineNotifyForm() {
       localStorage.removeItem('oauth_redirect_uri');
       localStorage.removeItem('oauth_client_id');
       localStorage.removeItem('oauth_scope');
-  
+
       // ใช้ window.location.href เพื่อรีโหลดหน้าเว็บหลังจากลบเสร็จสิ้น
-      window.location.href = '/page/notify'; 
+      window.location.href = '/page/notify';
     } catch (error) {
       console.error('Error deleting Line Notify:', error);
       setResponseMessage('ไม่สามารถลบข้อมูลได้');
@@ -172,7 +183,7 @@ export default function LineNotifyForm() {
         LineToken: token,
         AcademicID: formData.AcademicID,
       };
-  
+
       const response = await ApiLineNotifyServices.updateLineNotify(formData.AcademicID, lineNotifyData);
       console.log('Line Notify updated:', response);
     } catch (error) {
@@ -211,27 +222,27 @@ export default function LineNotifyForm() {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    
+
     // Log the name of the input and its current value
     console.log(`${e.target.name}: ${e.target.value}`);
   };
-  
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // ดึงค่า AcademicID จาก localStorage
     const AcademicID = localStorage.getItem('AcademicID') || '';
-  
+
     // อัปเดต formData ด้วยค่า AcademicID
     const updatedFormData = {
       ...formData,
       AcademicID: AcademicID,
     };
-  
+
     // Log the formData before submitting
     console.log("Submitting form data:", updatedFormData);
-    
+
     try {
       const response = await ApiLineNotifyServices.createLineNotify(updatedFormData);
       setResponseMessage('Data sent successfully!');
@@ -240,7 +251,7 @@ export default function LineNotifyForm() {
       setResponseMessage('Failed to send data.');
     }
   };
-  
+
   if (!isMounted) {
     return null; // Prevents rendering on the server side
   }

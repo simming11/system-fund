@@ -80,8 +80,7 @@ class ApiLineNotifyServices {
         try {
             const response = await axios.put(`${API_URL}/line-notifies/academic/${academicID}`, lineNotifyData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'ngrok-skip-browser-warning': 'true',
+                    Authorization: `Bearer ${token}`
                 },
             });
             return response.data;
