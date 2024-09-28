@@ -5,7 +5,7 @@ const GetCorsHeaders = (origin: string) => {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Origin': '*', // Default to '*', change as needed
+    'Access-Control-Allow-Origin': 'https://mis.csit.scidi.tsu.ac.th/642021164/api/line-notifies/academic', // Default to '*', change as needed
   };
 
   // Check if there is an allowed origin in the environment variable
