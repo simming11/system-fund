@@ -59,10 +59,10 @@ export async function POST(request: Request) {
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        code,
+        code:code,
         redirect_uri: 'https://system-fund.vercel.app/page/notify', // Replace with your correct redirect URI
         client_id: notify_client_id,
-        client_secret,
+        client_secret:client_secret,
       }),
     });
 
