@@ -273,12 +273,12 @@ export default function RegisterPage() {
     <div className="bg-white min-h-screen flex flex-col">
       <HeaderHome />
       <Header />
-      <div className="flex flex-grow flex-col lg:flex-row items-center justify-center">
-        <div className="w-full lg:w-1/2 p-4  md:w-1/2  flex justify-center">
-        <Image src="/images/sci.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2"  />
+      <div className="flex flex-grow flex-col lg:flex-row items-center  lg:justify-center mb:w-full">
+        <div className="w-full lg:w-1/2 p-4  md:w-1/1  flex justify-center">
+        <img src="/images/sci.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2"  />
         </div>
-        <div className="w-full bg-white lg:w-1/2 p-4 flex justify-center mr-10">
-          <div className="w-full">
+        <div className="bg-white  lg:w-1/2 mb:w-full p-4 flex  mr-10">
+          <div className="">
             <h2 className="text-center text-3xl font-bold mb-6 text-blue-800">ลงทะเบียน</h2>
 
             {/* Form starts here */}
