@@ -10,7 +10,7 @@ import ApiApplicationExternalServices from '@/app/services/ApiApplicationExterna
 import ApiApplicationUpdateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationUpdateInternal';
 import ApiUpdateServiceScholarships from '@/app/services/scholarships/updateScholarships';
 import ApiLineNotifyServices from '@/app/services/line-notifies/line';
-const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
+const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 interface StudentData {
     StudentID: string;
     FirstName: string;
@@ -266,7 +266,7 @@ export default function ScholarshipResultsAnnouncementPage() {
                         const response = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
 
                         if (lineToken) {
-                            const message = ` ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/results-announcement/${scholarshipId}`;
+                            const message = ` ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${URL}/page/results-announcement/${scholarshipId}`;
                             await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
                         } else {
                             console.error("LINE Notify token is null");

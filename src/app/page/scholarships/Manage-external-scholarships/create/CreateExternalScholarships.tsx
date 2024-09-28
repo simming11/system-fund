@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createScholarship";
 import ApiLineNotifyServices from "@/app/services/line-notifies/line";
 import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; // Adjust the path accordingly
-const API_URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
+const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function CreateExternalScholarshipPage() {
   const router = useRouter();
   const [errors, setErrors] = useState({
@@ -419,7 +419,7 @@ export default function CreateExternalScholarshipPage() {
 
       // Send notification if lineToken exists
       if (lineToken) {
-        const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${API_URL}/page/scholarships/detail?id=${scholarshipID}`;
+        const message = `ทุนการศึกษาใหม่ \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
         await ApiLineNotifyServices.sendLineNotify(message, lineToken);
       } else {
         console.error("LINE Notify token is null");
