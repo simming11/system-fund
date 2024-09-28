@@ -299,7 +299,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
       <div className={isScrolled ? styles.scrolledHeader : ''}>
         <Header />
       </div>
-      <div className="container mx-auto px-4 py-8 pl-40">
+      <div className="container mx-auto px-4 py-8 lg:pl-40 md:p-0 ">
         <main className="flex-1">
           
         {recommendedScholarships.length > 0 && (
