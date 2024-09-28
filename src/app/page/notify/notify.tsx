@@ -68,46 +68,61 @@ export default function LineNotifyForm() {
     }
   }, [isMounted]);
 
-  const fetchLineNotifiesAndToken = async (code: string) => {
-    try {
-      const response = await ApiLineNotifyServices.getAllLineNotifies();
+const fetchLineNotifiesAndToken = async (code: string) => {
+  try {
+    const response = await ApiLineNotifyServices.getAllLineNotifies();
 
-      if (response.length > 0) {
-        const { client_secret, notify_client_id, LineToken } = response[0];
+    if (response.length > 0) {
+      const { client_secret, notify_client_id, LineToken } = response[0];
 
-        if (!client_secret || !notify_client_id) {
-          throw new Error('Client ID or Client Secret is missing.');
-        }
+      if (!client_secret || !notify_client_id) {
+        throw new Error('Client ID or Client Secret is missing.');
+      }
 
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          client_secret: client_secret || '',
-          notify_client_id: notify_client_id || '',
-        }));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        client_secret: client_secret || '',
+        notify_client_id: notify_client_id || '',
+      }));
 
-        // Call the `getToken` method from `ApiLineNotifyServices` with the correct arguments
-        const responseToken = await ApiLineNotifyServices.getToken(code, notify_client_id, client_secret);
+      // Call the new API route in Next.js for fetching the token
+      const responseToken = await fetch('/api/line-notify-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code,
+          notify_client_id,
+          client_secret,
+        }),
+      });
 
-        const { access_token } = responseToken;
+      if (responseToken.ok) {
+        const tokenData = await responseToken.json();
+        const { access_token } = tokenData;
         console.log('Access Token:', access_token);
         setHasLineToken(!LineToken);
 
         // Save token to localStorage
         localStorage.setItem('line_notify_token', access_token);
 
-        localStorage.getItem('line_notify_token');
+        // Update Line Notify in DB with the new token
         await updateLineNotifyInDB(access_token);
-        console.error('Token not found in localStorage');
-
 
         return access_token;
       } else {
-        throw new Error('No Line Notify data found.');
+        const errorData = await responseToken.json();
+        console.error('Error fetching token:', errorData.error);
       }
-    } catch (error) {
-      console.error('Error fetching Line Notifies or token:', error);
+    } else {
+      throw new Error('No Line Notify data found.');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching Line Notifies or token:', error);
+  }
+};
+
 
 
   const fetchLineNotifies = async () => {
