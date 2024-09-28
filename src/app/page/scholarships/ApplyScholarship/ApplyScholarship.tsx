@@ -232,7 +232,34 @@ export default function ApplyScholarShipsPage() {
   };
 
 
+  useEffect(() => {
+    const savedRecommendedPage = sessionStorage.getItem('recommendedPage');
+    const savedOpenPage = sessionStorage.getItem('openPage');
+    const savedClosedPage = sessionStorage.getItem('closedPage');
+    const savedAllPage = sessionStorage.getItem('allPage');
 
+    if (savedRecommendedPage) setRecommendedPage(Number(savedRecommendedPage));
+    if (savedOpenPage) setOpenPage(Number(savedOpenPage));
+    if (savedClosedPage) setClosedPage(Number(savedClosedPage));
+    if (savedAllPage) setAllPage(Number(savedAllPage));
+  }, []);
+
+  // Save page numbers to sessionStorage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem('recommendedPage', recommendedPage.toString());
+  }, [recommendedPage]);
+
+  useEffect(() => {
+    sessionStorage.setItem('openPage', openPage.toString());
+  }, [openPage]);
+
+  useEffect(() => {
+    sessionStorage.setItem('closedPage', closedPage.toString());
+  }, [closedPage]);
+
+  useEffect(() => {
+    sessionStorage.setItem('allPage', allPage.toString());
+  }, [allPage]);
 
 
   const hasApplied = (scholarshipID: number) => {

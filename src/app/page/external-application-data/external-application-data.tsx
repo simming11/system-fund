@@ -7,19 +7,22 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 interface ScholarshipData {
     ScholarshipID: string;
     ScholarshipName: string;
     Description: string;
-    Year:string
+    Year: string;
 }
 
 export default function ExternalApplicationDataPage() {
     const [scholarships, setScholarships] = useState<ScholarshipData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [filteredScholarships, setFilteredScholarships] = useState<ScholarshipData[]>([]); // Filtered scholarships for search
+    const [searchTerm, setSearchTerm] = useState<string>(""); // Search term state
+    const [currentPage, setCurrentPage] = useState<number>(1); // Current page state
+    const scholarshipsPerPage = 10; // Number of scholarships per page
     const router = useRouter();
 
     useEffect(() => {
@@ -38,14 +41,11 @@ export default function ExternalApplicationDataPage() {
         const fetchScholarships = async () => {
             try {
                 const response = await ApiServiceScholarships.getAllScholarships();
-                const scholarshipsWithTypeID1 = response.data.filter((scholarship: any) => scholarship.TypeID === 2);
-                setScholarships(scholarshipsWithTypeID1);
-                console.log(scholarshipsWithTypeID1);
-                
+                const scholarshipsWithTypeID2 = response.data.filter((scholarship: any) => scholarship.TypeID === 2);
+                setScholarships(scholarshipsWithTypeID2);
+                setFilteredScholarships(scholarshipsWithTypeID2); // Set filtered scholarships initially
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -53,11 +53,30 @@ export default function ExternalApplicationDataPage() {
     }, []);
 
     const handleRowClick = (scholarshipId: string) => {
-        // Navigate to the details page of the selected scholarship
         router.push(`/page/external-application-data/scholarship-details/${scholarshipId}`);
     };
 
-    if (loading) {
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const searchValue = e.target.value.toLowerCase();
+        setSearchTerm(searchValue);
+
+        const filtered = scholarships.filter((scholarship) =>
+            scholarship.ScholarshipName.toLowerCase().includes(searchValue)
+        );
+        setFilteredScholarships(filtered);
+        setCurrentPage(1); // Reset to the first page after search
+    };
+
+    // Pagination logic
+    const indexOfLastScholarship = currentPage * scholarshipsPerPage;
+    const indexOfFirstScholarship = indexOfLastScholarship - scholarshipsPerPage;
+    const currentScholarships = filteredScholarships.slice(indexOfFirstScholarship, indexOfLastScholarship);
+
+    const totalPages = Math.ceil(filteredScholarships.length / scholarshipsPerPage);
+
+    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+    if (!scholarships.length) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
@@ -77,6 +96,19 @@ export default function ExternalApplicationDataPage() {
                 <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายนอกมหาวิทยาลัย</h2>
+
+                        {/* Search input */}
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                placeholder="ค้นหาทุนการศึกษา..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                className="w-full p-2 border border-gray-300 rounded"
+                            />
+                        </div>
+
+                        {/* Scholarship table */}
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
                                 <tr className="bg-gray-200">
@@ -86,10 +118,12 @@ export default function ExternalApplicationDataPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {scholarships.map((scholarship, index) => (
+                                {currentScholarships.map((scholarship, index) => (
                                     <tr key={scholarship.ScholarshipID} className="hover:bg-gray-100 cursor-pointer">
-                                        <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                        <td className="border border-gray-300 p-2 text-center "> {scholarship.ScholarshipName} {scholarship.Year} </td>
+                                        <td className="border border-gray-300 p-2 text-center">{indexOfFirstScholarship + index + 1}</td>
+                                        <td className="border border-gray-300 p-2 text-center">
+                                            {scholarship.ScholarshipName} {scholarship.Year}
+                                        </td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             <button
                                                 onClick={() => handleRowClick(scholarship.ScholarshipID)}
@@ -102,6 +136,19 @@ export default function ExternalApplicationDataPage() {
                                 ))}
                             </tbody>
                         </table>
+
+                        {/* Pagination */}
+                        <div className="mt-4 flex justify-center">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => paginate(pageNumber)}
+                                    className={`px-4 py-2 mx-1 border ${currentPage === pageNumber ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} rounded-lg`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

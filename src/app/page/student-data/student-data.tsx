@@ -18,8 +18,12 @@ interface StudentData {
 
 export default function StudentDataPage() {
     const [students, setStudents] = useState<StudentData[]>([]);
-    const [length, setlength] = useState<string>('');
-    const [loading, setLoading] = useState(true);  // Loading state
+    const [filteredStudents, setFilteredStudents] = useState<StudentData[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [studentsPerPage] = useState<number>(8); // Students per page
+    const [loading, setLoading] = useState(true); // Loading state
+    const [length, setLength] = useState<number>(0);
     const router = useRouter();
 
     useEffect(() => {
@@ -38,20 +42,40 @@ export default function StudentDataPage() {
         const fetchStudents = async () => {
             try {
                 const response = await ApiStudentServices.getAllStudents();
-                console.log("Full API response:", response); // Check full API response
                 setStudents(response);
-                const  length = response.length
-                setlength(length)
-                 
+                setFilteredStudents(response); // Initialize filtered students
+                setLength(response.length);
             } catch (error) {
                 console.error("Failed to fetch students", error);
             } finally {
-                setLoading(false);  // Stop loading after data is fetched
+                setLoading(false); // Stop loading after data is fetched
             }
         };
 
         fetchStudents();
     }, []);
+
+    // Handle search input change
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const searchValue = e.target.value;
+        setSearchTerm(searchValue);
+
+        const filtered = students.filter((student) =>
+            `${student.FirstName} ${student.LastName}`.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setFilteredStudents(filtered);
+        setCurrentPage(1); // Reset to the first page after search
+    };
+
+    // Pagination calculation
+    const indexOfLastStudent = currentPage * studentsPerPage;
+    const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+    const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+
+    // Handle page change
+    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+    const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
     const handleViewDetails = (studentId: string) => {
         router.push(`/page/student-data/${studentId}`);
@@ -72,7 +96,6 @@ export default function StudentDataPage() {
         return 'จบการศึกษาแล้ว'; // For years more than 4
     };
 
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -90,10 +113,23 @@ export default function StudentDataPage() {
                 <div className="bg-white w-1/8 p-4">
                     <Sidebar />
                 </div>
-                <div className="bg-white  flex-1 w-7/8">
+                <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลนักศึกษา</h2>
                         <h2>จำนวนนิสิตทั้งหมด {length} </h2>
+
+                        {/* Search input */}
+                        <div className="mb-4">
+                            <input
+                                type="text"
+                                placeholder="ค้นหานิสิต..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                className="w-full p-2 border border-gray-300 rounded"
+                            />
+                        </div>
+
+                        {/* Student table */}
                         <table className="w-full table-auto border-collapse border border-gray-300">
                             <thead>
                                 <tr className="bg-gray-200">
@@ -105,13 +141,11 @@ export default function StudentDataPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {students.map((student, index) => (
+                                {currentStudents.map((student, index) => (
                                     <tr key={student.StudentID} className="hover:bg-gray-100">
-                                        <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+                                        <td className="border border-gray-300 p-2 text-center">{indexOfFirstStudent + index + 1}</td>
                                         <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
-                                        <td className="border border-gray-300 p-2 text-center">
-                                                {calculateAcademicYear(student?.Year_Entry)}
-                                            </td>
+                                        <td className="border border-gray-300 p-2 text-center">{calculateAcademicYear(student?.Year_Entry)}</td>
                                         <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             <button
@@ -125,6 +159,19 @@ export default function StudentDataPage() {
                                 ))}
                             </tbody>
                         </table>
+
+                        {/* Pagination */}
+                        <div className="mt-4 flex justify-center">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => paginate(pageNumber)}
+                                    className={`px-4 py-2 mx-1 border ${currentPage === pageNumber ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'} rounded-lg`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
