@@ -297,6 +297,8 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                 console.log('Fetched applicationID:', id);
                 setLoading(true);
                 const response = await ApiApplicationUpdateInternalServices.getApplicationById(id);
+                console.log(response);
+                
                 setApplicationData(response);
 
                 const addresses: Address[] = response.addresses || [];
@@ -327,10 +329,11 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                     Workplace: '',
                     Phone: '',
                 };
-                const father = guardians.find((guardian) => guardian.Type === 'พ่อ') || { ...defaultGuardianData, Type: 'พ่อ' };
-                const mother = guardians.find((guardian) => guardian.Type === 'แม่') || { ...defaultGuardianData, Type: 'แม่' };
-                const caretaker = guardians.find((guardian) => guardian.Type !== 'พ่อ' && guardian.Type !== 'แม่') || { ...defaultGuardianData, Type: '' };
-
+                const father = guardians.find((guardian) => guardian.Type === 'บิดา') || { ...defaultGuardianData, Type: 'บิดา' };
+                const mother = guardians.find((guardian) => guardian.Type === 'มารดา') || { ...defaultGuardianData, Type: 'มารดา' };
+                const caretaker = guardians.find((guardian) => guardian.Type !== 'บิดา' && guardian.Type !== 'มารดา') || { ...defaultGuardianData, Type: '' };
+                console.log(father);
+                
                 setFatherData(father);
                 setMotherData(mother);
                 setCaretakerData(caretaker);
@@ -1004,7 +1007,169 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                             </div>
                         </div>
 
-                  
+                        {/* Caretaker Information */}
+                        {/* <div className="mb-6">
+                            <div className="flex justify-start items-center space-x-4 mb-5">
+                                <h1>ผู้อุปการะ</h1>
+                            </div>
+
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                                <div>
+                                    <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
+                                        คำนำหน้า
+                                    </label>
+                                    <input
+                                        id="CaretakerPrefixName"
+                                        name="PrefixName"
+                                        value={caretakerData.PrefixName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                        />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
+                                        ชื่อ
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerFirstName"
+                                        name="FirstName"
+                                        value={caretakerData.FirstName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
+                                        นามสกุล
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerLastName"
+                                        name="LastName"
+                                        value={caretakerData.LastName}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">
+                                        อายุ
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="CaretakerAge"
+                                        name="Age"
+                                        value={caretakerData.Age}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
+                                        สถานภาพ
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            id="CaretakerStatusAlive"
+                                            name="Status"
+                                            value="ยังมีชีวิตอยู่"
+                                            checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
+
+                                            className="mr-2"
+                                            disabled
+                                        />{' '}
+                                        ยังมีชีวิตอยู่
+                                        <input
+                                            type="radio"
+                                            id="CaretakerStatusDeceased"
+                                            name="Status"
+                                            value="เสียชีวิตแล้ว"
+                                            checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
+
+                                            className="ml-4 mr-2"
+                                            disabled
+                                        />{' '}
+                                        เสียชีวิตแล้ว
+                                    </div>
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
+                                        เบอร์โทร
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerPhone"
+                                        name="Phone"
+                                        value={caretakerData.Phone}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
+                                        อาชีพ
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerOccupation"
+                                        name="Occupation"
+                                        value={caretakerData.Occupation}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
+                                        รายได้ต่อเดือน
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="CaretakerIncome"
+                                        name="Income"
+                                        value={caretakerData.Income}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div className="">
+                                    <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
+                                        สถานที่ทำงาน
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerWorkplace"
+                                        name="Workplace"
+                                        value={caretakerData.Workplace}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
+                                        เกี่ยวข้องเป็น
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="CaretakerType"
+                                        name="Type"
+                                        value={caretakerData.Type}
+
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                        </div> */}
 
                         {/* Sibling Information */}
                         <div className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-6">

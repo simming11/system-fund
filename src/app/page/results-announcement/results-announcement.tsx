@@ -14,6 +14,7 @@ interface ScholarshipData {
     ScholarshipName: string;
     Description: string;
     Year: string;
+    AnnouncementFile:string
 }
 
 export default function AnnouncementOfScholarships() {
@@ -74,10 +75,10 @@ export default function AnnouncementOfScholarships() {
         );
     }
 
-    // Filter scholarships based on the selected year
-    const filteredScholarships = scholarships.filter(
-        (scholarship) => scholarship.Year == currentYear
-    );
+ // Filter scholarships based on the selected year and presence of AnnouncementFile
+ const filteredScholarships = scholarships.filter(
+    (scholarship) => scholarship.Year == currentYear && scholarship.AnnouncementFile // Check for AnnouncementFile
+);
 
     return (
         <div className="bg-white min-h-screen flex flex-col bg-gray-100">
