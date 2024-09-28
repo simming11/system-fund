@@ -1,41 +1,46 @@
-// src/app/api/line-notify-token.ts
-import { NextApiRequest, NextApiResponse } from 'next';
-import axios from 'axios';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const { code, notify_client_id, client_secret } = req.body;
+export async function POST(request: Request) {
+  try {
+    const { code, notify_client_id, client_secret } = await request.json();
 
+    // Check if any of the required fields are missing
     if (!code || !notify_client_id || !client_secret) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    try {
-      const response = await axios.post(
-        'https://notify-bot.line.me/oauth/token',
-        {
-          grant_type: 'authorization_code',
-          code,
-          redirect_uri: 'https://system-fund.vercel.app/page/notify', // Make sure to set the correct redirect URI
-          client_id: notify_client_id,
-          client_secret,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields' }),
+        { status: 400 }
       );
-
-      if (response.status === 200) {
-        return res.status(200).json(response.data);
-      } else {
-        return res.status(response.status).json({ error: 'Failed to fetch token' });
-      }
-    } catch (error: any) {  // Cast error to `any`
-      return res.status(500).json({ error: 'Server error', details: error.message });
     }
-  } else {
-    return res.status(405).json({ error: 'Method not allowed' });
+
+    // Make a POST request to Line Notify's API
+    const response = await fetch('https://notify-bot.line.me/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: 'https://system-fund.vercel.app/page/notify', // Replace with the correct redirect URI
+        client_id: notify_client_id,
+        client_secret,
+      }),
+    });
+
+    // Handle the response from Line Notify
+    if (response.ok) {
+      const data = await response.json();
+      return new Response(JSON.stringify(data), { status: 200 });
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch token' }),
+        { status: response.status }
+      );
+    }
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({ error: 'Server error', details: error.message }),
+      { status: 500 }
+    );
   }
 }
