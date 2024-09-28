@@ -142,8 +142,8 @@ const Header = () => {
             className="ml-2" // เพิ่มระยะห่างระหว่างข้อความและไอคอน
           />
         </button>
-        {isScholarshipDropdownOpen && (
-          <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+        {isScholarshipDropdownOpen && ( 
+          <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-8 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
             <div className="py-1">
               <Link href="/page/internal-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
                 ทุนภายใน
@@ -154,7 +154,7 @@ const Header = () => {
             </div>
           </div>
         )}
-        <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ประกาศทุนการศึกษา</Link>
+        <Link href="/page/results-announcement" className="text-gray-600 hover:text-gray-900">ดูผลประกาศทุนการศึกษา</Link>
         {user && (
       <Link href="/page/History-Application" className="text-gray-600 hover:text-gray-900">ประวัติการสมัคร</Link>
     )}
