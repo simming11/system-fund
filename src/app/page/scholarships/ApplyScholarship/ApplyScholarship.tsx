@@ -258,7 +258,7 @@ export default function ApplyScholarShipsPage() {
         return "ปิดรับแล้ว";  // If it's past the end date or outside the range, show closed
       }
     }
-    return "ไม่มีข้อมูล";  // If no dates are provided
+    return "ปิดรับแล้ว";  // If no dates are provided
   };
 
   
