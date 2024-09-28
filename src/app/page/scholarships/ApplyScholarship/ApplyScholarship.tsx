@@ -12,6 +12,21 @@ import ApiStudentServices from '@/app/services/students/ApiStudent';
 import ApiApplicationServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
 import ApiApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices';
 import styles from './ApplyScholarships.module.css'; // Import styles
+import Swal from 'sweetalert2';
+// Define your popup function here
+const showPopup = () => {
+  Swal.fire({
+    title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
+    imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
+    imageWidth: 100, // Set the width of the image
+    imageHeight: 100, // Set the height of the image
+    html: `
+     
+    `,
+    confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
+  });
+};
+
 
 interface Student {
   StudentID: string;
@@ -59,6 +74,7 @@ export default function ApplyScholarShipsPage() {
 
   // Fetch all scholarships and student applications
   useEffect(() => {
+    showPopup();
     const fetchData = async () => {
       try {
         // Fetch all scholarships
