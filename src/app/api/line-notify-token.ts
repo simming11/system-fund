@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           grant_type: 'authorization_code',
           code,
-          redirect_uri: 'YOUR_REDIRECT_URI', // Make sure to set the correct redirect URI
+          redirect_uri: 'https://system-fund.vercel.app/page/notify', // Make sure to set the correct redirect URI
           client_id: notify_client_id,
           client_secret,
         },
