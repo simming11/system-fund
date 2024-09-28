@@ -5,7 +5,7 @@ const GetCorsHeaders = (origin: string) => {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Origin': 'https://mis.csit.scidi.tsu.ac.th/642021164/api/line-notifies/academic', // Default to '*', change as needed
+    'Access-Control-Allow-Origin': 'https://mis.csit.scidi.tsu.ac.th/642021164', // Default to '*', change as needed
   };
 
   // Check if there is an allowed origin in the environment variable
@@ -26,7 +26,7 @@ export async function OPTIONS(request: Request) {
     const response = new NextResponse(null, {
       status: 200,
       headers: {
-        "Access-Control-Allow-Origin": allowedOrigin || "*",
+        "Access-Control-Allow-Origin": allowedOrigin || "https://mis.csit.scidi.tsu.ac.th/642021164",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers":
           "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
