@@ -150,7 +150,6 @@ export default function ExternalScholarShipsPage() {
     }
     return "ปิดรับแล้ว"; // Closed status
   };
-
   // Check if a scholarship has been applied
   const hasApplied = (scholarshipID: number): boolean => {
     return appliedScholarships.includes(scholarshipID);
