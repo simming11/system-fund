@@ -55,72 +55,97 @@ export default function ApplyScholarShipsPage() {
    const [openPage, setOpenPage] = useState(1);
    const [closedPage, setClosedPage] = useState(1);
    const [allPage, setAllPage] = useState(1);
-
-  // Fetch all scholarships and student applications
+   // Retrieve and set saved page numbers from sessionStorage
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch all scholarships
-        const scholarshipsResponse = await ApiServiceScholarships.getAllScholarships();
-        const scholarshipsData = scholarshipsResponse.data;
-        console.log('Scholarships Data:', scholarshipsData);
+    const savedRecommendedPage = sessionStorage.getItem('recommendedPage');
+    const savedOpenPage = sessionStorage.getItem('openPage');
+    const savedClosedPage = sessionStorage.getItem('closedPage');
+    const savedAllPage = sessionStorage.getItem('allPage');
 
-        const updatedScholarships = await Promise.all(
-          scholarshipsData.map(async (scholarship: Scholarship) => {
-            if (scholarship.ScholarshipID) {
-              try {
-                const imageResponse = await ApiScholarshipsAllImage.getImageByScholarshipID(scholarship.ScholarshipID);
-                if (imageResponse.status === 200 && imageResponse.data.length > 0) {
-                  scholarship.ImagePath = imageResponse.data[0].ImagePath;
-                }
-              } catch (error) {
-                console.error(`Error fetching image for scholarship ${scholarship.ScholarshipID}`, error);
+    if (savedRecommendedPage) setRecommendedPage(Number(savedRecommendedPage));
+    if (savedOpenPage) setOpenPage(Number(savedOpenPage));
+    if (savedClosedPage) setClosedPage(Number(savedClosedPage));
+    if (savedAllPage) setAllPage(Number(savedAllPage));
+  }, []);
+
+  // Function to handle page change and save to sessionStorage
+  const handlePageChange = (category: string, newPage: number) => {
+    switch (category) {
+      case 'recommended':
+        setRecommendedPage(newPage);
+        sessionStorage.setItem('recommendedPage', newPage.toString());
+        break;
+      case 'open':
+        setOpenPage(newPage);
+        sessionStorage.setItem('openPage', newPage.toString());
+        break;
+      case 'closed':
+        setClosedPage(newPage);
+        sessionStorage.setItem('closedPage', newPage.toString());
+        break;
+      case 'all':
+        setAllPage(newPage);
+        sessionStorage.setItem('allPage', newPage.toString());
+        break;
+    }
+  };
+
+ // Fetch all scholarships and student applications
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const scholarshipsResponse = await ApiServiceScholarships.getAllScholarships();
+      const scholarshipsData = scholarshipsResponse.data;
+
+      const updatedScholarships = await Promise.all(
+        scholarshipsData.map(async (scholarship: Scholarship) => {
+          if (scholarship.ScholarshipID) {
+            try {
+              const imageResponse = await ApiScholarshipsAllImage.getImageByScholarshipID(scholarship.ScholarshipID);
+              if (imageResponse.status === 200 && imageResponse.data.length > 0) {
+                scholarship.ImagePath = imageResponse.data[0].ImagePath;
               }
+            } catch (error) {
+              console.error(`Error fetching image for scholarship ${scholarship.ScholarshipID}`, error);
             }
-            return scholarship;
-          })
-        );
+          }
+          return scholarship;
+        })
+      );
 
-        const now = new Date();
-        const openScholarships = updatedScholarships.filter(scholarship => {
-          const start = new Date(scholarship.StartDate);
-          const end = new Date(scholarship.EndDate);
-          return now >= start && now < end;
-        });
+      const now = new Date();
+      const openScholarships = updatedScholarships.filter(scholarship => {
+        const start = new Date(scholarship.StartDate);
+        const end = new Date(scholarship.EndDate);
+        return now >= start && now < end;
+      });
 
-        const closedScholarships = updatedScholarships.filter(scholarship => {
-          const start = new Date(scholarship.StartDate);
-          const end = new Date(scholarship.EndDate);
-          return  now > end;
-        });
+      const closedScholarships = updatedScholarships.filter(scholarship => {
+        const start = new Date(scholarship.StartDate);
+        const end = new Date(scholarship.EndDate);
+        return now > end;
+      });
 
-        setScholarships(updatedScholarships);
-        setOpenScholarships(openScholarships);
-        setClosedScholarships(closedScholarships);
-        setAllScholarships(updatedScholarships);
+      setScholarships(updatedScholarships);
+      setOpenScholarships(openScholarships);
+      setClosedScholarships(closedScholarships);
+      setAllScholarships(updatedScholarships);
 
-        // Fetch student data
-        const StudentID = localStorage.getItem('UserID');
-        if (StudentID) {
-          const studentResponse = await ApiStudentServices.getStudent(StudentID);
-          setStudent(studentResponse.data);
-          console.log('Student Data:', studentResponse.data);
-
-          // Calculate and set the recommended scholarships based on the student's GPA and Course
-          recommendScholarships(studentResponse.data.GPA, studentResponse.data.Course, studentResponse.data.Year_Entry);
-        } else {
-          // console.warn('No StudentID found in localStorage');
-          // router.push('/page/login');
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
+      // Fetch student data
+      const StudentID = localStorage.getItem('UserID');
+      if (StudentID) {
+        const studentResponse = await ApiStudentServices.getStudent(StudentID);
+        setStudent(studentResponse.data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, [router]); // Dependencies: only run on initial load
+  fetchData();
+}, [router]); // Dependencies: only run on initial load
 
   // Separate useEffect for recommending scholarships
   // Function to calculate the academic year
@@ -311,15 +336,15 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
               {/* Pagination for Recommended Scholarships */}
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={() => setRecommendedPage((prev) => Math.max(prev - 1, 1))}
+                 onClick={() => handlePageChange('recommended', Math.max(recommendedPage - 1, 1))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={recommendedPage === 1}
                 >
                   Previous
                 </button>
-                <span className="px-4 py-2">{recommendedPage} of {totalPages(recommendedScholarships.length)}</span>
+                 <span className="px-4 py-2">{recommendedPage} of {totalPages(recommendedScholarships.length)}</span>
                 <button
-                  onClick={() => setRecommendedPage((prev) => Math.min(prev + 1, totalPages(recommendedScholarships.length)))}
+               onClick={() => handlePageChange('recommended', Math.min(recommendedPage + 1, totalPages(recommendedScholarships.length)))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={recommendedPage === totalPages(recommendedScholarships.length)}
                 >
@@ -355,7 +380,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
               {/* Pagination for Open Scholarships */}
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={() => setOpenPage((prev) => Math.max(prev - 1, 1))}
+                     onClick={() => handlePageChange('open', Math.max(recommendedPage - 1, 1))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={openPage === 1}
                 >
@@ -363,7 +388,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
                 </button>
                 <span className="px-4 py-2">{openPage} of {totalPages(openScholarships.length)}</span>
                 <button
-                  onClick={() => setOpenPage((prev) => Math.min(prev + 1, totalPages(openScholarships.length)))}
+                    onClick={() => handlePageChange('open', Math.min(recommendedPage + 1, totalPages(recommendedScholarships.length)))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={openPage === totalPages(openScholarships.length)}
                 >
@@ -400,7 +425,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
               {/* Pagination for Closed Scholarships */}
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={() => setClosedPage((prev) => Math.max(prev - 1, 1))}
+                onClick={() => handlePageChange('closedPage', Math.max(recommendedPage - 1, 1))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={closedPage === 1}
                 >
@@ -408,7 +433,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
                 </button>
                 <span className="px-4 py-2">{closedPage} of {totalPages(closedScholarships.length)}</span>
                 <button
-                  onClick={() => setClosedPage((prev) => Math.min(prev + 1, totalPages(closedScholarships.length)))}
+                       onClick={() => handlePageChange('closedPage', Math.min(recommendedPage + 1, totalPages(recommendedScholarships.length)))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={closedPage === totalPages(closedScholarships.length)}
                 >
@@ -445,7 +470,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
               {/* Pagination for All Scholarships */}
               <div className="mt-4 flex justify-center">
                 <button
-                  onClick={() => setAllPage((prev) => Math.max(prev - 1, 1))}
+                   onClick={() => handlePageChange('allPage', Math.max(recommendedPage - 1, 1))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={allPage === 1}
                 >
@@ -453,7 +478,7 @@ const getStatus = (startDate?: Date, endDate?: Date): string => {
                 </button>
                 <span className="px-4 py-2">{allPage} of {totalPages(allScholarships.length)}</span>
                 <button
-                  onClick={() => setAllPage((prev) => Math.min(prev + 1, totalPages(allScholarships.length)))}
+                     onClick={() => handlePageChange('allPage', Math.min(recommendedPage + 1, totalPages(recommendedScholarships.length)))}
                   className="px-4 py-2 bg-gray-300 rounded-lg"
                   disabled={allPage === totalPages(allScholarships.length)}
                 >

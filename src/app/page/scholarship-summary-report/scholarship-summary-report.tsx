@@ -128,7 +128,7 @@ const ScholarshipStats = () => {
         datasets: [
             {
                 label: `ทุนการศึกษาในปี ${yearApplied}`,
-                data: [internalCount, externalCount],
+                data: [internalCount, externalCount] ,
                 backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(153, 102, 255, 0.6)'],
                 borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
                 borderWidth: 1,
@@ -138,7 +138,7 @@ const ScholarshipStats = () => {
 
     // Data for the applied and received scholarships pie chart
     const appliedScholarshipsData = {
-        labels: [`นิสิตที่สมัครทุนการศึกษาในปี ${yearApplied}`, `นิสิตที่ได้รับทุนในปี ${yearApplied}`],
+        labels: [`นิสิตที่สมัครทุนการศึกษาในปี ${yearApplied} คน`, `นิสิตที่ได้รับทุนในปี ${yearApplied}คน`],
         datasets: [
             {
                 label: 'Applied vs Received Scholarships',
