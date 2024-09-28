@@ -101,6 +101,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
       if (responseToken.ok) {
         const tokenData = await responseToken.json();
         const { access_token } = tokenData;
+        updateLineNotifyInDB(access_token);
         console.log('Access Token:', access_token);
         setHasLineToken(!LineToken);
 
@@ -108,7 +109,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
         localStorage.setItem('line_notify_token', access_token);
 
         // Update Line Notify in DB with the new token
-        await updateLineNotifyInDB(access_token);
+        
 
         return access_token;
       } else {
