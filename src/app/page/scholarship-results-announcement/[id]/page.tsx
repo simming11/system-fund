@@ -85,16 +85,8 @@ export default function ScholarshipResultsAnnouncementPage() {
 
                 // Store LineToken in state
                 setLineToken(response[0].LineToken);
-                console.log(response[0].LineToken);
-
-                console.log('Updated formData with client_secret and notify_client_id:', {
-                    client_secret,
-                    notify_client_id,
-                    LineToken,
-                });
             }
 
-            console.log('Fetched Line Notifies:', response[0]); // Log the fetched data
         } catch (error) {
             console.error('Error fetching line notifies:', error);
         }
@@ -106,23 +98,19 @@ export default function ScholarshipResultsAnnouncementPage() {
                 const scholarshipId = Array.isArray(id) ? id[0] : id;
                 if (scholarshipId) {
                     // Log the start of the internal API call
-                    console.log(`Fetching data from Internal API for ScholarshipID: ${scholarshipId}`);
 
                     // Try fetching from internal API first
                     let response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
 
                     // Log the response from internal API
-                    console.log('Internal API Response:', response);
 
                     // If no data found from internal API, fallback to external API
                     if (!response || response.length === 0) {
-                        console.log('No data found in Internal API, fetching from External API.');
 
                         // Fetch from external API
                         response = await ApiApplicationExternalServices.getStudentsByScholarshipId(scholarshipId);
 
                         // Log the response from external API
-                        console.log('External API Response:', response);
                     }
 
                     // Check if any data has been found from either API
@@ -130,10 +118,8 @@ export default function ScholarshipResultsAnnouncementPage() {
                         setApplications(response);
                         setApplicationsINEX(response)
                         // Log specific parts of the response to check structure
-                        console.log('First application data:', response[0]);
 
                         const scholarshipname = response[0].scholarship?.ScholarshipName || 'Unknown';
-                        console.log('Scholarship Name:', scholarshipname);
 
                         // Extract and store the scholarship name in state
                         setScholarshipName(scholarshipname);
@@ -162,7 +148,6 @@ export default function ScholarshipResultsAnnouncementPage() {
         setApplicationsINEX(updatedApplications); // Update the state with the modified array
 
         // Log the updated status
-        console.log(`Updated Application ${index} with new Status:`, updatedApplications[index].Status);
     };
 
 
@@ -203,24 +188,23 @@ export default function ScholarshipResultsAnnouncementPage() {
     const handleSubmit = async () => {
         // Reset form and file errors
         setFormError(null);
-    
+
         // Validate file upload
         if (!file) {
             setFileError('กรุณาอัพโหลดไฟล์เอกสาร');
             return; // Prevent submission if no file is uploaded
         }
-    
+
         try {
-            console.log('Starting update process for all applications.');
-    
+
             if (!ApplicationINEX || ApplicationINEX.length === 0) {
-                console.log('No applications to process.');
+
                 return;
             }
-    
+
             // Ensure scholarshipId is a string
             const scholarshipId = Array.isArray(id) ? id[0] : id; // Use 'id' from useParams()
-    
+
             const tasks: Promise<any>[] = ApplicationINEX.map(async (application, index) => {
                 try {
                     const {
@@ -240,9 +224,9 @@ export default function ScholarshipResultsAnnouncementPage() {
                         ScholarshipID,
                         StudentID
                     } = application;
-    
-                    console.log(`Submitting Application ${index} with Status: ${Status}`);
-    
+
+
+
                     if (ApplicationID) {
                         const internalPayload = {
                             Status,
@@ -259,22 +243,18 @@ export default function ScholarshipResultsAnnouncementPage() {
                             ScholarshipID,
                             StudentID,
                         };
-    
-                        console.log('Internal application payload:', JSON.stringify(internalPayload, null, 2));
-    
+
                         const response = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
-                        console.log('Internal update response:', JSON.stringify(response, null, 2));
+
                         return response;
-    
+
                     } else if (Application_EtID) {
                         const externalPayload = {
                             Status,
                         };
-    
-                        console.log('External application payload:', JSON.stringify(externalPayload, null, 2));
-    
+
                         const response = await ApiApplicationExternalServices.updateApplication(Application_EtID, externalPayload);
-                        console.log('External update response:', JSON.stringify(response, null, 2));
+
                         return response;
                     } else {
                         console.warn(`No valid ID found for application: ${JSON.stringify(application, null, 2)}`);
@@ -284,36 +264,32 @@ export default function ScholarshipResultsAnnouncementPage() {
                     console.error(`Error processing application:`, error);
                 }
             });
-    
-            console.log('Executing updates for all applications...');
+
             const results = await Promise.all(tasks.filter(task => task));
-            console.log('Results from all updates:', JSON.stringify(results, null, 2));
-    
+        
+
             // Check if a file was selected and upload it
             if (file) {
-                console.log('Uploading announcement file...');
                 const fileUploadResponse = await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
-                console.log('File uploaded successfully:', fileUploadResponse);
+                
             }
-    
-            console.log('All tasks executed successfully.');
-    
+
+
             // Send Line Notify message after updating applications
             if (lineToken) {
                 const message = `ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${URL}/page/results-announcement/${scholarshipId}`;
                 await ApiLineNotifyServices.sendLineNotify(message, lineToken);  // ส่ง lineToken และข้อความ
-                console.log('Line Notify message sent successfully');
             } else {
                 console.error("LINE Notify token is null");
             }
-    
+
             // Redirect to the announcement page
             router.push(`/page/scholarship-results-announcement`);
         } catch (error) {
             console.error('Error in handleSubmit:', error);
         }
     };
-    
+
 
 
 
@@ -400,8 +376,8 @@ export default function ScholarshipResultsAnnouncementPage() {
                         </table>
                     </div>
 
-                     {/* File upload input */}
-                     <div className="mt-6">
+                    {/* File upload input */}
+                    <div className="mt-6">
                         <label htmlFor="fileUpload" className="block text-gray-700 mb-2">ไฟล์เอกสาร</label>
                         <input
                             type="file"
