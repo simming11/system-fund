@@ -303,6 +303,11 @@ export default function ApplyScholarShipsPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
   
+      // ถ้าวันปัจจุบันตรงกับ `startDate` ให้ถือว่า "เปิดรับอยู่"
+      if (now.toDateString() === start.toDateString()) {
+        return "เปิดรับอยู่";
+      }
+  
       // ถ้าวันปัจจุบันตรงกับ `endDate` ให้ถือว่า "เปิดรับอยู่"
       if (now.toDateString() === end.toDateString()) {
         return "เปิดรับอยู่";
@@ -320,6 +325,7 @@ export default function ApplyScholarShipsPage() {
     }
     return "ไม่มีข้อมูล"; // กรณีไม่มีข้อมูลวันที่
   };
+  
   
   
 
