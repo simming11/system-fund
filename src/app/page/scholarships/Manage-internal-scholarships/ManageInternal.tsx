@@ -222,7 +222,7 @@ const handleUnhide = async (id: string) => {
                   >
                     <td className="border border-gray-300 p-2 text-center">{indexOfFirstScholarship + index + 1}</td>
                     <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName}</td>
-                    <td className="border border-gray-300 p-2 text-center">
+                    <td className="border border-gray-300 p-2 ">
                       ปีการศึกษา: {scholarship.Year} <br />
                       เกรด: {scholarship.Minimum_GPA} <br />
                       ชั้นปี: {scholarship.YearLevel} <br />

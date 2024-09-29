@@ -15,7 +15,16 @@ export default function LoginControlPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string>('');
   const router = useRouter();
-
+  useEffect(() => {
+    const userRole = localStorage.getItem('UserRole');
+    
+    // ถ้า UserRole เป็น admin จะไม่สามารถเข้าหน้าควบคุมได้
+    if (userRole && userRole.trim().toLowerCase() === 'admin') {
+      router.push('/page/management'); // Redirect ไปยังหน้าที่เหมาะสม
+    }
+  }, [router]);
+  
+  
   useEffect(() => {
     const savedIdentifier = localStorage.getItem('savedIdentifier');
     const savedPassword = localStorage.getItem('savedPassword');
