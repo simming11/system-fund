@@ -143,13 +143,13 @@ const Header = () => {
           />
         </button>
         {isScholarshipDropdownOpen && ( 
-          <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-8 w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+          <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-8 w-50 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
             <div className="py-1">
               <Link href="/page/internal-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                ทุนภายใน
+                ทุนภายในคณะ
               </Link>
               <Link href="/page/external-scholarships" className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
-                ทุนภายนอก
+                ทุนที่มาจากภายนอก
               </Link>
             </div>
           </div>
