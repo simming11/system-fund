@@ -118,7 +118,7 @@ export default function ApplicationDataPage() {
 <div className="mb-4 flex items-center space-x-4">
   {/* Dropdown for selecting year */}
   <div className="flex-shrink-0">
-    <label htmlFor="year" className="block text-gray-700 mb-2">เลือกปีการศึกษา:</label>
+    <label htmlFor="year" className="block text-gray-700 mb-2">เลือกปีการศึกษา</label>
     <select
       id="year"
       value={selectedYear}
@@ -136,7 +136,7 @@ export default function ApplicationDataPage() {
 
   {/* Search input */}
   <div className="flex-1">
-    <label htmlFor="search" className="block text-gray-700 mb-2">ค้นหาทุนการศึกษา:</label>
+    <label htmlFor="search" className="block text-gray-700 mb-2"></label>
     <input
       id="search"
       type="text"
