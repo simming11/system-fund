@@ -60,6 +60,7 @@ interface ScholarshipFileData {
   FilePath: string; // Assuming FilePath is a string (URL)
   Description?: string;
 }
+
 export default function ScholarshipDetailPage() {
   const router = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
@@ -81,7 +82,6 @@ export default function ScholarshipDetailPage() {
       }
       sessionStorage.setItem('lastScholarshipId', id || ''); // บันทึก id ใหม่
     };
-
 
     const fetchScholarshipData = async () => {
       try {
@@ -151,9 +151,31 @@ export default function ScholarshipDetailPage() {
       </div>
     );
   }
+
   const isApplyDisabled = scholarship
-    ? new Date() >new Date(scholarship.StartDate) && new Date() >= new Date(scholarship.EndDate)
-    : true;
+  ? (() => {
+      const now = new Date();
+      const startDate = new Date(scholarship.StartDate);
+      const endDate = new Date(scholarship.EndDate);
+
+      // ถ้าวันปัจจุบันตรงกับ endDate หรืออยู่ในช่วงระหว่าง startDate และ endDate (รวมถึงวันเริ่มและวันสิ้นสุด)
+      if (now.toDateString() === endDate.toDateString()) {
+        return false; // เปิดรับอยู่ถึงวันสิ้นสุด (รวมถึงวันสิ้นสุด)
+      }
+
+      // ถ้าวันปัจจุบันอยู่ระหว่าง startDate และ endDate
+      if (now >= startDate && now <= endDate) {
+        return false; // เปิดรับอยู่
+      }
+
+      // ถ้า startDate และ endDate ตรงกัน ให้เปิดรับ
+      if (startDate.toDateString() === endDate.toDateString()) {
+        return false; // เปิดรับในวันเดียวกัน
+      }
+
+      return true; // ปิดรับ
+    })()
+  : true; // หากไม่มีข้อมูลทุนการศึกษา ให้ปิดปุ่ม
 
 
   return (
@@ -189,7 +211,7 @@ export default function ScholarshipDetailPage() {
                   <h3 className="text-lg font-semibold mb-1">คุณสมบัติ:</h3>
                   <ul className="list-disc list-inside text-gray-600">
                     <li>เกรดเฉลี่ย {scholarship.Minimum_GPA} ขึ้นไป</li>
-                    <li>ชั้นปี{scholarship.YearLevel} </li>
+                    <li>ชั้นปี {scholarship.YearLevel}</li>
                     {scholarship.qualifications.map((qualification, index) => (
                       <li key={index}>{qualification.QualificationText}</li>
                     ))}
@@ -229,8 +251,12 @@ export default function ScholarshipDetailPage() {
                   </div>
                 )}
                 <div className="mt-10">
-                  <p className="text-gray-500 text-sm mb-2">วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}</p>
-                  <p className="text-gray-500 text-sm mb-2">วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}</p>
+                  <p className="text-gray-500 text-sm mb-2">
+                    วันที่เปิดรับ: {new Date(scholarship.StartDate).toLocaleDateString()}
+                  </p>
+                  <p className="text-gray-500 text-sm mb-2">
+                    วันที่ปิดรับ: {new Date(scholarship.EndDate).toLocaleDateString()}
+                  </p>
                   <p className="text-gray-500 text-sm mb-2">ปีการศึกษา: {scholarship.Year}</p>
                 </div>
               </div>
@@ -246,7 +272,9 @@ export default function ScholarshipDetailPage() {
           ) : (
             <button
               onClick={handleApplyNow}
-              className={`px-4 py-2 rounded mt-4 text-white ${isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+              className={`px-4 py-2 rounded mt-4 text-white ${
+                isApplyDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+              }`}
               disabled={isApplyDisabled}
             >
               {isApplyDisabled ? 'ปิดรับสมัครแล้ว' : 'สมัครตอนนี้'}
@@ -254,7 +282,6 @@ export default function ScholarshipDetailPage() {
           )}
         </div>
       </div>
-
     </div>
   );
 }

@@ -87,18 +87,26 @@ export default function ApplyScholarShipsPage() {
         );
 
         const now = new Date();
+
+        // กรองทุนที่ "เปิดรับอยู่"
         const openScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return now >= start && now < end;
+          
+          // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วงหรือเท่ากับ `endDate`
+          return now >= start && now <= end;
         });
-
+        
+        // กรองทุนที่ "ปิดรับแล้ว"
         const closedScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return  now >= end;
+          
+          // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate`
+          return now > end || now < start;
         });
-
+        
+        
         setScholarships(updatedScholarships);
         setOpenScholarships(openScholarships);
         setClosedScholarships(closedScholarships);
@@ -106,6 +114,7 @@ export default function ApplyScholarShipsPage() {
 
         // Fetch student data
         const StudentID = localStorage.getItem('UserID');
+        let appliedScholarshipsData: number[] = []; // Store applied scholarship IDs
         if (StudentID) {
           const studentResponse = await ApiStudentServices.getStudent(StudentID);
           setStudent(studentResponse.data);
@@ -113,6 +122,22 @@ export default function ApplyScholarShipsPage() {
 
           // Calculate and set the recommended scholarships based on the student's GPA and Course
           recommendScholarships(studentResponse.data.GPA, studentResponse.data.Course, studentResponse.data.Year_Entry);
+
+
+          // Fetch internal and external applications
+        const internalApplications = await ApiApplicationServices.showByStudentId(StudentID);
+        const externalApplications = await ApiApplicationExternalServices.showByStudent(StudentID);
+
+        // Combine internal and external applications to collect applied scholarship IDs
+        appliedScholarshipsData = [
+          ...internalApplications.map((app: any) => app.ScholarshipID),
+          ...externalApplications.map((app: any) => app.ScholarshipID),
+        ];
+
+        // Set applied scholarships state
+        setAppliedScholarships(appliedScholarshipsData);
+
+
         } else {
           // console.warn('No StudentID found in localStorage');
           // router.push('/page/login');
@@ -174,7 +199,8 @@ export default function ApplyScholarShipsPage() {
     "เคมี",
     "วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ",
     "ชีววิทยาศาสตร์",
-    "ฟิสิกส์วัสดุและนาโนเทคโนโลยี"
+    "ฟิสิกส์วัสดุและนาโนเทคโนโลยี",
+    "วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ"
   ];
 
   const recommendScholarships = (studentGPA: number, studentCourse: string, yearEntry: number | null) => {
@@ -272,26 +298,25 @@ export default function ApplyScholarShipsPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
   
-      // If today's date is the same as `endDate`, return "เปิดรับอยู่"
+      // ถ้าวันปัจจุบันตรงกับ `endDate` ให้ถือว่า "เปิดรับอยู่"
       if (now.toDateString() === end.toDateString()) {
-        return "เปิดรับอยู่";  // Close if it's the last day (same as end date)
+        return "เปิดรับอยู่";
       }
   
-      // If today's date is within the start and end range, excluding the end date
-      if (now <= start && now < end) {
-        return "เปิดรับอยู่";  // Open if it's before the end date
+      // ถ้าวันปัจจุบันอยู่ระหว่าง `startDate` และ `endDate`
+      if (now >= start && now < end) {
+        return "เปิดรับอยู่";
       }
   
-      if (now > start && now > end) {
-        return "ปิดรับแล้ว";  // If it's past the end date or outside the range, show closed
-      }
-
-      if (now > start && now < end) {
-        return "เปิดรับอยู่";  // If it's past the end date or outside the range, show closed
+      // ถ้าวันปัจจุบันเกิน `endDate` หรืออยู่นอกช่วง
+      if (now > end || now < start) {
+        return "ปิดรับแล้ว";
       }
     }
-    return "ไม่มีข้อมูล";  // If no dates are provided
+    return "ไม่มีข้อมูล"; // กรณีไม่มีข้อมูลวันที่
   };
+  
+  
 
 
   
@@ -349,7 +374,8 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              {hasApplied(scholarship.ScholarshipID) ? (
+             {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
+             {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
                 <p className={`text-sm ${statusColor}`}>{status}</p>
@@ -406,7 +432,8 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              {hasApplied(scholarship.ScholarshipID) ? (
+               {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
+               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
                 <p className={`text-sm ${statusColor}`}>{status}</p>
@@ -465,8 +492,7 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-            
-
+              {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
@@ -526,9 +552,9 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-            
 
-              {hasApplied(scholarship.ScholarshipID) ? (
+             {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
+             {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
                 <p className={`text-sm ${statusColor}`}>{status}</p>
