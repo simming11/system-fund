@@ -182,7 +182,7 @@ const handleUnhide = async (id: string) => {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในมหาวิทยาลัย</h2>
+            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในคณะ</h2>
             <div className="mb-4 flex items-center justify-between space-x-4">
   {/* Add Button */}
   <button
