@@ -207,10 +207,6 @@ export default function UserPage() {
                     <td className="border p-2 md:p-4">{academicYear}</td>
                   </tr>
                   <tr>
-                    <td className="border p-2 md:p-4 font-bold">สถานะนิสิต:</td>
-                    <td className="border p-2 md:p-4 text-green-600">กำลังศึกษา</td>
-                    <td className="border p-2 md:p-4 font-bold">ผลการเรียน:</td>
-                    <td className="border p-2 md:p-4 text-green-600">ปกติ</td>
                   </tr>
                 </tbody>
               </table>
