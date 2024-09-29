@@ -124,7 +124,7 @@ const ScholarshipStats = () => {
 
     // Data for the first pie chart (Internal vs External Scholarships)
     const scholarshipTypeData = {
-        labels: ['ทุนภายในที่เข้ามาในคณะ', 'ทุนภายนอกที่เข้ามาในคณะ'],
+        labels: ['ทุนภายในคณะ', 'ทุนภายนอกที่เข้ามาในคณะ'],
         datasets: [
             {
                 label: `ทุนการศึกษาในปี ${yearApplied}`,

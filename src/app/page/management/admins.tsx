@@ -37,7 +37,7 @@ export default function AdminPage() {
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-4xl font-bold">จัดการทุนการศึกษา</h1>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 max-w-50">
             <Link href="scholarships/Manage-internal-scholarships">
               <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
                 <Image
@@ -60,6 +60,30 @@ export default function AdminPage() {
                   className="mx-auto rounded-lg"  // Apply rounded corners to the image
                 />
                 <h3 className="text-md font-semibold text-center mt-2">จัดการทุนการศึกษาภายนอก</h3>
+              </div>
+            </Link>
+            <Link href="/page/internal-application-data">
+              <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
+                <Image
+                  src="/images/manageEX.png"
+                  alt="External Scholarship"
+                  width={150}
+                  height={150}
+                  className="mx-auto rounded-lg"  // Apply rounded corners to the image
+                />
+                <h3 className="text-md font-semibold text-center mt-2">ข้อมูลการสมัครทุนภายใน</h3>
+              </div>
+            </Link>
+            <Link href="/page/external-application-data">
+              <div className="rounded-lg p-2 cursor-pointer hover:scale-105 transform transition duration-400 ease-in-out">
+                <Image
+                  src="/images/manageEX.png"
+                  alt="External Scholarship"
+                  width={150}
+                  height={150}
+                  className="mx-auto rounded-lg"  // Apply rounded corners to the image
+                />
+                <h3 className="text-md font-semibold text-center mt-2">ข้อมูลการสมัครทุนภายนอก</h3>
               </div>
             </Link>
             <Link href="scholarship-results-announcement">
