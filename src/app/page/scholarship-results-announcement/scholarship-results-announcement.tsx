@@ -114,39 +114,34 @@ export default function ApplicationDataPage() {
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">ประกาศทุนการศึกษา</h2>
 
-{/* Dropdown and Search input on the same row */}
-<div className="mb-4 flex items-center space-x-4">
-  {/* Dropdown for selecting year */}
-  <div className="flex-shrink-0">
-    <label htmlFor="year" className="block text-gray-700 mb-2">เลือกปีการศึกษา</label>
-    <select
-      id="year"
-      value={selectedYear}
-      onChange={handleYearChange}
-      className="border border-gray-300 p-2 rounded"
-    >
-      <option value="">ทั้งหมด</option>
-      {availableYears.map((year) => (
-        <option key={year} value={year}>
-          {year}
-        </option>
-      ))}
-    </select>
-  </div>
+            {/* Dropdown for selecting year */}
+            <div className="mb-4">
+              <label htmlFor="year" className="block text-gray-700 mb-2">เลือกปีการศึกษา:</label>
+              <select
+                id="year"
+                value={selectedYear}
+                onChange={handleYearChange}
+                className="border border-gray-300 p-2 rounded"
+              >
+                <option value="">ทั้งหมด</option>
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-  {/* Search input */}
-  <div className="flex-1">
-    <label htmlFor="search" className="block text-gray-700 mb-2"></label>
-    <input
-      id="search"
-      type="text"
-      placeholder="ค้นหาทุนการศึกษา..."
-      value={searchTerm}
-      onChange={handleSearch}
-      className="w-full p-2 border border-gray-300 rounded"
-    />
-  </div>
-</div>
+            {/* Search input */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="ค้นหาทุนการศึกษา..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </div>
 
             {/* Scholarship table */}
             <table className="w-full table-auto border-collapse border border-gray-300">
