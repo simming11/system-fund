@@ -186,7 +186,7 @@ const ScholarshipStats = () => {
         } else if (showScholarshipTypeYearChart && Object.keys(scholarshipCountMap)) {
             return <Pie data={scholarshipTypeYearData} options={options} />;
         } else {
-            return <p>No data available for the selected criteria.</p>;
+            return <p>ไม่มีข้อมูล</p>;
         }
     };
 
@@ -231,7 +231,7 @@ const ScholarshipStats = () => {
                             {/* Show only if showing scholarshipTypeYearChart */}
                             {showScholarshipTypeYearChart && (
                                 <div className="ml-0 md:ml-4 mt-4 md:mt-0 w-full md:w-auto">
-                                    <label className="text-sm md:text-base">ทุนที่เลือก:</label>
+                                    <label className="text-sm md:text-base">แหล่งที่มา</label>
                                     <select
                                         value={INorEX}
                                         onChange={(e) => setINorEX(e.target.value)}
