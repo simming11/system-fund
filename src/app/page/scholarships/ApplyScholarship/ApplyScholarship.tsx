@@ -384,7 +384,7 @@ export default function ApplyScholarShipsPage() {
           <main className="flex-1">
           {openScholarships.length > 0 && (
   <div>
-    <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่เปิดรับอยู่</h2>
+    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่เปิดรับอยู่</h2>
     <div className="flex flex-wrap justify-start">
       {paginate(openScholarships, openPage).map((scholarship) => {
         const status = getStatus(scholarship.StartDate, scholarship.EndDate);
@@ -445,7 +445,7 @@ export default function ApplyScholarShipsPage() {
        {/* Closed Scholarships */}
        {closedScholarships.length > 0 && (
   <div>
-    <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาที่ปิดรับแล้ว</h2>
+    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่ปิดรับแล้ว</h2>
     <div className="flex flex-wrap justify-start">
       {paginate(closedScholarships, closedPage).map((scholarship) => {
         const status = getStatus(scholarship.StartDate, scholarship.EndDate);
@@ -506,7 +506,7 @@ export default function ApplyScholarShipsPage() {
       {/* All Scholarships */}
 {allScholarships.length > 0 && (
   <div>
-    <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
+    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาทั้งหมด</h2>
     <div className="flex flex-wrap justify-start">
       {paginate(allScholarships, allPage).map((scholarship) => {
         const status = getStatus(scholarship.StartDate, scholarship.EndDate);
