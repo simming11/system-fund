@@ -90,7 +90,7 @@ export default function ApplyScholarShipsPage() {
         const openScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return now >= start && now < end;
+          return now >= start && now <= end;
         });
 
         const closedScholarships = updatedScholarships.filter(scholarship => {
