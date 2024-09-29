@@ -90,7 +90,7 @@ export default function ApplyScholarShipsPage() {
         const openScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-          return now >= start && now <= end;
+          return now >= start && now < end;
         });
 
         const closedScholarships = updatedScholarships.filter(scholarship => {
@@ -506,7 +506,7 @@ export default function ApplyScholarShipsPage() {
       {/* All Scholarships */}
 {allScholarships.length > 0 && (
   <div>
-    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาทั้งหมด</h2>
+    <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
     <div className="flex flex-wrap justify-start">
       {paginate(allScholarships, allPage).map((scholarship) => {
         const status = getStatus(scholarship.StartDate, scholarship.EndDate);
