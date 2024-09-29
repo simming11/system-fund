@@ -83,7 +83,11 @@ const Sidebar = () => {
             } lg:translate-x-0`}
         >
           <div>
-            <h2 className="text-xl font-bold mb-4">จัดการทุนการศึกษา</h2>
+          <h2 className="text-xl font-bold mb-4 hover:text-blue-500 cursor-pointer">
+  <Link href="/page/management" legacyBehavior>
+    <a>จัดการทุนการศึกษา</a>
+  </Link>
+</h2>
             <ul className="space-y-3">
               {/* Sidebar Links */}
               <li>
