@@ -88,29 +88,30 @@ export default function ApplyScholarShipsPage() {
 
         const now = new Date();
 
-// กรองทุนที่ "เปิดรับอยู่"
-const openScholarships = updatedScholarships.filter(scholarship => {
-  const start = new Date(scholarship.StartDate);
-  const end = new Date(scholarship.EndDate);
-
-  // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วง start ถึง end (รวมถึงวัน end ด้วย)
-  return now >= start && (now <= end || now.toDateString() === end.toDateString());
-});
-
-// กรองทุนที่ "ปิดรับแล้ว"
-const closedScholarships = updatedScholarships.filter(scholarship => {
-  const start = new Date(scholarship.StartDate);
-  const end = new Date(scholarship.EndDate);
-
-  // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate` และไม่ตรงกับ `endDate`
-  return (now > end || now < start) && now.toDateString() !== end.toDateString();
-});
-
-// อัปเดต state สำหรับทุนการศึกษาทั้งหมด
-setScholarships(updatedScholarships);
-setOpenScholarships(openScholarships);
-setClosedScholarships(closedScholarships);
-setAllScholarships(updatedScholarships);
+        // กรองทุนที่ "เปิดรับอยู่"
+        const openScholarships = updatedScholarships.filter(scholarship => {
+          const start = new Date(scholarship.StartDate);
+          const end = new Date(scholarship.EndDate);
+        
+          // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วง start ถึง end (รวมถึงวัน start และ end ด้วย)
+          return (now >= start && now <= end) || now.toDateString() === start.toDateString() || now.toDateString() === end.toDateString();
+        });
+        
+        // กรองทุนที่ "ปิดรับแล้ว"
+        const closedScholarships = updatedScholarships.filter(scholarship => {
+          const start = new Date(scholarship.StartDate);
+          const end = new Date(scholarship.EndDate);
+        
+          // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate` และไม่ตรงกับ `endDate`
+          return (now > end || now < start) && now.toDateString() !== end.toDateString() && now.toDateString() !== start.toDateString();
+        });
+        
+        // อัปเดต state สำหรับทุนการศึกษาทั้งหมด
+        setScholarships(updatedScholarships);
+        setOpenScholarships(openScholarships);
+        setClosedScholarships(closedScholarships);
+        setAllScholarships(updatedScholarships);
+        
 
 
         // Fetch student data
