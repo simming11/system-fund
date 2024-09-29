@@ -115,7 +115,7 @@ export default function StudentDataPage() {
                 </div>
                 <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
-                        <h2 className="text-2xl font-semibold mb-6">ข้อมูลนักศึกษา</h2>
+                        <h2 className="text-2xl font-semibold mb-6">ข้อมูลนิสิต</h2>
                         <h2>จำนวนนิสิตทั้งหมด {length} </h2>
 
                         {/* Search input */}
