@@ -54,8 +54,8 @@ export default function LoginPage() {
     }
 
     // ตรวจสอบความถูกต้องของรหัสนิสิต
-    if (identifier.length !== 9) {
-      setError('รหัสนิสิตต้องมีความยาว 9 ตัวอักษร');
+    if (identifier.length !== 10) {
+      setError('รหัสนิสิตต้องมีความยาวไม่เกินตัวอักษร');
       return;
     }
 

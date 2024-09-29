@@ -88,29 +88,30 @@ export default function ApplyScholarShipsPage() {
 
         const now = new Date();
 
-        // กรองทุนที่ "เปิดรับอยู่"
-        const openScholarships = updatedScholarships.filter(scholarship => {
-          const start = new Date(scholarship.StartDate);
-          const end = new Date(scholarship.EndDate);
-          
-          // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วงหรือเท่ากับ `endDate`
-          return now >= start && now <= end;
-        });
-        
-        // กรองทุนที่ "ปิดรับแล้ว"
-        const closedScholarships = updatedScholarships.filter(scholarship => {
-          const start = new Date(scholarship.StartDate);
-          const end = new Date(scholarship.EndDate);
-          
-          // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate`
-          return now > end || now < start;
-        });
-        
-        
-        setScholarships(updatedScholarships);
-        setOpenScholarships(openScholarships);
-        setClosedScholarships(closedScholarships);
-        setAllScholarships(updatedScholarships);
+// กรองทุนที่ "เปิดรับอยู่"
+const openScholarships = updatedScholarships.filter(scholarship => {
+  const start = new Date(scholarship.StartDate);
+  const end = new Date(scholarship.EndDate);
+
+  // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วง start ถึง end (รวมถึงวัน end ด้วย)
+  return now >= start && (now <= end || now.toDateString() === end.toDateString());
+});
+
+// กรองทุนที่ "ปิดรับแล้ว"
+const closedScholarships = updatedScholarships.filter(scholarship => {
+  const start = new Date(scholarship.StartDate);
+  const end = new Date(scholarship.EndDate);
+
+  // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate` และไม่ตรงกับ `endDate`
+  return (now > end || now < start) && now.toDateString() !== end.toDateString();
+});
+
+// อัปเดต state สำหรับทุนการศึกษาทั้งหมด
+setScholarships(updatedScholarships);
+setOpenScholarships(openScholarships);
+setClosedScholarships(closedScholarships);
+setAllScholarships(updatedScholarships);
+
 
         // Fetch student data
         const StudentID = localStorage.getItem('UserID');
@@ -205,15 +206,17 @@ export default function ApplyScholarShipsPage() {
 
   const recommendScholarships = (studentGPA: number, studentCourse: string, yearEntry: number | null) => {
     const now = new Date(); // Current date
-
+  
     // Calculate the academic year
     const academicYear = calculateAcademicYear(yearEntry);
-
+  
     const recommended = scholarships.filter(scholarship => {
       let isGPAValid = scholarship.Minimum_GPA <= studentGPA;
       let isCourseValid = scholarship.courses.some(course => validCourses.includes(course.CourseName));
-      let isEndDateValid = new Date(scholarship.EndDate) > now; // Check if EndDate is still valid
-
+  
+      // ปรับเงื่อนไขให้รวมวันที่ปัจจุบันตรงกับ `endDate`
+      let isEndDateValid = new Date(scholarship.EndDate) >= now || now.toDateString() === new Date(scholarship.EndDate).toDateString();
+  
       // Define how year level options map to valid academic years
       let validYears: string[] = []; // Explicitly declare type as string[]
       switch (scholarship.YearLevel) {
@@ -241,21 +244,22 @@ export default function ApplyScholarShipsPage() {
         default:
           validYears = []; // No valid years defined
       }
-
+  
       // Check if the student's academic year is in the list of valid years
       let isYearLevelValid = validYears.includes(academicYear);
-
+  
       if (isGPAValid && isCourseValid && isEndDateValid && isYearLevelValid) {
         console.log(`Scholarship ${scholarship.ScholarshipName} matches GPA, Course, is within the valid application period, and applies to academic year ${academicYear}.`);
       }
-
+  
       // Return true only if all conditions are valid
       return isGPAValid && isCourseValid && isEndDateValid && isYearLevelValid;
     });
-
+  
     setRecommendedScholarships(recommended);
     console.log('Recommended Scholarships:', recommended);
   };
+  
 
 
   useEffect(() => {
