@@ -1577,7 +1577,7 @@ export default function CreateApplicationInternalPage() {
         icon: "success",
         title: "บันทึกเรียบร้อย",
         showConfirmButton: false,
-        timer: 1500
+        timer: 100
       });
 
       router.push(`/page/History-Application`);
@@ -1734,7 +1734,7 @@ export default function CreateApplicationInternalPage() {
             icon: "success",
             title: "สมัครทุนเรียบร้อย",
             showConfirmButton: false,
-            timer: 1500
+            timer: 1000
           });
 
           // Navigate to the application page with status=บันทึกแล้ว

@@ -5,6 +5,7 @@ import Footer from '@/app/components/footer/footer';
 import { Suspense, useEffect, useState } from 'react';
 import axios from 'axios';
 import ApiCreateApplicationExternalServices from '@/app/services/ApiApplicationExternalServices/ApiCreateAppicationExternalServicer';
+import Swal from 'sweetalert2';
 
 interface ApplicationExternaldata {
   StudentID: string;
@@ -122,76 +123,98 @@ export default function CreateApplicationExternalPage() {
     setApplicationFiles(updatedFiles);
   };
 
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Check if all fields in applicationFiles are filled out
-    for (const file of applicationFiles) {
-      if (!file.DocumentType || !file.DocumentName || !file.FilePath) {
-        setError('กรุณากรอกข้อมูลทุกฟิลด์ให้ครบถ้วน และอัปโหลดไฟล์สำหรับเอกสาร');
-        return; // Prevent form submission if validation fails
-      }
-    }
-
-
-    try {
-      // Set the status to 'รอประกาศผล'
-      const updatedApplicationData = {
-        ...applicationData,
-        Status: 'รอประกาศผล',
-      };
-
-      // Create the application and retrieve the Application_EtID
-      console.log(updatedApplicationData);
-
-      const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
-      const Application_EtID = applicationResponse.Application_EtID;
-
-      const tasks: Promise<any>[] = [];
-
-      if (applicationFiles.length > 0) {
-        for (const fileData of applicationFiles) {
-          const formData = new FormData();
-
-          // Append the Application_EtID
-          formData.append('Application_EtID', Application_EtID); // Ensure the backend expects Application_EtID
-
-          // Append Document details
-          formData.append('DocumentName', fileData.DocumentName);
-          formData.append('DocumentType', fileData.DocumentType);
-
-          // Append the file
-          if (fileData.FilePath instanceof File) {
-            formData.append('FilePath', fileData.FilePath);
-          }
-
-          // Log the FormData contents for debugging
-          for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-          }
-
-          // Send the formData using your API service
-          tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
+  
+    // แสดงการแจ้งเตือนการยืนยันก่อนที่จะทำการส่งข้อมูล
+    const result = await Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณจะไม่สามารถแก้ไขข้อมูลหลังจากการส่งได้!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "ใช่, ส่งข้อมูล!",
+      cancelButtonText: "ยกเลิก"
+    });
+  
+    if (result.isConfirmed) {
+      // Check if all fields in applicationFiles are filled out
+      for (const file of applicationFiles) {
+        if (!file.DocumentType || !file.DocumentName || !file.FilePath) {
+          setError('กรุณากรอกข้อมูลทุกฟิลด์ให้ครบถ้วน และอัปโหลดไฟล์สำหรับเอกสาร');
+          return; // Prevent form submission if validation fails
         }
       }
-
-      // Execute all tasks
-      await Promise.all(tasks);
-
-      console.log('All data submitted successfully.');
-      sessionStorage.clear();
-      router.push(`/page/History-Application`);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError('Validation error: ' + error.response?.data.message);
-      } else {
-        setError('Error creating application. Please check the form fields and try again.');
+  
+      try {
+        // Set the status to 'รอประกาศผล'
+        const updatedApplicationData = {
+          ...applicationData,
+          Status: 'รอประกาศผล',
+        };
+  
+        // Create the application and retrieve the Application_EtID
+        console.log(updatedApplicationData);
+  
+        const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
+        const Application_EtID = applicationResponse.Application_EtID;
+  
+        const tasks: Promise<any>[] = [];
+  
+        if (applicationFiles.length > 0) {
+          for (const fileData of applicationFiles) {
+            const formData = new FormData();
+  
+            // Append the Application_EtID
+            formData.append('Application_EtID', Application_EtID); // Ensure the backend expects Application_EtID
+  
+            // Append Document details
+            formData.append('DocumentName', fileData.DocumentName);
+            formData.append('DocumentType', fileData.DocumentType);
+  
+            // Append the file
+            if (fileData.FilePath instanceof File) {
+              formData.append('FilePath', fileData.FilePath);
+            }
+  
+            // Log the FormData contents for debugging
+            for (let [key, value] of formData.entries()) {
+              console.log(`${key}:`, value);
+            }
+  
+            // Send the formData using your API service
+            tasks.push(ApiCreateApplicationExternalServices.createApplicationFile(formData));
+          }
+        }
+  
+        // Execute all tasks
+        await Promise.all(tasks);
+  
+        console.log('All data submitted successfully.');
+        sessionStorage.clear();
+  
+        // แสดงการแจ้งเตือนเมื่อส่งข้อมูลสำเร็จ
+        Swal.fire({
+          icon: "success",
+          title: "สมัครทุนเรียบร้อย",
+          showConfirmButton: false,
+          timer: 1000
+        });
+  
+        // Redirect to history page
+        router.push(`/page/History-Application`);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          setError('Validation error: ' + error.response?.data.message);
+        } else {
+          setError('Error creating application. Please check the form fields and try again.');
+        }
+        console.error('Error creating application:', error);
       }
-      console.error('Error creating application:', error);
     }
   };
-
+  
 
 
   return (
