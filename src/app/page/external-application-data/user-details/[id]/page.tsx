@@ -129,7 +129,7 @@ export default function StudentExternalDetailsPage() {
                     <div className="bg-white w-1/8 p-4">
                         <Sidebar />
                     </div>
-                    <p className="text-gray-600">Scholarship not found or no students available.</p>
+                    <p className="text-gray-600">ไม่มีข้อมูล</p>
                 </div>
             </div>
         );
