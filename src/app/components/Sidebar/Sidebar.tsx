@@ -17,7 +17,7 @@ const Sidebar = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setHasToken(!!localStorage.getItem('token'));
-      setUserRole(!!localStorage.getItem('UserRole')); 
+      setUserRole(!!localStorage.getItem('UserRole'));
     }
 
 
@@ -63,12 +63,12 @@ const Sidebar = () => {
       }
     });
   };
-  
+
 
   return (
-    <div className=" ">
-      <div className="flex flex-col h-screen">
-        <div className="lg:hidden p-4 bg-white shadow-md">
+
+      <div className="flex flex-col h-screen bg-gray-200">
+        <div className="lg:hidden p-4 bg-gray shadow-md">
           <button
             className="text-gray-700 hover:text-blue-500"
             onClick={() => setSidebarOpen(!isSidebarOpen)}
@@ -79,15 +79,15 @@ const Sidebar = () => {
 
         <div
           ref={sidebarRef}
-          className={`lg:static lg:w-64 lg:flex lg:flex-col lg:bg-white lg:rounded-md transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 w-64 p-6 bg-white z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`lg:static lg:w-64 lg:flex lg:flex-col lg:bg-gray-200 lg:rounded-md transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 w-64 p-6 bg-gray-200 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
             } lg:translate-x-0`}
         >
           <div>
-          <h2 className="text-xl font-bold mb-4 hover:text-blue-500 cursor-pointer">
-  <Link href="/page/management" legacyBehavior>
-    <a>จัดการทุนการศึกษา</a>
-  </Link>
-</h2>
+            <h2 className="text-xl font-bold mb-4 hover:text-blue-500 cursor-pointer">
+              <Link href="/page/management" legacyBehavior>
+                <a>จัดการทุนการศึกษา</a>
+              </Link>
+            </h2>
             <ul className="space-y-3">
               {/* Sidebar Links */}
               <li>
@@ -156,10 +156,10 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <div className="flex flex-col justify-between h-60 ">
+        <div className="flex flex-col justify-between mb-20 ">
           {/* Logout Button */}
           <button
-            className="w-full py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            className="w-30 py-2  bg-red-500 text-white rounded-md hover:bg-red-600"
             style={{ marginTop: 'auto' }}
             onClick={handleLogoutClick}
           >
@@ -167,7 +167,6 @@ const Sidebar = () => {
           </button>
         </div>
       </div>
-    </div>
   );
 };
 
