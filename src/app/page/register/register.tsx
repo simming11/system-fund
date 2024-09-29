@@ -296,13 +296,13 @@ const showPopup = () => {
                     value = value.replace(/\D/g, ''); // Remove all non-numeric characters
 
                     // Limit the value to 9 characters
-                    if (value.length > 9) {
-                      value = value.slice(0, 9);
+                    if (value.length > 10) {
+                      value = value.slice(0, 10);
                     }
 
                     setStudentID(value); // Update the state with the filtered and truncated value
 
-                    if (value.length < 10) {
+                    if (value.length < 9) {
                       // Set error if input is less than 9 digits
                       setErrors((prevErrors) => ({
                         ...prevErrors,
