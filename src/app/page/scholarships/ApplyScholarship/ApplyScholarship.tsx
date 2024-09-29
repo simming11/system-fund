@@ -349,12 +349,10 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              <p className={`text-sm ${statusColor}`}>{status}</p>
-
               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
-                ""
+                <p className={`text-sm ${statusColor}`}>{status}</p>
               )}
             </a>
           </Link>
@@ -408,12 +406,10 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              <p className={`text-sm ${statusColor}`}>{status}</p>
-
               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
-                ""
+                <p className={`text-sm ${statusColor}`}>{status}</p>
               )}
             </a>
           </Link>
@@ -469,12 +465,12 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              <p className={`text-sm ${statusColor}`}>{status}</p>
+            
 
               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
-                ""
+                <p className={`text-sm ${statusColor}`}>{status}</p>
               )}
             </a>
           </Link>
@@ -530,12 +526,12 @@ export default function ApplyScholarShipsPage() {
               <p className="text-gray-500 text-sm">
                 โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
               </p>
-              <p className={`text-sm ${statusColor}`}>{status}</p>
+            
 
               {hasApplied(scholarship.ScholarshipID) ? (
                 <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
               ) : (
-                ""
+                <p className={`text-sm ${statusColor}`}>{status}</p>
               )}
             </a>
           </Link>
