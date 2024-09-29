@@ -2302,7 +2302,7 @@ const addFileEntry = () => {
                             <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปี่ที 1
+                                    เกรดเฉลี่ยปี่ที่ 1
                                     </label>
                                     <input
                                         type="number"
@@ -2317,7 +2317,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปี่ที 2
+                                    เกรดเฉลี่ยปี่ที่ 2
                                     </label>
                                     <input
                                         type="number"
@@ -2332,7 +2332,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปี่ที 3
+                                    เกรดเฉลี่ยปี่ที่ 3
                                     </label>
                                     <input
                                         type="number"
