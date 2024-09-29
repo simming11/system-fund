@@ -2132,7 +2132,7 @@ export default function CreateApplicationInternalPage() {
 
 
 
-              <div className="flex items-end">
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div className="flex-1">
                   <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">
                     รายได้ของนิสิตเดือนละ  &nbsp;&nbsp;  *ไม่เกิน 5 แสนบาท
@@ -2926,7 +2926,7 @@ export default function CreateApplicationInternalPage() {
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
                 <div className="col-span-2">
                   <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ย
+                    เกรดเฉลี่ยปี่ที 1
                   </label>
                   <input
                     type="number"
@@ -2942,7 +2942,7 @@ export default function CreateApplicationInternalPage() {
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ย
+                  เกรดเฉลี่ยปี่ที 2
                   </label>
                   <input
                     type="number"
@@ -2958,7 +2958,7 @@ export default function CreateApplicationInternalPage() {
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ย
+                  เกรดเฉลี่ยปี่ที 3
                   </label>
                   <input
                     type="number"

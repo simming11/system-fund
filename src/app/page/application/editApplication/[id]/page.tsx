@@ -213,7 +213,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             FirstName: '',
             LastName: '',
             PrefixName: '',
-            Type: 'พ่อ',
+            Type: 'บิดา',
             Occupation: '',
             Income: 0,
             Age: 0,
@@ -231,7 +231,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             FirstName: '',
             LastName: '',
             PrefixName: '',
-            Type: 'แม่',
+            Type: 'มารดา',
             Occupation: '',
             Income: 0,
             Age: 0,
@@ -387,9 +387,9 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     Workplace: '',
                     Phone: '',
                 };
-                const father = guardians.find((guardian) => guardian.Type === 'พ่อ') || { ...defaultGuardianData, Type: 'พ่อ' };
-                const mother = guardians.find((guardian) => guardian.Type === 'แม่') || { ...defaultGuardianData, Type: 'แม่' };
-                const caretaker = guardians.find((guardian) => guardian.Type !== 'พ่อ' && guardian.Type !== 'แม่') || { ...defaultGuardianData, Type: '' };
+                const father = guardians.find((guardian) => guardian.Type === 'บิดา') || { ...defaultGuardianData, Type: 'บิดา' };
+                const mother = guardians.find((guardian) => guardian.Type === 'มารดา') || { ...defaultGuardianData, Type: 'มารดา' };
+                const caretaker = guardians.find((guardian) => guardian.Type !== 'บิดา' && guardian.Type !== 'มารดา') || { ...defaultGuardianData, Type: '' };
 
                 setFatherData(father);
                 setMotherData(mother);
@@ -2302,7 +2302,7 @@ const addFileEntry = () => {
                             <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ย
+                                    เกรดเฉลี่ยปี่ที 1
                                     </label>
                                     <input
                                         type="number"
@@ -2317,7 +2317,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ย
+                                    เกรดเฉลี่ยปี่ที 2
                                     </label>
                                     <input
                                         type="number"
@@ -2332,7 +2332,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ย
+                                    เกรดเฉลี่ยปี่ที 3
                                     </label>
                                     <input
                                         type="number"
