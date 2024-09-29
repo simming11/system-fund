@@ -302,7 +302,7 @@ const showPopup = () => {
 
                     setStudentID(value); // Update the state with the filtered and truncated value
 
-                    if (value.length < 9) {
+                    if (value.length < 10) {
                       // Set error if input is less than 9 digits
                       setErrors((prevErrors) => ({
                         ...prevErrors,
