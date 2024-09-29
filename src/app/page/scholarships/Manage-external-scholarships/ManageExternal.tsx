@@ -179,23 +179,25 @@ return (
       <div className="bg-white shadow-md flex-1 w-1/8">
         <div className="bg-white rounded-lg p-6">
           <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายนอกมหาวิทยาลัย</h2>
-          <button
-            onClick={() => router.push('Manage-external-scholarships/create')}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mb-6"
-          >
-            + เพิ่ม
-          </button>
+          <div className="mb-4 flex items-center justify-between space-x-4">
+  {/* Add Button */}
+  <button
+    onClick={() => router.push('Manage-external-scholarships/create')}
+    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+  >
+    + เพิ่ม
+  </button>
 
-          {/* Search input */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="ค้นหาทุนการศึกษา..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
-          </div>
+  {/* Search input */}
+  <input
+    type="text"
+    placeholder="ค้นหาทุนการศึกษา..."
+    value={searchTerm}
+    onChange={handleSearch}
+    className="w-full p-2 border border-gray-300 rounded"
+  />
+</div>
+
 
           {/* Scholarship table */}
           <table className="w-full table-auto border-collapse border border-gray-300">
@@ -215,8 +217,8 @@ return (
                   className={`hover:bg-gray-100 ${scholarship.status === 'hidden' ? 'bg-gray-200 text-gray-500 italic' : ''}`}
                 >
                   <td className="border border-gray-300 p-2 text-center">{indexOfFirstScholarship + index + 1}</td>
-                  <td className="border border-gray-300 p-2">{scholarship.ScholarshipName}</td>
-                  <td className="border border-gray-300 p-2">
+                  <td className="border border-gray-300 p-2 text-center">{scholarship.ScholarshipName}</td>
+                  <td className="border border-gray-300 p-2 text-center">
                     ปีการศึกษา: {scholarship.Year} <br />
                     เกรด: {scholarship.Minimum_GPA} <br />
                     ชั้นปี: {scholarship.YearLevel} <br />
