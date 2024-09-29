@@ -158,9 +158,9 @@ export default function ScholarshipDetailPage() {
       const startDate = new Date(scholarship.StartDate);
       const endDate = new Date(scholarship.EndDate);
 
-      // ถ้าวันปัจจุบันตรงกับ endDate หรืออยู่ในช่วงระหว่าง startDate และ endDate (รวมถึงวันเริ่มและวันสิ้นสุด)
-      if (now.toDateString() === endDate.toDateString()) {
-        return false; // เปิดรับอยู่ถึงวันสิ้นสุด (รวมถึงวันสิ้นสุด)
+      // ถ้าวันปัจจุบันตรงกับ startDate หรือ endDate ให้เปิดรับทันที
+      if (now.toDateString() === startDate.toDateString() || now.toDateString() === endDate.toDateString()) {
+        return false; // เปิดรับอยู่
       }
 
       // ถ้าวันปัจจุบันอยู่ระหว่าง startDate และ endDate
@@ -176,6 +176,7 @@ export default function ScholarshipDetailPage() {
       return true; // ปิดรับ
     })()
   : true; // หากไม่มีข้อมูลทุนการศึกษา ให้ปิดปุ่ม
+
 
 
   return (

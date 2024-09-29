@@ -568,7 +568,7 @@ export default function EditInternalScholarshipPage() {
                 <div className="w-5/6 ..."></div>
                 <div className="w-1/6 ...">
                   <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
-                    แก้ไขทุน
+                   บันทึก
                   </button>
                 </div>
               </div>
