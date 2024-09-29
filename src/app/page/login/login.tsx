@@ -53,12 +53,6 @@ export default function LoginPage() {
       return;
     }
 
-    // ตรวจสอบความถูกต้องของรหัสนิสิต
-    if (identifier.length !== 10) {
-      setError('รหัสนิสิตต้องมีความยาวไม่เกินตัวอักษร');
-      return;
-    }
-
     try {
       const response = await ApiAuthService.loginStudent(identifier, password);
       console.log('Login successful', response.data);
