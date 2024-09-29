@@ -4,7 +4,11 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}", // Adjust the path based on your project structure
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Kanit', 'sans-serif'], // Set Kanit as the default sans-serif font
+      },
+    },
   },
   plugins: [],
 }
