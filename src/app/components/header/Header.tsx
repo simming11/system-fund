@@ -42,12 +42,38 @@ const Header = () => {
     const fetchUserData = async () => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
+        const userRole = localStorage.getItem('UserRole');  // Assuming userRole is stored in localStorage
+  
         if (token && userRole === 'student' && userData) {
           try {
             const response = await ApiStudentServices.getStudent(userData);
             setUser({ ...response.data, role: 'student' });
-          } catch (error) {
+          } catch (error: any) {  // Specify 'any' type for the error
             console.error('Error fetching user data', error);
+  
+            // ถ้าได้รับรหัส 401 (Unauthorized) ให้แสดงแจ้งเตือนและเปลี่ยนเส้นทางไปหน้า login
+            if (error.response?.status === 401) {
+              Swal.fire({
+                icon: 'error',
+                title: 'ไม่ได้รับอนุญาต',
+                text: 'เซสชั่นหมดอายุหรือคุณไม่ได้รับอนุญาต.',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'เข้าสู่ระบบอีกครั้ง',
+                allowOutsideClick: false,  // ปิดการคลิกนอกปุ่ม
+                timer: 5000  // ตั้งเวลา 5 วินาที
+              }).then(() => {
+                localStorage.clear();  // ลบข้อมูลใน localStorage ทั้งหมด
+                router.push('/page/login');  // เปลี่ยนเส้นทางไปหน้า login
+              });
+            } else {
+              // กรณีที่ไม่ใช่ 401 Unauthorized ก็แสดงข้อความแจ้งเตือนทั่วไป
+              Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'เกิดข้อผิดพลาดขณะดึงข้อมูลของผู้ใช้.',
+                confirmButtonColor: '#3085d6',
+              });
+            }
           } finally {
             setLoading(false);
           }
@@ -56,23 +82,11 @@ const Header = () => {
         }
       }
     };
-
+  
     fetchUserData();
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-      if (scholarshipDropdownRef.current && !scholarshipDropdownRef.current.contains(event.target as Node)) {
-        setIsScholarshipDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [userData, userRole]);
+  }, [userData, router]);
+  
+  
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
