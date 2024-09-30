@@ -11,7 +11,6 @@ import ApiApplicationUpdateInternalServices from '@/app/services/ApiApplicationI
 import ApiUpdateServiceScholarships from '@/app/services/scholarships/updateScholarships';
 import ApiLineNotifyServices from '@/app/services/line-notifies/line';
 import Swal from 'sweetalert2';
-
 const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 
 interface StudentData {
@@ -167,15 +166,63 @@ export default function ScholarshipResultsAnnouncementPage() {
         try {
             const scholarshipId = Array.isArray(id) ? id[0] : id;
     
+            // Log the scholarshipId
+            console.log("Scholarship ID:", scholarshipId);
+    
             // Update each application's status
             const tasks: Promise<any>[] = ApplicationINEX.map(async (application) => {
-                const { ApplicationID, Application_EtID, Status } = application;
+                const {
+                    ApplicationID,
+                    Application_EtID,
+                    Status,
+                    StudentID,
+                    ScholarshipID,
+                    AdvisorName,
+                    ApplicationDate,
+                    GPAYear1,
+                    GPAYear2,
+                    GPAYear3,
+                    MonthlyExpenses,
+                    MonthlyIncome,
+                    NumberOfBrothers,
+                    NumberOfSiblings,
+                    NumberOfSisters
+                } = application;
+    
+                // Ensure required fields are passed in the payload
+                const payload = {
+                    Status,
+                    StudentID: StudentID || "",
+                    ScholarshipID: ScholarshipID || "",
+                    AdvisorName: AdvisorName || "",  // Ensure AdvisorName is included
+                    ApplicationDate: ApplicationDate || "",  // Ensure ApplicationDate is included
+                    GPAYear1: GPAYear1 || 0,  // Ensure GPAYear1 is included
+                    GPAYear2: GPAYear2 || 0,  // Ensure GPAYear2 is included
+                    GPAYear3: GPAYear3 || 0,  // Ensure GPAYear3 is included
+                    MonthlyExpenses: MonthlyExpenses || 0,  // Ensure MonthlyExpenses is included
+                    MonthlyIncome: MonthlyIncome || 0,  // Ensure MonthlyIncome is included
+                    NumberOfBrothers: NumberOfBrothers || 0,  // Ensure NumberOfBrothers is included
+                    NumberOfSiblings: NumberOfSiblings || 0,  // Ensure NumberOfSiblings is included
+                    NumberOfSisters: NumberOfSisters || 0  // Ensure NumberOfSisters is included
+                };
+    
+                // Log the payload for each application
+             
+    
+                // Update only the Status (and other required fields) for internal applications
                 if (ApplicationID) {
-                    const internalPayload = { Status };
-                    return await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, internalPayload);
-                } else if (Application_EtID) {
-                    const externalPayload = { Status };
-                    return await ApiApplicationExternalServices.updateApplication(Application_EtID, externalPayload);
+             
+                    const result = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, payload);
+             
+                    return result;
+                }
+                
+                // Update only the Status (and other required fields) for external applications
+                else if (Application_EtID) {
+               
+                    const result = await ApiApplicationExternalServices.updateApplication(Application_EtID, payload);
+        
+                    return result;
                 }
             });
     
@@ -183,13 +230,17 @@ export default function ScholarshipResultsAnnouncementPage() {
     
             // Upload the announcement file if needed
             if (file && !announcementFile) {
-                await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
+           
+                const result = await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
+       
             }
     
             // Send Line Notify message if there's a token available
             if (lineToken) {
                 const message = `ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${URL}/page/results-announcement/${scholarshipId}`;
-                await ApiLineNotifyServices.sendLineNotify(message, lineToken);
+      
+                const result = await ApiLineNotifyServices.sendLineNotify(message, lineToken);
+          
             }
     
             // Success notification
@@ -200,9 +251,10 @@ export default function ScholarshipResultsAnnouncementPage() {
                 confirmButtonText: 'ตกลง'
             }).then(() => {
                 // Redirect to the results announcement page
+                console.log("Redirecting to results announcement page...");
                 router.push(`/page/scholarship-results-announcement`);
             });
-            
+    
         } catch (error) {
             console.error('Error in handleSubmit:', error);
     
@@ -215,6 +267,8 @@ export default function ScholarshipResultsAnnouncementPage() {
             });
         }
     };
+    
+    
     
 
     if (loading) {
