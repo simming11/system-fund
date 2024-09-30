@@ -441,7 +441,10 @@ export default function CreateApplicationInternalPage() {
                 text: 'Session has expired or you are not authorized.',
                 confirmButtonColor: '#3085d6',
                 confirmButtonText: 'Login again',
+                allowOutsideClick: false,  // ปิดการคลิกนอกปุ่ม
+                timer: 5000,  // ตั้งเวลา 5 วินาที
               }).then(() => {
+                localStorage.clear();  // ลบข้อมูลทั้งหมดใน localStorage
                 router.push('/page/login'); // เปลี่ยนเส้นทางไปหน้า login
               });
             } else {
