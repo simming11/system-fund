@@ -136,12 +136,33 @@ export default function InternalScholarShipsPage() {
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-      if (now > start && now < end) {
+  
+      // ถ้าวันปัจจุบันตรงกับ `startDate` ให้ถือว่า "เปิดรับอยู่"
+      if (now.toDateString() === start.toDateString()) {
         return "เปิดรับอยู่";
       }
+  
+      // ถ้าวันปัจจุบันตรงกับ `endDate` ให้ถือว่า "เปิดรับอยู่"
+      if (now.toDateString() === end.toDateString()) {
+        return "เปิดรับอยู่";
+      }
+  
+      // ถ้าวันปัจจุบันอยู่ระหว่าง `startDate` และ `endDate`
+      if (now >= start && now < end) {
+        return "เปิดรับอยู่";
+      }
+  
+      // ถ้าวันปัจจุบันเกิน `endDate` หรืออยู่นอกช่วง
+      if (now > end || now < start) {
+        return "ปิดรับแล้ว";
+      }
     }
-    return "ปิดรับแล้ว";
+  
+    return "ไม่มีข้อมูล"; // กรณีไม่มีข้อมูลวันที่
   };
+  
+  
+  
 
   const hasApplied = (scholarshipID: number): boolean => appliedScholarships.includes(scholarshipID);
 
@@ -153,16 +174,24 @@ export default function InternalScholarShipsPage() {
 
   const totalPages = (length: number) => Math.ceil(length / itemsPerPage);
 
-  // แยกทุนเป็น "เปิดรับ" และ "ปิดรับ"
-  const openScholarships = scholarships.filter((scholarship) => {
-    const now = new Date();
-    return now >= new Date(scholarship.StartDate) && now <= new Date(scholarship.EndDate);
-  });
+// แยกทุนเป็น "เปิดรับ" และ "ปิดรับ"
+const openScholarships = scholarships.filter((scholarship) => {
+  const now = new Date();
+  const startDate = new Date(scholarship.StartDate);
+  const endDate = new Date(scholarship.EndDate);
 
-  const closedScholarships = scholarships.filter((scholarship) => {
-    const now = new Date();
-    return now > new Date(scholarship.EndDate) || now < new Date(scholarship.StartDate);
-  });
+  // Check if today matches the start date or end date, or is between them
+  return (now.toDateString() === startDate.toDateString() ||
+          now.toDateString() === endDate.toDateString() ||
+          (now >= startDate && now < endDate));
+});
+
+// Scholarships that are not in the open category are automatically considered closed
+const closedScholarships = scholarships.filter((scholarship) => {
+  return !openScholarships.includes(scholarship);
+});
+
+
 
   if (loading) {
     return (
