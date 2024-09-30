@@ -91,6 +91,52 @@ static async generateApplicationPdf(applicationId: string) {
     }
 }
 
+static async streamApplicationPdf(applicationId: string) {
+    try {
+        // Make the API call to stream the PDF
+        const response = await axios.get(`${API_URL}/generate-pdf/${applicationId}`, {
+            responseType: 'arraybuffer', // Set response type to 'arraybuffer' for binary data
+        });
+
+        // Create a blob for the file
+        const file = new Blob([response.data], { type: 'application/pdf' });
+        const fileURL = window.URL.createObjectURL(file);
+
+        // Extract filename from 'content-disposition' header if available
+        const contentDisposition = response.headers['content-disposition'];
+        let fileName = `${applicationId}_report.pdf`; // Default filename
+
+        if (contentDisposition) {
+            const match = contentDisposition.match(/filename="(.+)"/);
+            if (match && match.length > 1) {
+                fileName = match[1]; // Extract filename from headers
+            }
+        }
+
+        // Open the PDF in a new browser tab for preview
+        const newWindow = window.open(fileURL, '_blank');
+        
+        // Fallback for downloading the PDF if the browser blocks the preview
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            const fileLink = document.createElement('a');
+            fileLink.href = fileURL;
+
+            // Set the filename for the download link
+            fileLink.setAttribute('download', fileName);
+            document.body.appendChild(fileLink);
+            fileLink.click();
+            fileLink.remove();
+        }
+
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        throw error;
+    }
+}
+
+
+
+
 
 
 

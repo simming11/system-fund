@@ -9,6 +9,8 @@ import Sidebar from '@/app/components/Sidebar/Sidebar';
 import Footer from '@/app/components/footer/footer';
 import ApiApplicationInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices';
 import ApiApplicationFileServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationFileServices';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
 
 interface StudentData {
     StudentID: string;
@@ -41,13 +43,13 @@ export default function StudentInternalDetailsPage() {
     const { id } = useParams();
     const studentId: string = Array.isArray(id) ? id[0] : id;
     const searchParams = new URLSearchParams(window.location.search);
-    // Extract the `scholarshipId` from the query parameters
     const scholarshipId = searchParams.get('scholarshipId');
 
     const [application, setApplication] = useState<Application | null>(null);
     const [scholarshipName, setScholarshipName] = useState<string>('');
     const [applicationFilesData, setApplicationFilesData] = useState<ApplicationFilesData[]>([]);
     const [loading, setLoading] = useState(true);
+
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('token');
@@ -59,6 +61,7 @@ export default function StudentInternalDetailsPage() {
             }
         }
     }, [router]);
+
     const handleDownloadFile = async (fileId: string, fileName: string) => {
         try {
             await ApiApplicationFileServices.downloadFile(fileId, fileName);
@@ -67,24 +70,31 @@ export default function StudentInternalDetailsPage() {
         }
     };
 
-    const handleDownloadPdf = async () => {
+    const handlePreviewPdf = async () => {
         try {
             if (application?.ApplicationID) {
-                await ApiApplicationInternalServices.generateApplicationPdf(application.ApplicationID);
+                await ApiApplicationInternalServices.streamApplicationPdf(application.ApplicationID);
             }
         } catch (error) {
-            console.error('Error generating PDF:', error);
+            console.error('Error previewing PDF:', error);
         }
     };
+
+    // const handleDownloadPdf = async () => {
+    //     try {
+    //         if (application?.ApplicationID) {
+    //             await ApiApplicationInternalServices.generateApplicationPdf(application.ApplicationID);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error generating PDF:', error);
+    //     }
+    // };
 
     useEffect(() => {
         const fetchStudentApplicationDetails = async () => {
             try {
                 if (scholarshipId && studentId) {
-       
                     const response = await ApiApplicationInternalServices.getStudentByScholarshipIdAndStudentId(scholarshipId, studentId);
-
-
                     setApplication(response);
 
                     if (response) {
@@ -200,13 +210,17 @@ export default function StudentInternalDetailsPage() {
                             </div>
                         )}
 
-                        {/* PDF Download Button */}
-                        <button
-                            className="mt-4 bg-green-500 text-white py-2 px-4 rounded"
-                            onClick={handleDownloadPdf}
-                        >
-                            Download PDF
-                        </button>
+                        {/* PDF Preview and Download Buttons */}
+                        <div className="mt-4 flex space-x-4">
+                            <button
+                                className="bg-blue-500 text-white py-2 px-4 rounded flex items-center justify-center space-x-2"
+                                onClick={handlePreviewPdf}
+                            >
+                                <FontAwesomeIcon icon={faFilePdf} className="text-white" /> {/* PDF Icon */}
+                                <span>Preview PDF</span>
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>

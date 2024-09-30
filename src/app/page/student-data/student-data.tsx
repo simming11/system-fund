@@ -134,8 +134,8 @@ export default function StudentDataPage() {
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ลำดับที่</th>
-                                    <th className="border border-gray-300 p-2">ชื่อ-สกุล</th>
                                     <th className="border border-gray-300 p-2">รหัสนิสิต</th>
+                                    <th className="border border-gray-300 p-2">ชื่อ-สกุล</th>
                                     <th className="border border-gray-300 p-2">ชั้นปี</th>
                                     <th className="border border-gray-300 p-2">สาขา</th>
                                     <th className="border border-gray-300 p-2">การดำเนินการ</th>
@@ -145,8 +145,8 @@ export default function StudentDataPage() {
                                 {currentStudents.map((student, index) => (
                                     <tr key={student.StudentID} className="hover:bg-gray-100">
                                         <td className="border border-gray-300 p-2 text-center">{indexOfFirstStudent + index + 1}</td>
-                                        <td className="border border-gray-300 p-2">{student.StudentID}</td>    
-                                        <td className="border border-gray-300 p-2">{student.FirstName} {student.LastName}</td>
+                                        <td className="border border-gray-300 p-2 text-center">{student.StudentID}</td>    
+                                        <td className="border border-gray-300 p-2 text-center">{student.FirstName} {student.LastName}</td>
                                         <td className="border border-gray-300 p-2 text-center">{calculateAcademicYear(student?.Year_Entry)}</td>
                                         <td className="border border-gray-300 p-2 text-center">{student.Course}</td>
                                         <td className="border border-gray-300 p-2 text-center">
