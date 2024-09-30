@@ -63,6 +63,7 @@ const Header = () => {
                 timer: 5000  // ตั้งเวลา 5 วินาที
               }).then(() => {
                 localStorage.clear();  // ลบข้อมูลใน localStorage ทั้งหมด
+                sessionStorage.clear();  // ลบข้อมูลใน localStorage ทั้งหมด
                 router.push('/page/login');  // เปลี่ยนเส้นทางไปหน้า login
               });
             } else {
