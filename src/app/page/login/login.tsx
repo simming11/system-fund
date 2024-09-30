@@ -30,11 +30,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string>('');
   const router = useRouter();
   
-  useEffect(() => {
-    if (localStorage.getItem('UserID')) {
-      router.push('/'); 
-    }
-  }, []);
 
   useEffect(() => {
     const savedIdentifier = localStorage.getItem('savedIdentifier');
