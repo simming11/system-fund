@@ -269,12 +269,25 @@ export default function ScholarshipResultsAnnouncementPage() {
                         </div>
                     )}
 
-<button
-  onClick={() => router.back()} // ฟังก์ชันย้อนกลับไปยังหน้าก่อนหน้า
-  className="bg-gray-500 text-white px-4 py-2 mt-4 rounded hover:bg-gray-600"
->
-  ย้อนกลับ
-</button>
+{/* ตรวจสอบว่ามี announcementFile หรือไม่ */}
+{announcementFile ? (
+  // ถ้ามี announcementFile ให้แสดงปุ่มย้อนกลับ
+  <button
+    onClick={() => router.back()} // ฟังก์ชันย้อนกลับไปหน้าก่อนหน้า
+    className="bg-gray-500 text-white px-4 py-2 mt-4 rounded hover:bg-gray-600"
+  >
+    ย้อนกลับ
+  </button>
+) : (
+  // ถ้าไม่มี announcementFile ให้แสดงปุ่มส่งผลการประกาศ
+  <button
+    onClick={handleSubmit} // ฟังก์ชันส่งข้อมูล
+    className="bg-green-500 text-white px-4 py-2 mt-4 rounded hover:bg-green-600"
+  >
+    ส่งผลการประกาศ
+  </button>
+)}
+
 
                 </div>
             </div>
