@@ -10,6 +10,7 @@ import ApiApplicationExternalServices from '@/app/services/ApiApplicationExterna
 import ApiApplicationUpdateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationUpdateInternal';
 import ApiUpdateServiceScholarships from '@/app/services/scholarships/updateScholarships';
 import ApiLineNotifyServices from '@/app/services/line-notifies/line';
+import Swal from 'sweetalert2';
 
 const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 
@@ -162,10 +163,11 @@ export default function ScholarshipResultsAnnouncementPage() {
             setFileError('กรุณาอัพโหลดไฟล์เอกสาร');
             return;
         }
-
+    
         try {
             const scholarshipId = Array.isArray(id) ? id[0] : id;
-
+    
+            // Update each application's status
             const tasks: Promise<any>[] = ApplicationINEX.map(async (application) => {
                 const { ApplicationID, Application_EtID, Status } = application;
                 if (ApplicationID) {
@@ -176,23 +178,44 @@ export default function ScholarshipResultsAnnouncementPage() {
                     return await ApiApplicationExternalServices.updateApplication(Application_EtID, externalPayload);
                 }
             });
-
+    
             await Promise.all(tasks);
-
+    
+            // Upload the announcement file if needed
             if (file && !announcementFile) {
                 await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
             }
-
+    
+            // Send Line Notify message if there's a token available
             if (lineToken) {
                 const message = `ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${URL}/page/results-announcement/${scholarshipId}`;
                 await ApiLineNotifyServices.sendLineNotify(message, lineToken);
             }
-
-            router.push(`/page/scholarship-results-announcement`);
+    
+            // Success notification
+            Swal.fire({
+                icon: 'success',
+                title: 'ประกาศผลสำเร็จ',
+                text: 'ประกาศผลทุนการศึกษาเรียบร้อยแล้ว',
+                confirmButtonText: 'ตกลง'
+            }).then(() => {
+                // Redirect to the results announcement page
+                router.push(`/page/scholarship-results-announcement`);
+            });
+            
         } catch (error) {
             console.error('Error in handleSubmit:', error);
+    
+            // Error notification
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถประกาศผลได้ กรุณาลองอีกครั้ง',
+                confirmButtonText: 'ตกลง'
+            });
         }
     };
+    
 
     if (loading) {
         return (
