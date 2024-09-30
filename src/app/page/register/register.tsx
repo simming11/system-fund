@@ -48,20 +48,20 @@ export default function RegisterPage() {
   });
 
 
-// Define your popup function here
-const showPopup = () => {
-  Swal.fire({
-    title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
-    imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
-    imageWidth: 200, // Set the width of the image
-    imageHeight: 200, // Set the height of the image
-    html: `
+  // Define your popup function here
+  const showPopup = () => {
+    Swal.fire({
+      title: "<strong>เข้าร่วมกลุ่มนี้เพื่อรับข่าวสาร</strong>",
+      imageUrl: '/images/line.jpg', // Use the relative path to the image in the public folder
+      imageWidth: 200, // Set the width of the image
+      imageHeight: 200, // Set the height of the image
+      html: `
      
     `,
-    confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
-  });
-};
-  
+      confirmButtonText: `<i class="fa fa-thumbs-up"></i> ตกลง!`,
+    });
+  };
+
   const router = useRouter();
 
   useEffect(() => {
@@ -70,6 +70,21 @@ const showPopup = () => {
       router.push('/'); // Redirect to homepage if already logged in
     }
   }, []);
+
+  const calculateAcademicYear = (yearEntry: number | null) => {
+    if (yearEntry === null) return 'ไม่ระบุ';
+    const currentYear = new Date().getFullYear();
+    const entryYear = yearEntry - 543;
+    const yearDifference = currentYear - entryYear;
+
+    if (yearDifference === 0) return '1';
+    if (yearDifference === 1) return '2';
+    if (yearDifference === 2) return '3';
+    if (yearDifference === 3) return '4';
+    if (yearDifference === 4) return '5';
+
+    return 'จบการศึกษาแล้ว';
+  };
 
   const handleRegister = async () => {
     let validationErrors = { ...errors };
@@ -276,7 +291,7 @@ const showPopup = () => {
       <Header />
       <div className="flex flex-grow flex-col lg:flex-row items-center  lg:justify-center mb:w-full">
         <div className="w-full lg:w-1/2 p-4  md:w-1/1  flex justify-center">
-        <img src="/images/sci.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2"  />
+          <img src="/images/sci.png" alt="Scholarship" className="rounded-lg w-2/3 lg:w-1/2" />
         </div>
         <div className="bg-white  lg:w-1/2 mb:w-full p-4 flex  mr-10">
           <div className="">
@@ -330,16 +345,42 @@ const showPopup = () => {
                 <label className="block text-gray-700 mb-1">ปีการศึกษาที่เข้ามา</label>
                 <select
                   value={Year_Entry}
-                  onChange={(e) => setYear_Entry(e.target.value)}
+                  onChange={(e) => {
+                    const selectedYear = parseInt(e.target.value, 10);
+                    const academicYear = calculateAcademicYear(selectedYear);
+
+                    if (academicYear === 'จบการศึกษาแล้ว') {
+                      setYear_Entry(''); // Reset year entry if it's invalid
+                      setErrors((prevErrors) => ({
+                        ...prevErrors,
+                        Year_Entry: 'ไม่สามารถเลือกปีการศึกษาที่เกินปัจจุบันได้',
+                      }));
+                    } else {
+                      setYear_Entry(e.target.value); // Update the valid year
+                      setErrors((prevErrors) => ({
+                        ...prevErrors,
+                        Year_Entry: '', // Clear any previous errors
+                      }));
+                    }
+                  }}
                   className={`w-full p-3 mb-1 border ${errors.Year_Entry ? 'border-red-500' : 'border-gray-300'} rounded`}
                 >
-                  <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
-                  {[...Array(17).keys()].map(i => (
-                    <option key={i} value={2564 + i}>{2564 + i}</option>
-                  ))}
+             <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
+{[...Array(new Date().getFullYear() + 543 - Math.max(2564, new Date().getFullYear() + 543 - 4) + 1).keys()].map(i => {
+  const currentYearBuddhist = new Date().getFullYear() + 543;
+  const year = Math.max(2564, currentYearBuddhist - 4) + i; // กำหนดปีต่ำสุด (2564) แต่หายไปเมื่อเกิน 4 ปี
+  return (
+    <option key={i} value={year}>
+      {year}
+    </option>
+  );
+})}
+
+
                 </select>
                 {errors.Year_Entry && <p className="text-red-500 text-sm">{errors.Year_Entry}</p>}
               </div>
+
 
               {/* Course */}
               <div className="w-full">
@@ -439,28 +480,28 @@ const showPopup = () => {
                 {errors.Religion && <p className="text-red-500 text-sm">{errors.Religion}</p>}
               </div>
 
-             {/* DOB */}
-      <div className="w-full">
-        <label className="block text-gray-700 mb-1">วันเกิด</label>
-        <DatePicker
-          selected={DOB}
-          onChange={handleDateChange}
-          dateFormat="dd/MM/yyyy"
-          locale="th"
-          placeholderText="วัน/เดือน/ปี"
-          showYearDropdown
-          yearDropdownItemNumber={100}
-          scrollableYearDropdown
-          customInput={
-            <input
-              value={DOB ? formatToBuddhistYear(DOB) : ""}
-              className="w-full p-3 mb-1 border border-gray-300 rounded"
-            />
-          }
-          className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
-        />
-        {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
-      </div>
+              {/* DOB */}
+              <div className="w-full">
+                <label className="block text-gray-700 mb-1">วันเกิด</label>
+                <DatePicker
+                  selected={DOB}
+                  onChange={handleDateChange}
+                  dateFormat="dd/MM/yyyy"
+                  locale="th"
+                  placeholderText="วัน/เดือน/ปี"
+                  showYearDropdown
+                  yearDropdownItemNumber={100}
+                  scrollableYearDropdown
+                  customInput={
+                    <input
+                      value={DOB ? formatToBuddhistYear(DOB) : ""}
+                      className="w-full p-3 mb-1 border border-gray-300 rounded"
+                    />
+                  }
+                  className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
+                />
+                {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
+              </div>
 
               {/* Phone */}
               <div className="w-full">
