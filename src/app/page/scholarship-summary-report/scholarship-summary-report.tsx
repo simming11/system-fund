@@ -138,7 +138,7 @@ const ScholarshipStats = () => {
 
     // Data for the applied and received scholarships pie chart
     const appliedScholarshipsData = {
-        labels: [`นิสิตที่สมัครทุนการศึกษาในปี ${yearApplied} คน`, `นิสิตที่ได้รับทุนในปี ${yearApplied}คน`],
+        labels: [`นิสิตที่สมัครทุนการศึกษาในปี ${yearApplied} `, `นิสิตที่ได้รับทุนในปี ${yearApplied}`],
         datasets: [
             {
                 label: 'Applied vs Received Scholarships',
@@ -172,7 +172,7 @@ const ScholarshipStats = () => {
             },
             title: {
                 display: true,
-                text: 'Scholarship Statistics',
+                text: 'สถิติทุนการศึกษา',
             },
         },
     };
