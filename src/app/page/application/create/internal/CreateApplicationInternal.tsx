@@ -415,7 +415,7 @@ export default function CreateApplicationInternalPage() {
     if (!token) {
       router.push('/page/login');
     }
-
+  
     if (idStudent) {
       const fetchStudentData = async () => {
         try {
@@ -429,13 +429,43 @@ export default function CreateApplicationInternalPage() {
             Year_Entry: studentResponse.data.Year_Entry,
             DOB: studentResponse.data.DOB,
           }));
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error fetching student data:', error);
+  
+          // ตรวจสอบถ้าเป็น AxiosError เพื่อให้เข้าถึง response ได้
+          if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Unauthorized',
+                text: 'Session has expired or you are not authorized.',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Login again',
+              }).then(() => {
+                router.push('/page/login'); // เปลี่ยนเส้นทางไปหน้า login
+              });
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while fetching student data.',
+                confirmButtonColor: '#3085d6',
+              });
+            }
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'An unknown error occurred.',
+              confirmButtonColor: '#3085d6',
+            });
+          }
         }
       };
       fetchStudentData();
     }
   }, [token, idStudent, router]);
+  
 
   useEffect(() => {
     const fetchProvinces = async () => {
