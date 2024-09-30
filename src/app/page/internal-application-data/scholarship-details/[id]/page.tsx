@@ -151,6 +151,7 @@ export default function ScholarshipInternalDetailsPage() {
                             <thead>
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ลำดับที่</th>
+                                    <th className="border border-gray-300 p-2">รหัสนิสิต</th>
                                     <th className="border border-gray-300 p-2">ชื่อ-สกุล</th>
                                     <th className="border border-gray-300 p-2">ชั้นปี</th>
                                     <th className="border border-gray-300 p-2">สาขา</th>
@@ -165,7 +166,10 @@ export default function ScholarshipInternalDetailsPage() {
                                     return (
                                         <tr key={`${student.StudentID}-${index}`} className="hover:bg-gray-100">
                                             <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                                            <td className="border border-gray-300 p-2">
+                                            <td className="border border-gray-300 p-2 text-center">
+                                                 {student?.StudentID}
+                                            </td>
+                                            <td className="border border-gray-300 p-2 text-center">
                                                 {student?.FirstName} {student?.LastName}
                                             </td>
                                             <td className="border border-gray-300 p-2 text-center">
