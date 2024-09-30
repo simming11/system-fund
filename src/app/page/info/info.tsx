@@ -180,29 +180,30 @@ export default function UserPage() {
                   <tr>
                     <td className="border p-2 md:p-4 font-bold">GPA:</td>
                     <td className="border p-2 md:p-4">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="GPA"
-                          value={editedData.GPA || ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            const regex = /^\d*\.?\d{0,2}$/;
+  {isEditing ? (
+    <input
+      type="text"
+      name="GPA"
+      value={editedData.GPA || ''}
+      onChange={(e) => {
+        const value = e.target.value;
+        const regex = /^\d*\.?\d{0,2}$/; // Allow only numbers and max 2 decimal places
 
-                            if (regex.test(value) && (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 4))) {
-                              setEditedData((prev) => ({
-                                ...prev,
-                                GPA: value,
-                              }));
-                            }
-                          }}
-                          className="border rounded p-1"
-                          inputMode="decimal"
-                        />
-                      ) : (
-                        userData.GPA
-                      )}
-                    </td>
+        if (regex.test(value) && (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 4))) {
+          setEditedData((prev) => ({
+            ...prev,
+            GPA: value, // Store the value directly
+          }));
+        }
+      }}
+      className="border rounded p-1"
+      inputMode="decimal"
+    />
+  ) : (
+    parseFloat(userData.GPA).toFixed(2) // Display GPA with 2 decimal places when not editing
+  )}
+</td>
+
                     <td className="border p-2 md:p-4 font-bold">ชั้นปี:</td>
                     <td className="border p-2 md:p-4">{academicYear}</td>
                   </tr>
