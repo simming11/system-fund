@@ -102,16 +102,8 @@ static async streamApplicationPdf(applicationId: string) {
         const file = new Blob([response.data], { type: 'application/pdf' });
         const fileURL = window.URL.createObjectURL(file);
 
-        // Extract filename from 'content-disposition' header if available
-        const contentDisposition = response.headers['content-disposition'];
-        let fileName = `${applicationId}_report.pdf`; // Default filename
-
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename="(.+)"/);
-            if (match && match.length > 1) {
-                fileName = match[1]; // Extract filename from headers
-            }
-        }
+        // Set the filename directly as the application ID
+        let fileName = `${applicationId}_report.pdf`;
 
         // Open the PDF in a new browser tab for preview
         const newWindow = window.open(fileURL, '_blank');
@@ -133,6 +125,7 @@ static async streamApplicationPdf(applicationId: string) {
         throw error;
     }
 }
+
 
 
 

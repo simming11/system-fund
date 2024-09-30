@@ -365,16 +365,16 @@ export default function RegisterPage() {
                   }}
                   className={`w-full p-3 mb-1 border ${errors.Year_Entry ? 'border-red-500' : 'border-gray-300'} rounded`}
                 >
-             <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
-{[...Array(new Date().getFullYear() + 543 - Math.max(2564, new Date().getFullYear() + 543 - 4) + 1).keys()].map(i => {
-  const currentYearBuddhist = new Date().getFullYear() + 543;
-  const year = Math.max(2564, currentYearBuddhist - 4) + i; // กำหนดปีต่ำสุด (2564) แต่หายไปเมื่อเกิน 4 ปี
-  return (
-    <option key={i} value={year}>
-      {year}
-    </option>
-  );
-})}
+                  <option value="" disabled>ปีการศึกษาที่เข้ามา</option>
+                  {[...Array(new Date().getFullYear() + 543 - Math.max(2564, new Date().getFullYear() + 543 - 4) + 1).keys()].map(i => {
+                    const currentYearBuddhist = new Date().getFullYear() + 543;
+                    const year = Math.max(2564, currentYearBuddhist - 4) + i; // กำหนดปีต่ำสุด (2564) แต่หายไปเมื่อเกิน 4 ปี
+                    return (
+                      <option key={i} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
 
 
                 </select>
