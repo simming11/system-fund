@@ -489,7 +489,7 @@ const handleDateChange = (date: Date | null) => {
 
             {/* DOB - Date of Birth */}
 <div className="w-full">
-  <label className="block text-gray-700 mb-1">วันเกิด</label>
+  <label className="block text-gray-700 mb-1">วันเกิดตามปีคริสต์ศักราช</label>
   <DatePicker
     selected={DOB}
     onChange={handleDateChange}
@@ -665,7 +665,7 @@ const handleDateChange = (date: Date | null) => {
             {/* Submit Button */}
             <button
               onClick={handleRegister}
-              className="w-full bg-green-500 text-white py-2 rounded hover:bg-blue-600 mt-6"
+              className="w-full bg-green-500 text-white py-2 rounded  mt-6"
             >
              ลงทะเบียน
             </button>
