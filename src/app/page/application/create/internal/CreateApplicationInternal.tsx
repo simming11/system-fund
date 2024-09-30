@@ -3039,10 +3039,11 @@ export default function CreateApplicationInternalPage() {
                       onChange={(e) => handleActivityChange(index, e)}
                       className="w-full p-3 border border-gray-300 rounded"
                     >
-                      <option value="">เลือกปีการศึกษา</option>
-                      {Array.from({ length: 2580 - 2564 + 1 }, (_, i) => 2564 + i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
+                    <option value="">เลือกปีการศึกษา</option>
+{Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
+  <option key={year} value={year}>{year}</option>
+))}
+
                     </select>
                   </div>
 
@@ -3121,10 +3122,10 @@ export default function CreateApplicationInternalPage() {
                       onChange={(e) => handleScholarshipChange(index, e)}
                       className="w-full p-3 border border-gray-300 rounded"
                     >
-                      <option value="">เลือกปีการศึกษา</option>
-                      {Array.from({ length: 17 }, (_, i) => 2564 + i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
+                                       <option value="">เลือกปีการศึกษา</option>
+{Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
+  <option key={year} value={year}>{year}</option>
+))}
                     </select>
                   </div>
                   <div>

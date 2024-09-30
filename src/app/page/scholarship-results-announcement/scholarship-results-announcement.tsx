@@ -115,27 +115,26 @@ export default function ApplicationDataPage() {
             <h2 className="text-2xl font-semibold mb-6">ประกาศทุนการศึกษา</h2>
 
             <div className="mb-4 flex items-center space-x-4">
-  {/* Label */}
-  <label htmlFor="year" className="block text-gray-700 mb-2">
-    เลือกปีการศึกษา:
-  </label>
+              {/* Label */}
+              <label htmlFor="year" className="block text-gray-700 mb-2">
+                เลือกปีการศึกษา:
+              </label>
 
-  {/* Dropdown */}
-  <select
-    id="year"
-    value={selectedYear}
-    onChange={handleYearChange}
-    className="border border-gray-300 p-2 rounded"
-  >
-    <option value="">ทั้งหมด</option>
-    {availableYears.map((year) => (
-      <option key={year} value={year}>
-        {year}
-      </option>
-    ))}
-  </select>
-</div>
-
+              {/* Dropdown */}
+              <select
+                id="year"
+                value={selectedYear}
+                onChange={handleYearChange}
+                className="border border-gray-300 p-2 rounded"
+              >
+                <option value="">ทั้งหมด</option>
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Search input */}
             <div className="mb-4">
@@ -171,20 +170,15 @@ export default function ApplicationDataPage() {
                         {scholarship.AnnouncementFile ? "ประกาศผลแล้ว" : "ยังไม่ประกาศผล"}
                       </td>
                       <td className="border border-gray-300 p-2 text-center">
-                        {!canAnnounce(scholarship.EndDate) ? (
-                          <span className="text-red-500">ไม่สามารถประกาศผลได้เนื่องจากยังไม่ปิดรับสมัคร</span>
-                        ) : (
+                        {scholarship.AnnouncementFile || canAnnounce(scholarship.EndDate) ? (
                           <button
-                            onClick={() => {
-                              if (!scholarship.AnnouncementFile) {
-                                handleRowClick(scholarship.ScholarshipID);
-                              }
-                            }}
-                            className={`text-blue-500 hover:text-blue-700 ${scholarship.AnnouncementFile ? 'cursor-not-allowed opacity-50' : ''}`}
-                            disabled={!!scholarship.AnnouncementFile}
+                            onClick={() => handleRowClick(scholarship.ScholarshipID)}  // สามารถดูรายละเอียดได้ถ้าปิดรับสมัครแล้ว
+                            className="text-blue-500 hover:text-blue-700"
                           >
                             <FontAwesomeIcon icon={faEye} size="lg" />
                           </button>
+                        ) : (
+                          <span className="text-red-500">ไม่สามารถดูรายละเอียดได้เนื่องจากไม่ปิดรับสมัคร</span>
                         )}
                       </td>
                     </tr>
