@@ -55,7 +55,6 @@ export default function LoginPage() {
 
     try {
       const response = await ApiAuthService.loginStudent(identifier, password);
-      console.log('Login successful', response.data);
 
       const { token, user } = response.data;
       localStorage.setItem('token', token);

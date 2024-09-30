@@ -19,7 +19,6 @@ const fetchLineNotifyToken = async (code: string | string[]) => {
     });
  
     const { access_token } = response.data;
-    console.log('Access Token:', access_token);
     localStorage.setItem('line_notify_token', access_token); // Store the token
     return access_token;
   } catch (error) {
@@ -67,7 +66,6 @@ export const sendLineNotify = async (message: any) => {
 
     if (response.ok) {
       const jsonResponse = await response.json();
-      console.log('LINE Notify response:', jsonResponse);
     } else {
       throw new Error('Failed to send LINE Notify');
     }

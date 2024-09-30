@@ -69,13 +69,13 @@ export default function EditInternalScholarshipPage() {
 
   useEffect(() => {
     sessionStorage.setItem('editInternalScholarshipForm', JSON.stringify(formData));
-    console.log(id);
+  
   }, [formData]);
 
   useEffect(() => {
     const fetchScholarshipData = async () => {
       if (id) {
-        console.log("Scholarship ID from URL:", id); // Log the id value
+      
         try {
           const response = await ApiServiceScholarships.getScholarship(Number(id));
           const data = response.data;
@@ -346,7 +346,7 @@ export default function EditInternalScholarshipPage() {
         Image: imageFile, // Store the image file directly
       }));
 
-      console.log("Image file selected:", imageFile);
+    
     }
   };
 

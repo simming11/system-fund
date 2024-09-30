@@ -44,8 +44,7 @@ export default function AnnouncementOfScholarships() {
                 // Type `years` as a string array
                 setAvailableYears(years.sort().reverse() as string[]); // Sort years in descending order
                 setScholarships(scholarshipsData);
-    
-                console.log(scholarshipsData);
+ 
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
             } finally {

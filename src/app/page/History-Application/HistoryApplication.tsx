@@ -38,7 +38,7 @@ export default function SubmissionHistoryPage() {
           ];
 
           setApplications(combinedApplications);
-          console.log('Combined Applications:', combinedApplications);
+    
         } else {
           console.error('StudentID not found in localStorage');
         }

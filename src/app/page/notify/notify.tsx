@@ -61,7 +61,7 @@ export default function LineNotifyForm() {
       if (code && state) {
         localStorage.setItem('oauth_code', code);
         localStorage.setItem('oauth_state', state);
-        console.log('Code and state saved to localStorage:', { code, state });
+
 
         fetchLineNotifiesAndToken(code);
       }
@@ -102,7 +102,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
         const tokenData = await responseToken.json();
         const { access_token } = tokenData;
         updateLineNotifyInDB(access_token);
-        console.log('Access Token:', access_token);
+
         setHasLineToken(!LineToken);
 
         // Save token to localStorage
@@ -186,7 +186,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
       };
 
       const response = await ApiLineNotifyServices.updateLineNotify(formData.AcademicID, lineNotifyData);
-      console.log('Line Notify updated:', response);
+
     } catch (error) {
       console.error('Error updating Line Notify:', error);
     }
@@ -224,8 +224,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
       [e.target.name]: e.target.value,
     });
 
-    // Log the name of the input and its current value
-    console.log(`${e.target.name}: ${e.target.value}`);
+    
   };
 
 
@@ -241,8 +240,7 @@ const fetchLineNotifiesAndToken = async (code: string) => {
       AcademicID: AcademicID,
     };
 
-    // Log the formData before submitting
-    console.log("Submitting form data:", updatedFormData);
+
 
     try {
       const response = await ApiLineNotifyServices.createLineNotify(updatedFormData);

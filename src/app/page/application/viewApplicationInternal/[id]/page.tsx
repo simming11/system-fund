@@ -294,10 +294,10 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                     throw new Error('Application ID not found');
 
                 }
-                console.log('Fetched applicationID:', id);
+              
                 setLoading(true);
                 const response = await ApiApplicationUpdateInternalServices.getApplicationById(id);
-                console.log(response);
+            
                 
                 setApplicationData(response);
 
@@ -332,7 +332,7 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                 const father = guardians.find((guardian) => guardian.Type === 'บิดา') || { ...defaultGuardianData, Type: 'บิดา' };
                 const mother = guardians.find((guardian) => guardian.Type === 'มารดา') || { ...defaultGuardianData, Type: 'มารดา' };
                 const caretaker = guardians.find((guardian) => guardian.Type !== 'บิดา' && guardian.Type !== 'มารดา') || { ...defaultGuardianData, Type: '' };
-                console.log(father);
+               
                 
                 setFatherData(father);
                 setMotherData(mother);

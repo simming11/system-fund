@@ -13,10 +13,6 @@ export const login = async (): Promise<boolean> => {
       } else {
         const userProfile = await liff.getProfile();
         if (userProfile) {
-          console.log("User_ID: ", userProfile.userId);
-          console.log("User_Name: ", userProfile.displayName);
-          console.log("User_Picture: ", userProfile.pictureUrl);
-          console.log(userProfile);
           
           return true;
         } else {

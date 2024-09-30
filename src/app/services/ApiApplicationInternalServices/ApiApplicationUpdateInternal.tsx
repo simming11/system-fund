@@ -153,7 +153,7 @@ class ApiApplicationUpdateInternalServices {
                 }
             );
     
-            console.log('API response:', response.data); // Log API response for debugging
+          
             return response.data;
     
         } catch (error) {
@@ -190,7 +190,7 @@ static async updateGuardiansByApplicationID(applicationID: string, guardiansData
             }
         );
         
-        console.log('API response:', response.data); // Log API response for debugging
+       
         return response.data;
     
     } catch (error) {
@@ -275,7 +275,7 @@ static async updateApplicationFiles(applicationID: string, formData: FormData): 
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
     })
     .then(response => {
-        console.log('File upload response:', response);
+     
         return response; // Return response here
     })
     .catch(error => {

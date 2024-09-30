@@ -77,14 +77,8 @@ const ApplicationDetailContent = dynamic(() => Promise.resolve(({ id }: { id: st
   useEffect(() => {
     if (id) {
       const fetchApplication = async () => {
-        console.log("Fetching application details for id:", id);
+     
         try {
-          // Fetch application details along with attachments
-          // const response = await ApiApplicationWithAttachmentService.getApplicationAttachments(Number(id));
-          // const applicationData = response.data;
-          // console.log("Application data fetched:", applicationData);
-
-          // setApplication(applicationData); // Set application data
         } catch (error) {
           console.error('Error fetching application details', error);
         } finally {

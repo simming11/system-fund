@@ -183,7 +183,7 @@ const showPopup = () => {
         Religion
       );
 
-      console.log("Registration successful", response.data);
+
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('UserRole', 'student');

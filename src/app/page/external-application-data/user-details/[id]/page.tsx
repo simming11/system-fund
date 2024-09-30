@@ -83,9 +83,9 @@ export default function StudentExternalDetailsPage() {
         const fetchStudentApplicationDetails = async () => {
             try {
                 if (scholarshipId && studentId) {
-                    console.log('Fetching data for Student ID:', studentId, 'and Scholarship ID:', scholarshipId);
+                   
                     const response = await ApiApplicationExternalServices.getStudentByScholarshipIdAndStudentId(scholarshipId, studentId);
-                    console.log('API Response:', response);
+                    
 
                     setApplication(response);
 

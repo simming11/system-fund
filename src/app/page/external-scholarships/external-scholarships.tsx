@@ -74,7 +74,7 @@ export default function ExternalScholarShipsPage() {
         );
 
         setScholarships(updatedScholarships);
-        console.log('Filtered and updated scholarships:', updatedScholarships);
+    
       } catch (error) {
         console.error('Error fetching scholarships', error);
       } finally {
@@ -92,7 +92,7 @@ export default function ExternalScholarShipsPage() {
         try {
           const studentResponse = await ApiStudentServices.getStudent(StudentID);
           setStudent(studentResponse.data);
-          console.log('Student data:', studentResponse.data);
+     
         } catch (error) {
           console.error('Error fetching student data', error);
           router.push('/page/login');

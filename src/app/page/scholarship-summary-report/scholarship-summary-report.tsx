@@ -50,7 +50,7 @@ const ScholarshipStats = () => {
                 const combinedApplications = [...internalResponse, ...externalResponse];
 
                 if (combinedApplications.length > 0) {
-                    console.log(combinedApplications[0]);
+                  
 
                     // Filtering internal and external applications where Status is 'ได้รับทุน'
                     const filteredInternalApplications = internalResponse.filter(
@@ -95,7 +95,7 @@ const ScholarshipStats = () => {
 
                     // Log scholarship names and how many students received each scholarship
                     for (const [scholarshipName, count] of Object.entries(scholarshipCountMapTemp)) {
-                        console.log(`Scholarship Name: ${scholarshipName}, Number of Students Received: ${count}`);
+                
                     }
                 }
                 if (scholarshipsResponse && scholarshipsResponse.data) {

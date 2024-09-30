@@ -123,7 +123,7 @@ static async sendLineNotify(message: string, token: string) {
 
         const data = await response.json();
         if (data.success) {
-            console.log('LINE Notify sent successfully:', data.message);
+        
         } else {
             console.error('Error sending LINE Notify:', data.error);
         }

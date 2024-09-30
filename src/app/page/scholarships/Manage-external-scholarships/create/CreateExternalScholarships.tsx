@@ -118,7 +118,6 @@ export default function CreateExternalScholarshipPage() {
   const fetchScholarship = async () => {
     try {
       const Scholarship = await ScholarshipService.getAllScholarships();
-      console.log("Fetched applications:", Scholarship);
     } catch (error) {
       console.error("Error fetching applications:", error);
     }
@@ -143,7 +142,6 @@ export default function CreateExternalScholarshipPage() {
         showOtherInputSetter && showOtherInputSetter(false);
         otherInputSetter && otherInputSetter(""); // Clear the other description
         updatedArray = updatedArray.filter(item => item !== value);
-        console.log(checked, value);
       }
     } else { // กรณีช่องอื่นๆ ที่ไม่ใช่ "อื่น ๆ"
       if (checked) {
@@ -287,7 +285,7 @@ export default function CreateExternalScholarshipPage() {
         Image: imageFile, // Store the image file directly
       }));
 
-      console.log("Image file selected:", imageFile);
+   
     }
   };
 

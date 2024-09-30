@@ -52,10 +52,10 @@ export default function ScholarshipInternalDetailsPage() {
                 const scholarshipId = Array.isArray(id) ? id[0] : id;
                 if (scholarshipId) {
                     const response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
-                    console.log(response);
+                 
     
                     // Log the entire response to inspect the structure
-                    console.log('API Response:', response);
+           
     
                     // กรองนิสิตที่มีสถานะ 'รอประกาศผล'
                     const filteredResponse = response.filter((app: { Status: string; }) => app.Status === 'รอประกาศผล');
@@ -64,10 +64,10 @@ export default function ScholarshipInternalDetailsPage() {
                         setApplications(filteredResponse);
     
                         // Log specific parts of the response to check structure
-                        console.log('First filtered application data:', filteredResponse[0]);
+                    
     
                         const scholarshipname = filteredResponse[0].scholarship?.ScholarshipName || 'Unknown';
-                        console.log('Scholarship Name:', scholarshipname);
+                       
     
                         // Extract and store the scholarship name in state
                         setScholarshipName(scholarshipname);

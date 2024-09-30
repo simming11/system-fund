@@ -342,7 +342,7 @@ export default function EditExternalScholarshipPage() {
         Image: imageFile, // Store the image file directly
       }));
 
-      console.log("Image file selected:", imageFile);
+ 
     }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

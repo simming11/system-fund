@@ -121,7 +121,6 @@ export default function ViewApplicationExternalPage({ params }: PageProps) {
                 try {
                     const studentResponse = await ApiStudentServices.getStudent(idStudent);
                     setUserData(studentResponse.data);
-                    console.log(studentResponse);
                     
                     setStudents((prevData) => ({
                         ...prevData,
@@ -147,12 +146,12 @@ export default function ViewApplicationExternalPage({ params }: PageProps) {
                     throw new Error('Application ID not found');
                 }
     
-                console.log('Fetching Application ID:', id);
+              
                 const response = await ApiApplicationExternalServices.getApplicationById(id);
     
                 // Check if response is valid and contains data
                 if (response && response.length > 0) {
-                    console.log('Application Data:', response);
+                 
     
                     // Assuming response is an array, you can fetch the first element or process accordingly
                     setApplicationData(response[0]); // Update with application data

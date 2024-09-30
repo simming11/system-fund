@@ -44,7 +44,7 @@ export default function LoginControlPage() {
   
     try {
       const response = await ApiAuthService.loginAcademic(identifier, password);
-      console.log('Login successful', response.data);
+     
   
       const { token, user } = response.data;
       localStorage.setItem('token', token);

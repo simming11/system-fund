@@ -99,11 +99,6 @@ export default function CreateInternalScholarshipPage() {
       if (response.length > 0) {
         const { client_secret, notify_client_id, LineToken } = response[0];
         setLineToken(LineToken);
-        console.log('Updated formData with client_secret and notify_client_id:', {
-          client_secret,
-          notify_client_id,
-          LineToken,
-        });
       }
     } catch (error) {
       console.error('Error fetching line notifies:', error);
@@ -118,7 +113,7 @@ export default function CreateInternalScholarshipPage() {
   const fetchScholarship = async () => {
     try {
       const Scholarship = await ScholarshipService.getAllScholarships();
-      console.log("Fetched applications:", Scholarship);
+     
     } catch (error) {
       console.error("Error fetching applications:", error);
     }
@@ -143,7 +138,7 @@ export default function CreateInternalScholarshipPage() {
         showOtherInputSetter && showOtherInputSetter(false);
         otherInputSetter && otherInputSetter(""); // Clear the other description
         updatedArray = updatedArray.filter(item => item !== value);
-        console.log(checked, value);
+     
       }
     } else { // กรณีช่องอื่นๆ ที่ไม่ใช่ "อื่น ๆ"
       if (checked) {
@@ -287,7 +282,7 @@ export default function CreateInternalScholarshipPage() {
         Image: imageFile, // Store the image file directly
       }));
 
-      console.log("Image file selected:", imageFile);
+     
     }
   };
 

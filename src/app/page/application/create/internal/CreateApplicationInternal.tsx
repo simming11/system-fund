@@ -757,7 +757,6 @@ export default function CreateApplicationInternalPage() {
     setSiblingsData(newSiblingsData);
 
     // Log the updated siblings data
-    console.log('Updated Sibling Data:', newSiblingsData);
 
     // Save updated siblingsData to sessionStorage
     sessionStorage.setItem('siblingsData', JSON.stringify(newSiblingsData));
@@ -1497,7 +1496,6 @@ export default function CreateApplicationInternalPage() {
       }
 
       // Log ข้อมูลที่ถูกส่งไป
-      console.log('Siblings data sent:', updatedSiblingsData);
 
 
 
@@ -1508,7 +1506,6 @@ export default function CreateApplicationInternalPage() {
         ApplicationID: applicationID,
       }));
       tasks.push(ApiApplicationCreateInternalServices.createActivity(updatedActivities));
-      console.log('Activities data sent:', updatedActivities);
 
       // Send all scholarship history data as an array to the API
       const updatedScholarshipHistory = scholarshipHistory.map((scholarship) => ({
@@ -1516,7 +1513,6 @@ export default function CreateApplicationInternalPage() {
         ApplicationID: applicationID,
       }));
       tasks.push(ApiApplicationCreateInternalServices.createScholarshipHistory(updatedScholarshipHistory));
-      console.log('Scholarship history data sent:', updatedScholarshipHistory);
 
       // Send all work experience data as an array to the API
       const updatedWorkExperiences = workExperiences.map((workExperience) => ({
@@ -1524,16 +1520,16 @@ export default function CreateApplicationInternalPage() {
         ApplicationID: applicationID,
       }));
       tasks.push(ApiApplicationCreateInternalServices.createWorkExperience(updatedWorkExperiences));
-      console.log('Work experience data sent:', updatedWorkExperiences);
+
 
       // Submit the addressData and currentAddressData
       const updatedAddressData = { ...addressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedAddressData));
-      console.log('Address data sent:', updatedAddressData);
+
 
       const updatedCurrentAddressData = { ...currentAddressData, ApplicationID: applicationID };
       tasks.push(ApiApplicationCreateInternalServices.createAddress(updatedCurrentAddressData));
-      console.log('Current address data sent:', updatedCurrentAddressData);
+
       // Submit application files
       if (applicationFiles.length > 0) {
         for (const fileData of applicationFiles) {
@@ -1548,7 +1544,6 @@ export default function CreateApplicationInternalPage() {
 
           // Log the formData contents
           for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
           }
 
           // Push the formData to the API service call
@@ -1559,7 +1554,7 @@ export default function CreateApplicationInternalPage() {
       // Execute all tasks
       await Promise.all(tasks);
 
-      console.log('All data submitted successfully.');
+      ('All data submitted successfully.');
 
       // Clear sessionStorage after successful submission
       // Clear sessionStorage after successful submission
@@ -1664,7 +1659,6 @@ export default function CreateApplicationInternalPage() {
             tasks.push(ApiApplicationCreateInternalServices.createSiblings(updatedSiblingsData));
           }
 
-          console.log('Siblings data sent:', updatedSiblingsData);
 
           // Submit activities data
           if (activities.length > 0) {
@@ -1717,7 +1711,7 @@ export default function CreateApplicationInternalPage() {
           // Execute all tasks in parallel
           await Promise.all(tasks);
 
-          console.log('All data submitted successfully.');
+          ('All data submitted successfully.');
 
           // Clear sessionStorage after successful submission
           sessionStorage.removeItem('step');

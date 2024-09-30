@@ -36,7 +36,7 @@ class ApiApplicationExternalServices {
             const apiUrl = `${API_URL}/applications-external/scholarship/${scholarshipId}/students`;
             
             // Log before making the request
-            console.log(`Making API request to: ${apiUrl}`);
+       
     
             const response = await axios.get(apiUrl, {
                 headers: {
@@ -46,13 +46,12 @@ class ApiApplicationExternalServices {
             });
     
             // Log the response status and data
-            console.log('API Response Status:', response.status);
-            console.log('API Response Data:', response.data);
+         
     
             if (response.status === 200) {
                 return response.data; // Return the array of applications
             } else {
-                console.log(`Error: ${response.statusText}`); // Log if not 200
+               
                 throw new Error(`Failed to fetch students: ${response.statusText}`);
             }
         } catch (error: any) {

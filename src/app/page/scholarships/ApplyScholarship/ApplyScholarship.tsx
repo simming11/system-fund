@@ -68,7 +68,7 @@ export default function ApplyScholarShipsPage() {
         // Fetch all scholarships
         const scholarshipsResponse = await ApiServiceScholarships.getAllScholarships();
         const scholarshipsData = scholarshipsResponse.data;
-        console.log('Scholarships Data:', scholarshipsData);
+      
 
         const updatedScholarships = await Promise.all(
           scholarshipsData.map(async (scholarship: Scholarship) => {
@@ -120,8 +120,6 @@ export default function ApplyScholarShipsPage() {
         if (StudentID) {
           const studentResponse = await ApiStudentServices.getStudent(StudentID);
           setStudent(studentResponse.data);
-          console.log('Student Data:', studentResponse.data);
-
           // Calculate and set the recommended scholarships based on the student's GPA and Course
           recommendScholarships(studentResponse.data.GPA, studentResponse.data.Course, studentResponse.data.Year_Entry);
 
@@ -250,7 +248,7 @@ export default function ApplyScholarShipsPage() {
       let isYearLevelValid = validYears.includes(academicYear);
   
       if (isGPAValid && isCourseValid && isEndDateValid && isYearLevelValid) {
-        console.log(`Scholarship ${scholarship.ScholarshipName} matches GPA, Course, is within the valid application period, and applies to academic year ${academicYear}.`);
+   
       }
   
       // Return true only if all conditions are valid
@@ -258,7 +256,7 @@ export default function ApplyScholarShipsPage() {
     });
   
     setRecommendedScholarships(recommended);
-    console.log('Recommended Scholarships:', recommended);
+
   };
   
 

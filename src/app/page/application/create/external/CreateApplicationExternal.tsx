@@ -107,7 +107,7 @@ export default function CreateApplicationExternalPage() {
       updatedFiles[index].FilePath = file; // Assign the selected file
       setApplicationFiles(updatedFiles); // Update the state with the new file
 
-      console.log('File uploaded:', file);
+      
     }
   };
 
@@ -154,8 +154,6 @@ export default function CreateApplicationExternalPage() {
           Status: 'รอประกาศผล',
         };
   
-        // Create the application and retrieve the Application_EtID
-        console.log(updatedApplicationData);
   
         const applicationResponse = await ApiCreateApplicationExternalServices.createApplication(updatedApplicationData);
         const Application_EtID = applicationResponse.Application_EtID;
@@ -180,7 +178,7 @@ export default function CreateApplicationExternalPage() {
   
             // Log the FormData contents for debugging
             for (let [key, value] of formData.entries()) {
-              console.log(`${key}:`, value);
+        
             }
   
             // Send the formData using your API service
@@ -190,8 +188,6 @@ export default function CreateApplicationExternalPage() {
   
         // Execute all tasks
         await Promise.all(tasks);
-  
-        console.log('All data submitted successfully.');
         sessionStorage.clear();
   
         // แสดงการแจ้งเตือนเมื่อส่งข้อมูลสำเร็จ

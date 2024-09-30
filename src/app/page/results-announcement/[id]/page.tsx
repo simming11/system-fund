@@ -41,19 +41,19 @@ export default function ResultsAnnouncementPage() {
             try {
                 const scholarshipId = Array.isArray(id) ? id[0] : id;
                 if (scholarshipId) {
-                    console.log(`Fetching data for ScholarshipID: ${scholarshipId}`);
+                   
                     let response = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarshipId);
 
                     if (!response || response.length === 0) {
-                        console.log('No data found in Internal API, fetching from External API.');
+                 
                         response = await ApiApplicationExternalServices.getStudentsByScholarshipId(scholarshipId);
                     }
 
                     if (response && response.length > 0) {
-                        console.log('All fetched applications:', response);
+                 
                         const filteredApplications = response.filter((app: Application) => app.Status === 'ได้รับทุน');
 
-                        console.log('Filtered applications with status "อนุมัติ":', filteredApplications);
+                     
                         setApplications(filteredApplications);
 
                         if (filteredApplications.length > 0) {
@@ -61,7 +61,7 @@ export default function ResultsAnnouncementPage() {
                         }
 
                         const scholarshipname = response[0].scholarship.ScholarshipName || 'Unknown';
-                        console.log(scholarshipname);
+                    
 
                         setScholarshipName(scholarshipname);
                         setScholarship(response[0].scholarship); // Set scholarship data

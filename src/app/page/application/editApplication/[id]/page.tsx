@@ -186,7 +186,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             PostalCode: '',
             Type: 'ที่อยู่ตามบัตรประชาชน',
         };
-        console.log('Loaded addressData from sessionStorage:', data); // Log ข้อมูลหลังจากโหลด
+       
         return data;
     });
 
@@ -201,7 +201,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             PostalCode: '',
             Type: 'ที่อยู่ปัจจุบัน',
         };
-        console.log('Loaded currentAddressData from sessionStorage:', data); // Log ข้อมูลหลังจากโหลด
+    
         return data;
     });
 
@@ -353,7 +353,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     throw new Error('Application ID not found');
 
                 }
-                console.log('Fetched applicationID:', id);
                 setLoading(true);
                 const response = await ApiApplicationUpdateInternalServices.getApplicationById(id);
                 setApplicationData(response);
@@ -582,7 +581,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
         setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
         setIsParentEditing(true);  // Enable parent editing
-        console.log('Mother Status:', name === 'MotherStatus' ? value : motherData.Status);  // Log mother's status
     };
 
     const handleChangeFather = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -595,7 +593,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
         setIsCaretakerEditing(false);  // Disable caretaker editing when parent is being edited
         setIsParentEditing(true);  // Enable parent editing
-        console.log('Father Status:', name === 'FatherStatus' ? value : fatherData.Status);  // Log father's status
     };
 
     const handleChangeCaretaker = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -609,10 +606,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         // Enable caretaker editing and disable parent editing
         setIsCaretakerEditing(true);
         setIsParentEditing(false);
-        console.log('Caretaker Data on Change:', {
-            ...caretakerData,
-            [name]: name === 'Income' || name === 'Age' ? Number(value) : value,
-        });
+    
     };
 
     const calculateAcademicYear = (yearEntry: number | null) => {
@@ -703,8 +697,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const handleChangeAddress = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
-        // Log name and value of the changed field
-        console.log(`Field changed: ${name}, New value: ${value}`);
 
         setAddressData(prevData => {
             const updatedData = {
@@ -713,7 +705,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             };
 
             // Log the updated addressData state
-            console.log('Updated addressData:', updatedData);
+      
 
             return updatedData;
         });
@@ -725,7 +717,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         const { name, value } = e.target;
 
         // Log name and value of the changed field
-        console.log(`Field changed: ${name}, New value: ${value}`);
+     
 
         setCurrentAddressData(prevData => {
             const updatedData = {
@@ -733,8 +725,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 [name]: value,
             };
 
-            // Log the updated currentAddressData state
-            console.log('Updated currentAddressData:', updatedData);
+        
 
             return updatedData;
         });
@@ -857,7 +848,7 @@ const addFileEntry = () => {
         setApplicationFiles(updatedFiles);
 
         // Log the updated files array after deletion
-        console.log('Updated files array:', JSON.stringify(updatedFiles, null, 2));
+    
 
         // ส่งข้อมูลไป backend
         const filesDataToSend = JSON.stringify(updatedFiles);
@@ -922,8 +913,7 @@ const addFileEntry = () => {
                 }
             }
 
-            // Log application data to ensure everything is correctly set
-            console.log("Application Data:", updatedApplicationData);
+          
 
             // Create JSON payload for application data
             const payload = {
@@ -943,14 +933,14 @@ const addFileEntry = () => {
                 AdvisorName: updatedApplicationData.AdvisorName,
             };
 
-            console.log('JSON Payload being sent:', payload);
+       
 
             // Send the JSON payload to the API to update application data
             await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
 
             // Handle address data update
             if (addressData.ApplicationID) {
-                console.log('Primary Address ApplicationID:', addressData.ApplicationID);
+          
 
                 if (
                     !addressData.AddressLine ||
@@ -977,10 +967,10 @@ const addFileEntry = () => {
                     }
                 ];
 
-                console.log('Primary address data being sent:', primaryAddressPayload);
+          
 
                 if (currentAddressData.ApplicationID) {
-                    console.log('Current Address ApplicationID:', currentAddressData.ApplicationID);
+                   
 
                     if (
                         !currentAddressData.AddressLine ||
@@ -1007,7 +997,7 @@ const addFileEntry = () => {
                         }
                     ];
 
-                    console.log('Current address data being sent:', currentAddressPayload);
+               
 
                     const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
                         currentAddressData.ApplicationID,
@@ -1015,18 +1005,17 @@ const addFileEntry = () => {
                         currentAddressPayload
                     );
 
-                    console.log('API Response:', result);
-                    console.log('Address data updated successfully');
+               
                 }
             }
 
             // Handle guardians data update
             const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
-            console.log('Guardian data being sent:', guardiansPayload);
+           
 
             if (guardiansPayload.length > 0) {
                 await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
-                console.log('Guardians data updated successfully');
+             
             }
 
             // Handle siblings data update
@@ -1034,12 +1023,11 @@ const addFileEntry = () => {
                 (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
             );
 
-            console.log('Sibling data being sent:', JSON.stringify(siblingsPayload, null, 2));
+           
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
-                console.log('API Response:', response);
-                console.log('Siblings data updated successfully');
+            
             } catch (error) {
                 console.error('Error updating siblings data:', error);
             }
@@ -1049,12 +1037,11 @@ const addFileEntry = () => {
                 (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
             );
 
-            console.log('Activity data being sent:', JSON.stringify(activitiesPayload, null, 2));
+           
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
-                console.log('API Response:', response);
-                console.log('Activities data updated successfully');
+            
             } catch (error) {
                 console.error('Error updating activities data:', error);
             }
@@ -1064,12 +1051,11 @@ const addFileEntry = () => {
                 (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
             );
 
-            console.log('Scholarship History data being sent:', JSON.stringify(scholarshipHistoriesPayload, null, 2));
+       
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
-                console.log('API Response:', response);
-                console.log('Scholarship histories data updated successfully');
+      
             } catch (error) {
                 console.error('Error updating scholarship histories data:', error);
             }
@@ -1079,12 +1065,10 @@ const addFileEntry = () => {
                 (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
             );
 
-            console.log('Work Experience data being sent:', JSON.stringify(workExperiencesPayload, null, 2));
-
+         
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
-                console.log('API Response:', response);
-                console.log('Work experiences data updated successfully');
+         
             } catch (error) {
                 console.error('Error updating work experiences data:', error);
             }
@@ -1110,13 +1094,13 @@ const addFileEntry = () => {
 
             // Log the content of the FormData for debugging
             for (let pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
+           
             }
 
             // Update the files using the FormData method
             ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
-                    console.log('Files updated successfully:', response);
+                
                 })
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
@@ -1129,7 +1113,7 @@ const addFileEntry = () => {
 
 
             // Log other application update status
-            console.log('Application, siblings, and other data updated successfully.');
+      
 
             // Clear sessionStorage after successful save
             sessionStorage.removeItem('EditStep');
@@ -1217,7 +1201,7 @@ const addFileEntry = () => {
             }
 
             // Log application data to ensure everything is correctly set
-            console.log("Application Data:", updatedApplicationData);
+          
 
             // Create JSON payload for application data
             const payload = {
@@ -1237,14 +1221,14 @@ const addFileEntry = () => {
                 AdvisorName: updatedApplicationData.AdvisorName,
             };
 
-            console.log('JSON Payload being sent:', payload);
+      
 
             // Send the JSON payload to the API to update application data
             await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
 
             // Handle address data update
             if (addressData.ApplicationID) {
-                console.log('Primary Address ApplicationID:', addressData.ApplicationID);
+           
 
                 if (
                     !addressData.AddressLine ||
@@ -1271,11 +1255,9 @@ const addFileEntry = () => {
                     }
                 ];
 
-                console.log('Primary address data being sent:', primaryAddressPayload);
+             
 
                 if (currentAddressData.ApplicationID) {
-                    console.log('Current Address ApplicationID:', currentAddressData.ApplicationID);
-
                     if (
                         !currentAddressData.AddressLine ||
                         !currentAddressData.District ||
@@ -1301,7 +1283,7 @@ const addFileEntry = () => {
                         }
                     ];
 
-                    console.log('Current address data being sent:', currentAddressPayload);
+            
 
                     const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
                         currentAddressData.ApplicationID,
@@ -1309,18 +1291,17 @@ const addFileEntry = () => {
                         currentAddressPayload
                     );
 
-                    console.log('API Response:', result);
-                    console.log('Address data updated successfully');
+                
                 }
             }
 
             // Handle guardians data update
             const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
-            console.log('Guardian data being sent:', guardiansPayload);
+       
 
             if (guardiansPayload.length > 0) {
                 await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
-                console.log('Guardians data updated successfully');
+        
             }
 
             // Handle siblings data update
@@ -1328,12 +1309,11 @@ const addFileEntry = () => {
                 (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
             );
 
-            console.log('Sibling data being sent:', JSON.stringify(siblingsPayload, null, 2));
+       
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
-                console.log('API Response:', response);
-                console.log('Siblings data updated successfully');
+           
             } catch (error) {
                 console.error('Error updating siblings data:', error);
             }
@@ -1343,12 +1323,11 @@ const addFileEntry = () => {
                 (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
             );
 
-            console.log('Activity data being sent:', JSON.stringify(activitiesPayload, null, 2));
+      
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
-                console.log('API Response:', response);
-                console.log('Activities data updated successfully');
+          
             } catch (error) {
                 console.error('Error updating activities data:', error);
             }
@@ -1358,12 +1337,11 @@ const addFileEntry = () => {
                 (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
             );
 
-            console.log('Scholarship History data being sent:', JSON.stringify(scholarshipHistoriesPayload, null, 2));
+        
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
-                console.log('API Response:', response);
-                console.log('Scholarship histories data updated successfully');
+         
             } catch (error) {
                 console.error('Error updating scholarship histories data:', error);
             }
@@ -1373,12 +1351,11 @@ const addFileEntry = () => {
                 (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
             );
 
-            console.log('Work Experience data being sent:', JSON.stringify(workExperiencesPayload, null, 2));
+         
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
-                console.log('API Response:', response);
-                console.log('Work experiences data updated successfully');
+             
             } catch (error) {
                 console.error('Error updating work experiences data:', error);
             }
@@ -1404,13 +1381,13 @@ const addFileEntry = () => {
 
             // Log the content of the FormData for debugging
             for (let pair of formData.entries()) {
-                console.log(pair[0], pair[1]);
+        
             }
 
             // Update the files using the FormData method
             ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
-                    console.log('Files updated successfully:', response);
+          
                 })
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
@@ -1421,7 +1398,7 @@ const addFileEntry = () => {
 
 
             // Log other application update status
-            console.log('Application, siblings, and other data updated successfully.');
+       
 
             // Clear sessionStorage after successful save
             sessionStorage.removeItem('EditStep');
