@@ -86,6 +86,22 @@ export default function RegisterPage() {
     return 'จบการศึกษาแล้ว';
   };
 
+
+// Handle date change (convert to Buddhist year internally)
+const handleDateChange = (date: Date | null) => {
+  if (date) {
+    const gregorianYear = date.getFullYear();
+    const buddhistYear = gregorianYear + 543; // Convert to พ.ศ.
+
+    // Format the date for backend storage (Gregorian year format)
+    setDOB(date); // Store the original date internally
+    setErrors((prevErrors) => ({ ...prevErrors, DOB: "" })); // Clear errors if any
+  } else {
+    setErrors((prevErrors) => ({ ...prevErrors, DOB: "กรุณาเลือกวันเกิด" }));
+  }
+};
+
+  
   const handleRegister = async () => {
     let validationErrors = { ...errors };
     let hasErrors = false;
@@ -275,15 +291,6 @@ export default function RegisterPage() {
     return format(date, `dd/MM/${buddhistYear}`);
   };
 
-  // Handle date change
-  const handleDateChange = (date: Date | null) => {
-    if (date) {
-      setDOB(date);
-      setErrors((prevErrors) => ({ ...prevErrors, DOB: "" }));
-    } else {
-      setErrors((prevErrors) => ({ ...prevErrors, DOB: "กรุณาเลือกวันเกิด" }));
-    }
-  };
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -480,28 +487,29 @@ export default function RegisterPage() {
                 {errors.Religion && <p className="text-red-500 text-sm">{errors.Religion}</p>}
               </div>
 
-              {/* DOB */}
-              <div className="w-full">
-                <label className="block text-gray-700 mb-1">วันเกิด</label>
-                <DatePicker
-                  selected={DOB}
-                  onChange={handleDateChange}
-                  dateFormat="dd/MM/yyyy"
-                  locale="th"
-                  placeholderText="วัน/เดือน/ปี"
-                  showYearDropdown
-                  yearDropdownItemNumber={100}
-                  scrollableYearDropdown
-                  customInput={
-                    <input
-                      value={DOB ? formatToBuddhistYear(DOB) : ""}
-                      className="w-full p-3 mb-1 border border-gray-300 rounded"
-                    />
-                  }
-                  className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
-                />
-                {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
-              </div>
+            {/* DOB - Date of Birth */}
+<div className="w-full">
+  <label className="block text-gray-700 mb-1">วันเกิด</label>
+  <DatePicker
+    selected={DOB}
+    onChange={handleDateChange}
+    dateFormat="dd/MM/yyyy"
+    locale="th" // Using Thai locale for correct date formatting
+    placeholderText="วัน/เดือน/ปี"
+    showYearDropdown
+    yearDropdownItemNumber={100}
+    scrollableYearDropdown
+    customInput={
+      <input
+        value={DOB ? formatToBuddhistYear(DOB) : ""} // Display the date in พ.ศ.
+        className="w-full p-3 mb-1 border border-gray-300 rounded"
+      />
+    }
+    className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
+  />
+  {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
+</div>
+
 
               {/* Phone */}
               <div className="w-full">

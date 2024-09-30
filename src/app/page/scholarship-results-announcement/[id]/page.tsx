@@ -189,11 +189,11 @@ export default function ScholarshipResultsAnnouncementPage() {
                     NumberOfSisters
                 } = application;
     
-                // Ensure required fields are passed in the payload
+                // Ensure required fields are passed in the payload and `ScholarshipID` is a string
                 const payload = {
                     Status,
                     StudentID: StudentID || "",
-                    ScholarshipID: ScholarshipID || "",
+                    ScholarshipID: String(ScholarshipID),  // Ensure ScholarshipID is a string
                     AdvisorName: AdvisorName || "",  // Ensure AdvisorName is included
                     ApplicationDate: ApplicationDate || "",  // Ensure ApplicationDate is included
                     GPAYear1: GPAYear1 || 0,  // Ensure GPAYear1 is included
@@ -207,21 +207,21 @@ export default function ScholarshipResultsAnnouncementPage() {
                 };
     
                 // Log the payload for each application
-             
+                console.log("Payload for application:", payload);
     
                 // Update only the Status (and other required fields) for internal applications
                 if (ApplicationID) {
-             
+                    console.log("Updating internal application:", ApplicationID);
                     const result = await ApiApplicationUpdateInternalServices.updateApplication(ApplicationID, payload);
-             
+                    console.log("Internal application update result:", result);
                     return result;
                 }
-                
+    
                 // Update only the Status (and other required fields) for external applications
                 else if (Application_EtID) {
-               
+                    console.log("Updating external application:", Application_EtID);
                     const result = await ApiApplicationExternalServices.updateApplication(Application_EtID, payload);
-        
+                    console.log("External application update result:", result);
                     return result;
                 }
             });
@@ -230,17 +230,17 @@ export default function ScholarshipResultsAnnouncementPage() {
     
             // Upload the announcement file if needed
             if (file && !announcementFile) {
-           
+                console.log("Uploading announcement file...");
                 const result = await ApiUpdateServiceScholarships.updateAnnouncementFile(scholarshipId, file);
-       
+                console.log("Announcement file upload result:", result);
             }
     
             // Send Line Notify message if there's a token available
             if (lineToken) {
                 const message = `ประกาศผลทุนการศึกษา \nคลิกเพื่อดูรายละเอียด: ${URL}/page/results-announcement/${scholarshipId}`;
-      
+                console.log("Sending Line Notify message:", message);
                 const result = await ApiLineNotifyServices.sendLineNotify(message, lineToken);
-          
+                console.log("Line Notify result:", result);
             }
     
             // Success notification
