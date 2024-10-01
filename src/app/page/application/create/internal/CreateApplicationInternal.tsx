@@ -3003,24 +3003,27 @@ export default function CreateApplicationInternalPage() {
 
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
 
-                <div className="col-span-3">
-                  <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
-                    อาจารย์ที่ปรึกษา
-                  </label>
-                  <input
-                    type="text"
-                    id="AdvisorName"
-                    name="AdvisorName"
-                    value={applicationData.AdvisorName}
-                    onChange={(e) => {
-                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only alphabetic characters and Thai characters
-                      e.target.value = onlyLetters; // Modify the input value directly
-                      handleChangeApplication(e); // Pass the actual event
-                    }}
-                    className="w-3/4 p-3 border border-gray-300 rounded"
-                  />
-                  {applicationErrors.AdvisorName && <p className="text-red-500">{applicationErrors.AdvisorName}</p>}
-                </div>
+              <div className="col-span-3">
+  <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
+    อาจารย์ที่ปรึกษา
+  </label>
+  <input
+    type="text"
+    id="AdvisorName"
+    name="AdvisorName"
+    value={applicationData.AdvisorName}
+    onChange={(e) => {
+      const onlyLettersAndDot = e.target.value.replace(/[^a-zA-Zก-๙.\s]/g, ''); // Allow only letters (English and Thai) and dot
+      e.target.value = onlyLettersAndDot; // Modify the input value directly
+      handleChangeApplication(e); // Pass the actual event
+    }}
+    className="w-3/4 p-3 border border-gray-300 rounded"
+  />
+  {applicationErrors.AdvisorName && (
+    <p className="text-red-500">{applicationErrors.AdvisorName}</p>
+  )}
+</div>
+
 
               </div>
 

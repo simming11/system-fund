@@ -42,7 +42,7 @@ export default function InternalScholarShipsPage() {
   const [appliedScholarships, setAppliedScholarships] = useState<number[]>([]);
   
   // Pagination states
-  const itemsPerPage = 4; // จำนวนทุนที่จะแสดงต่อหน้า
+  const itemsPerPage = 3; // จำนวนทุนที่จะแสดงต่อหน้า
   const [openPage, setOpenPage] = useState(1);
   const [closedPage, setClosedPage] = useState(1);
 

@@ -42,7 +42,7 @@ export default function ExternalScholarShipsPage() {
   const [appliedScholarships, setAppliedScholarships] = useState<number[]>([]); // For storing applied scholarship IDs
 
   // Pagination states
-  const itemsPerPage = 4; // Adjust as needed
+  const itemsPerPage = 3; // Adjust as needed
   const [openPage, setOpenPage] = useState(1);
   const [closedPage, setClosedPage] = useState(1);
 

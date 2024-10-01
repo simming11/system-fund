@@ -186,7 +186,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             PostalCode: '',
             Type: 'ที่อยู่ตามบัตรประชาชน',
         };
-       
+
         return data;
     });
 
@@ -201,7 +201,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             PostalCode: '',
             Type: 'ที่อยู่ปัจจุบัน',
         };
-    
+
         return data;
     });
 
@@ -286,16 +286,16 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
 
     const [application_files, setApplicationFiles] = useState<ApplicationFilesData[]>([
-        { 
-          ApplicationID: '', 
-          DocumentType: '', 
-          DocumentName: '', 
-          FilePath: null, 
-          ExistingFilePath: '', 
-          FileName: '',  // Add FileName property here
-          error: '' 
+        {
+            ApplicationID: '',
+            DocumentType: '',
+            DocumentName: '',
+            FilePath: null,
+            ExistingFilePath: '',
+            FileName: '',  // Add FileName property here
+            error: ''
         }
-      ]);
+    ]);
     const [error, setError] = useState('');
     const [userData, setUserData] = useState<any>(null);
     const [provinces, setProvinces] = useState<{ id: number; name: string }[]>([]);
@@ -606,7 +606,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         // Enable caretaker editing and disable parent editing
         setIsCaretakerEditing(true);
         setIsParentEditing(false);
-    
+
     };
 
     const calculateAcademicYear = (yearEntry: number | null) => {
@@ -705,7 +705,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             };
 
             // Log the updated addressData state
-      
+
 
             return updatedData;
         });
@@ -717,7 +717,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         const { name, value } = e.target;
 
         // Log name and value of the changed field
-     
+
 
         setCurrentAddressData(prevData => {
             const updatedData = {
@@ -725,7 +725,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 [name]: value,
             };
 
-        
+
 
             return updatedData;
         });
@@ -820,27 +820,27 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const handleFileUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const updatedFiles = [...application_files];
-    
+
         if (file) {
             // เก็บไฟล์ใหม่ใน state
-            updatedFiles[index].FilePath = file; 
+            updatedFiles[index].FilePath = file;
         } else {
             // เก็บ path ไฟล์เดิมใน state
-            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath; 
+            updatedFiles[index].FilePath = updatedFiles[index].ExistingFilePath || updatedFiles[index].FilePath;
             // ใช้ path เดิมหากไม่มี ExistingFilePath
         }
-    
+
         setApplicationFiles(updatedFiles);
     };
 
 
-// Function to add a new file entry
-const addFileEntry = () => {
-    setApplicationFiles([
-        ...application_files,
-        { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' } // Added FileName field
-    ]);
-};
+    // Function to add a new file entry
+    const addFileEntry = () => {
+        setApplicationFiles([
+            ...application_files,
+            { ApplicationID: '', DocumentName: '', DocumentType: '', FilePath: '', FileName: '' } // Added FileName field
+        ]);
+    };
 
     // ฟังก์ชันลบไฟล์
     const removeFileEntry = (index: number) => {
@@ -848,7 +848,7 @@ const addFileEntry = () => {
         setApplicationFiles(updatedFiles);
 
         // Log the updated files array after deletion
-    
+
 
         // ส่งข้อมูลไป backend
         const filesDataToSend = JSON.stringify(updatedFiles);
@@ -859,20 +859,20 @@ const addFileEntry = () => {
     const validateFiles = () => {
         const updatedFiles = [...application_files];
         let isValid = true;
-    
+
         updatedFiles.forEach((file, index) => {
-          if (!file.DocumentType || !file.DocumentName || (!file.FilePath && !file.ExistingFilePath)) {
-            updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วนและอัปโหลดไฟล์';
-            isValid = false;
-          } else {
-            updatedFiles[index].error = ''; // Clear error if everything is filled
-          }
+            if (!file.DocumentType || !file.DocumentName || (!file.FilePath && !file.ExistingFilePath)) {
+                updatedFiles[index].error = 'กรุณากรอกข้อมูลให้ครบถ้วนและอัปโหลดไฟล์';
+                isValid = false;
+            } else {
+                updatedFiles[index].error = ''; // Clear error if everything is filled
+            }
         });
-    
+
         setApplicationFiles(updatedFiles);
         return isValid;
-      };
- 
+    };
+
     // Ensure applicationID is used correctly when saving
     const handleSave = async () => {
         if (!validateFiles()) {
@@ -913,7 +913,7 @@ const addFileEntry = () => {
                 }
             }
 
-          
+
 
             // Create JSON payload for application data
             const payload = {
@@ -933,14 +933,14 @@ const addFileEntry = () => {
                 AdvisorName: updatedApplicationData.AdvisorName,
             };
 
-       
+
 
             // Send the JSON payload to the API to update application data
             await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
 
             // Handle address data update
             if (addressData.ApplicationID) {
-          
+
 
                 if (
                     !addressData.AddressLine ||
@@ -967,10 +967,10 @@ const addFileEntry = () => {
                     }
                 ];
 
-          
+
 
                 if (currentAddressData.ApplicationID) {
-                   
+
 
                     if (
                         !currentAddressData.AddressLine ||
@@ -997,7 +997,7 @@ const addFileEntry = () => {
                         }
                     ];
 
-               
+
 
                     const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
                         currentAddressData.ApplicationID,
@@ -1005,17 +1005,17 @@ const addFileEntry = () => {
                         currentAddressPayload
                     );
 
-               
+
                 }
             }
 
             // Handle guardians data update
             const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
-           
+
 
             if (guardiansPayload.length > 0) {
                 await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
-             
+
             }
 
             // Handle siblings data update
@@ -1023,11 +1023,11 @@ const addFileEntry = () => {
                 (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
             );
 
-           
+
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
-            
+
             } catch (error) {
                 console.error('Error updating siblings data:', error);
             }
@@ -1037,11 +1037,11 @@ const addFileEntry = () => {
                 (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
             );
 
-           
+
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
-            
+
             } catch (error) {
                 console.error('Error updating activities data:', error);
             }
@@ -1051,11 +1051,11 @@ const addFileEntry = () => {
                 (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
             );
 
-       
+
 
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
-      
+
             } catch (error) {
                 console.error('Error updating scholarship histories data:', error);
             }
@@ -1065,10 +1065,10 @@ const addFileEntry = () => {
                 (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
             );
 
-         
+
             try {
                 const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
-         
+
             } catch (error) {
                 console.error('Error updating work experiences data:', error);
             }
@@ -1094,13 +1094,13 @@ const addFileEntry = () => {
 
             // Log the content of the FormData for debugging
             for (let pair of formData.entries()) {
-           
+
             }
 
             // Update the files using the FormData method
             ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
                 .then(response => {
-                
+
                 })
                 .catch(error => {
                     console.error('Error updating files:', error.response?.data || error.message);
@@ -1113,7 +1113,7 @@ const addFileEntry = () => {
 
 
             // Log other application update status
-      
+
 
             // Clear sessionStorage after successful save
             sessionStorage.removeItem('EditStep');
@@ -1134,7 +1134,7 @@ const addFileEntry = () => {
                 title: "บันทึกเรียบร้อย",
                 showConfirmButton: false,
                 timer: 1500
-              });
+            });
             // Redirect to history page
             router.push(`/page/History-Application`);
         } catch (error) {
@@ -1152,287 +1152,287 @@ const addFileEntry = () => {
             setError('กรุณากรอกข้อมูลให้ครบถ้วน');
             return; // Prevent submission if validation fails
         }
-            // Show confirmation dialog
-    Swal.fire({
-        title: "คุณแน่ใจหรือไม่?",
-        text: "คุณจะไม่สามารถแก้ไขข้อมูลหลังจากการส่งได้!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "ใช่, ส่งข้อมูล!",
-        cancelButtonText: "ยกเลิก"
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          // Proceed with submission
-          setLoading(true); // Optionally, set loading state to disable the form or show a spinner
-        try {
-            setLoading(true); // Start loading
-            if (!id) {
-                throw new Error('Application ID not found');
-            }
-
-            // Update the application status before saving
-            const updatedApplicationData = {
-                ...applicationData,
-                Status: 'รอประกาศผล',  // Update the status as required
-            };
-
-            // Validate that all required fields have values
-            const requiredFields = [
-                'StudentID',
-                'ScholarshipID',
-                'Status',
-                'MonthlyIncome',
-                'MonthlyExpenses',
-                'NumberOfSiblings',
-                'NumberOfSisters',
-                'NumberOfBrothers',
-                'GPAYear1',
-                'GPAYear2',
-                'GPAYear3',
-                'AdvisorName'
-            ];
-
-            for (const field of requiredFields) {
-                if (updatedApplicationData[field as keyof ApplicationInternalData] === undefined || updatedApplicationData[field as keyof ApplicationInternalData] === null) {
-                    throw new Error(`The ${field} field is required.`);
-                }
-            }
-
-            // Log application data to ensure everything is correctly set
-          
-
-            // Create JSON payload for application data
-            const payload = {
-                ApplicationID: id,
-                StudentID: updatedApplicationData.StudentID,
-                ScholarshipID: updatedApplicationData.ScholarshipID,
-                ApplicationDate: updatedApplicationData.ApplicationDate,
-                Status: updatedApplicationData.Status,
-                MonthlyIncome: updatedApplicationData.MonthlyIncome,
-                MonthlyExpenses: updatedApplicationData.MonthlyExpenses,
-                NumberOfSiblings: updatedApplicationData.NumberOfSiblings,
-                NumberOfSisters: updatedApplicationData.NumberOfSisters,
-                NumberOfBrothers: updatedApplicationData.NumberOfBrothers,
-                GPAYear1: updatedApplicationData.GPAYear1,
-                GPAYear2: updatedApplicationData.GPAYear2,
-                GPAYear3: updatedApplicationData.GPAYear3,
-                AdvisorName: updatedApplicationData.AdvisorName,
-            };
-
-      
-
-            // Send the JSON payload to the API to update application data
-            await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
-
-            // Handle address data update
-            if (addressData.ApplicationID) {
-           
-
-                if (
-                    !addressData.AddressLine ||
-                    !addressData.District ||
-                    !addressData.PostalCode ||
-                    !addressData.Subdistrict ||
-                    !addressData.province ||
-                    !addressData.Type
-                ) {
-                    throw new Error('Missing required fields in addressData');
-                }
-
-                addressData.Type = 'ที่อยู่ตามบัตรประชาชน';
-
-                const primaryAddressPayload = [
-                    {
-                        AddressLine: addressData.AddressLine,
-                        Subdistrict: addressData.Subdistrict,
-                        province: addressData.province,
-                        District: addressData.District,
-                        PostalCode: addressData.PostalCode,
-                        Type: addressData.Type,
-                        ApplicationID: addressData.ApplicationID,
-                    }
-                ];
-
-             
-
-                if (currentAddressData.ApplicationID) {
-                    if (
-                        !currentAddressData.AddressLine ||
-                        !currentAddressData.District ||
-                        !currentAddressData.PostalCode ||
-                        !currentAddressData.Subdistrict ||
-                        !currentAddressData.province ||
-                        !currentAddressData.Type
-                    ) {
-                        throw new Error('Missing required fields in currentAddressData');
+        // Show confirmation dialog
+        Swal.fire({
+            title: "คุณแน่ใจหรือไม่?",
+            text: "คุณจะไม่สามารถแก้ไขข้อมูลหลังจากการส่งได้!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "ใช่, ส่งข้อมูล!",
+            cancelButtonText: "ยกเลิก"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                // Proceed with submission
+                setLoading(true); // Optionally, set loading state to disable the form or show a spinner
+                try {
+                    setLoading(true); // Start loading
+                    if (!id) {
+                        throw new Error('Application ID not found');
                     }
 
-                    currentAddressData.Type = 'ที่อยู่ปัจจุบัน';
+                    // Update the application status before saving
+                    const updatedApplicationData = {
+                        ...applicationData,
+                        Status: 'รอประกาศผล',  // Update the status as required
+                    };
 
-                    const currentAddressPayload = [
-                        {
-                            AddressLine: currentAddressData.AddressLine,
-                            Subdistrict: currentAddressData.Subdistrict,
-                            province: currentAddressData.province,
-                            District: currentAddressData.District,
-                            PostalCode: currentAddressData.PostalCode,
-                            Type: currentAddressData.Type,
-                            ApplicationID: currentAddressData.ApplicationID,
-                        }
+                    // Validate that all required fields have values
+                    const requiredFields = [
+                        'StudentID',
+                        'ScholarshipID',
+                        'Status',
+                        'MonthlyIncome',
+                        'MonthlyExpenses',
+                        'NumberOfSiblings',
+                        'NumberOfSisters',
+                        'NumberOfBrothers',
+                        'GPAYear1',
+                        'GPAYear2',
+                        'GPAYear3',
+                        'AdvisorName'
                     ];
 
-            
+                    for (const field of requiredFields) {
+                        if (updatedApplicationData[field as keyof ApplicationInternalData] === undefined || updatedApplicationData[field as keyof ApplicationInternalData] === null) {
+                            throw new Error(`The ${field} field is required.`);
+                        }
+                    }
 
-                    const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
-                        currentAddressData.ApplicationID,
-                        primaryAddressPayload,
-                        currentAddressPayload
+                    // Log application data to ensure everything is correctly set
+
+
+                    // Create JSON payload for application data
+                    const payload = {
+                        ApplicationID: id,
+                        StudentID: updatedApplicationData.StudentID,
+                        ScholarshipID: updatedApplicationData.ScholarshipID,
+                        ApplicationDate: updatedApplicationData.ApplicationDate,
+                        Status: updatedApplicationData.Status,
+                        MonthlyIncome: updatedApplicationData.MonthlyIncome,
+                        MonthlyExpenses: updatedApplicationData.MonthlyExpenses,
+                        NumberOfSiblings: updatedApplicationData.NumberOfSiblings,
+                        NumberOfSisters: updatedApplicationData.NumberOfSisters,
+                        NumberOfBrothers: updatedApplicationData.NumberOfBrothers,
+                        GPAYear1: updatedApplicationData.GPAYear1,
+                        GPAYear2: updatedApplicationData.GPAYear2,
+                        GPAYear3: updatedApplicationData.GPAYear3,
+                        AdvisorName: updatedApplicationData.AdvisorName,
+                    };
+
+
+
+                    // Send the JSON payload to the API to update application data
+                    await ApiApplicationUpdateInternalServices.updateApplication(id, payload);
+
+                    // Handle address data update
+                    if (addressData.ApplicationID) {
+
+
+                        if (
+                            !addressData.AddressLine ||
+                            !addressData.District ||
+                            !addressData.PostalCode ||
+                            !addressData.Subdistrict ||
+                            !addressData.province ||
+                            !addressData.Type
+                        ) {
+                            throw new Error('Missing required fields in addressData');
+                        }
+
+                        addressData.Type = 'ที่อยู่ตามบัตรประชาชน';
+
+                        const primaryAddressPayload = [
+                            {
+                                AddressLine: addressData.AddressLine,
+                                Subdistrict: addressData.Subdistrict,
+                                province: addressData.province,
+                                District: addressData.District,
+                                PostalCode: addressData.PostalCode,
+                                Type: addressData.Type,
+                                ApplicationID: addressData.ApplicationID,
+                            }
+                        ];
+
+
+
+                        if (currentAddressData.ApplicationID) {
+                            if (
+                                !currentAddressData.AddressLine ||
+                                !currentAddressData.District ||
+                                !currentAddressData.PostalCode ||
+                                !currentAddressData.Subdistrict ||
+                                !currentAddressData.province ||
+                                !currentAddressData.Type
+                            ) {
+                                throw new Error('Missing required fields in currentAddressData');
+                            }
+
+                            currentAddressData.Type = 'ที่อยู่ปัจจุบัน';
+
+                            const currentAddressPayload = [
+                                {
+                                    AddressLine: currentAddressData.AddressLine,
+                                    Subdistrict: currentAddressData.Subdistrict,
+                                    province: currentAddressData.province,
+                                    District: currentAddressData.District,
+                                    PostalCode: currentAddressData.PostalCode,
+                                    Type: currentAddressData.Type,
+                                    ApplicationID: currentAddressData.ApplicationID,
+                                }
+                            ];
+
+
+
+                            const result = await ApiApplicationUpdateInternalServices.updateAddressesByApplicationID(
+                                currentAddressData.ApplicationID,
+                                primaryAddressPayload,
+                                currentAddressPayload
+                            );
+
+
+                        }
+                    }
+
+                    // Handle guardians data update
+                    const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
+
+
+                    if (guardiansPayload.length > 0) {
+                        await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
+
+                    }
+
+                    // Handle siblings data update
+                    const siblingsPayload = siblingsData.filter(
+                        (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
                     );
 
-                
+
+
+                    try {
+                        const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
+
+                    } catch (error) {
+                        console.error('Error updating siblings data:', error);
+                    }
+
+                    // Handle activities data update
+                    const activitiesPayload = activities.filter(
+                        (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
+                    );
+
+
+
+                    try {
+                        const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
+
+                    } catch (error) {
+                        console.error('Error updating activities data:', error);
+                    }
+
+                    // Handle scholarship histories update
+                    const scholarshipHistoriesPayload = scholarship_histories.filter(
+                        (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
+                    );
+
+
+
+                    try {
+                        const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
+
+                    } catch (error) {
+                        console.error('Error updating scholarship histories data:', error);
+                    }
+
+                    // Handle work experiences update
+                    const workExperiencesPayload = work_experiences.filter(
+                        (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
+                    );
+
+
+
+                    try {
+                        const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
+
+                    } catch (error) {
+                        console.error('Error updating work experiences data:', error);
+                    }
+                    // Prepare the array for file details, using ApplicationID from the id provided
+                    const ApplicationID = id;
+
+                    // Create FormData object
+                    const formData = new FormData();
+
+                    application_files.forEach((fileData, index) => {
+                        formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
+                        formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
+                        formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
+
+                        // If it's a new file, append it
+                        if (fileData.FilePath instanceof File) {
+                            formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
+                        } else if (fileData.FilePath) {
+                            // Append existing file path if no new file was uploaded
+                            formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
+                        }
+                    });
+
+                    // Log the content of the FormData for debugging
+                    for (let pair of formData.entries()) {
+
+                    }
+
+                    // Update the files using the FormData method
+                    ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
+                        .then(response => {
+
+                        })
+                        .catch(error => {
+                            console.error('Error updating files:', error.response?.data || error.message);
+                        });
+
+
+
+
+
+                    // Log other application update status
+
+
+                    // Clear sessionStorage after successful save
+                    sessionStorage.removeItem('EditStep');
+                    sessionStorage.removeItem('EditStudents');
+                    sessionStorage.removeItem('EditApplicationData');
+                    sessionStorage.removeItem('EditGuardianData');
+                    sessionStorage.removeItem('EditAddressData');
+                    sessionStorage.removeItem('EditCurrentAddressData');
+                    sessionStorage.removeItem('EditFatherData');
+                    sessionStorage.removeItem('EditMotherData');
+                    sessionStorage.removeItem('EditCaretakerData');
+                    sessionStorage.removeItem('EditSiblingData');
+                    sessionStorage.removeItem('EditNumberOfSiblings');
+                    sessionStorage.removeItem('EditSiblingsData');
+                    sessionStorage.clear();
+                    Swal.fire({
+                        icon: "success",
+                        title: "สมัครทุนเรียบร้อย",
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    // Redirect to history page
+                    router.push(`/page/History-Application`);
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        console.error('API Error Response:', error.response?.data.errors);
+                        setError('Validation error: ' + error.response?.data.message);
+                    } else {
+                        console.error('Unknown Error:', error);
+                        setError('Error updating application. Please check the form fields and try again.');
+                    }
                 }
             }
-
-            // Handle guardians data update
-            const guardiansPayload = [fatherData, motherData].filter(guardian => guardian.FirstName || guardian.LastName);
-       
-
-            if (guardiansPayload.length > 0) {
-                await ApiApplicationUpdateInternalServices.updateGuardiansByApplicationID(id, guardiansPayload);
-        
-            }
-
-            // Handle siblings data update
-            const siblingsPayload = siblingsData.filter(
-                (sibling) => sibling.Fname || sibling.Lname || sibling.Occupation || sibling.EducationLevel || sibling.Income || sibling.Status
-            );
-
-       
-
-            try {
-                const response = await ApiApplicationUpdateInternalServices.updateSiblingsByApplicationID(id, siblingsPayload);
-           
-            } catch (error) {
-                console.error('Error updating siblings data:', error);
-            }
-
-            // Handle activities data update
-            const activitiesPayload = activities.filter(
-                (activity) => activity.ActivityName || activity.AcademicYear || activity.Position
-            );
-
-      
-
-            try {
-                const response = await ApiApplicationUpdateInternalServices.updateActivitiesByApplicationID(id, activitiesPayload);
-          
-            } catch (error) {
-                console.error('Error updating activities data:', error);
-            }
-
-            // Handle scholarship histories update
-            const scholarshipHistoriesPayload = scholarship_histories.filter(
-                (history) => history.ScholarshipName || history.AcademicYear || history.AmountReceived
-            );
-
-        
-
-            try {
-                const response = await ApiApplicationUpdateInternalServices.updateScholarshipHistory(id, scholarshipHistoriesPayload);
-         
-            } catch (error) {
-                console.error('Error updating scholarship histories data:', error);
-            }
-
-            // Handle work experiences update
-            const workExperiencesPayload = work_experiences.filter(
-                (exp) => exp.Name || exp.JobType || exp.Duration || exp.Earnings
-            );
-
-         
-
-            try {
-                const response = await ApiApplicationUpdateInternalServices.updateWorkExperience(id, workExperiencesPayload);
-             
-            } catch (error) {
-                console.error('Error updating work experiences data:', error);
-            }
-            // Prepare the array for file details, using ApplicationID from the id provided
-            const ApplicationID = id;
-
-            // Create FormData object
-            const formData = new FormData();
-
-            application_files.forEach((fileData, index) => {
-                formData.append(`application_files[${index}][DocumentName]`, fileData.DocumentName || '');
-                formData.append(`application_files[${index}][DocumentType]`, fileData.DocumentType || '');
-                formData.append(`application_files[${index}][ApplicationID]`, fileData.ApplicationID || '');
-
-                // If it's a new file, append it
-                if (fileData.FilePath instanceof File) {
-                    formData.append(`application_files[${index}][FilePath]`, fileData.FilePath); // Upload the new file
-                } else if (fileData.FilePath) {
-                    // Append existing file path if no new file was uploaded
-                    formData.append(`application_files[${index}][ExistingFilePath]`, fileData.FilePath); // Send existing file path
-                }
-            });
-
-            // Log the content of the FormData for debugging
-            for (let pair of formData.entries()) {
-        
-            }
-
-            // Update the files using the FormData method
-            ApiApplicationFileServices.updateApplicationFiles(ApplicationID, formData)
-                .then(response => {
-          
-                })
-                .catch(error => {
-                    console.error('Error updating files:', error.response?.data || error.message);
-                });
-
-
-
-
-
-            // Log other application update status
-       
-
-            // Clear sessionStorage after successful save
-            sessionStorage.removeItem('EditStep');
-            sessionStorage.removeItem('EditStudents');
-            sessionStorage.removeItem('EditApplicationData');
-            sessionStorage.removeItem('EditGuardianData');
-            sessionStorage.removeItem('EditAddressData');
-            sessionStorage.removeItem('EditCurrentAddressData');
-            sessionStorage.removeItem('EditFatherData');
-            sessionStorage.removeItem('EditMotherData');
-            sessionStorage.removeItem('EditCaretakerData');
-            sessionStorage.removeItem('EditSiblingData');
-            sessionStorage.removeItem('EditNumberOfSiblings');
-            sessionStorage.removeItem('EditSiblingsData');
-            sessionStorage.clear();
-            Swal.fire({
-                icon: "success",
-                title: "สมัครทุนเรียบร้อย",
-                showConfirmButton: false,
-                timer: 1500
-              });
-            // Redirect to history page
-            router.push(`/page/History-Application`);
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('API Error Response:', error.response?.data.errors);
-                setError('Validation error: ' + error.response?.data.message);
-            } else {
-                console.error('Unknown Error:', error);
-                setError('Error updating application. Please check the form fields and try again.');
-            }
-        }
-    }
-});
+        });
     };
 
 
@@ -1445,7 +1445,7 @@ const addFileEntry = () => {
                     <div>
                         <div className="">
 
-                        <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
+                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
 
                                 <div>
                                     <label htmlFor="PrefixName" className="block text-gray-700 mb-2">
@@ -1655,108 +1655,108 @@ const addFileEntry = () => {
                                     />
                                 </div>
                             </div>
-                                <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="text-gray-700">
-                                            ที่อยู่ปัจจุบัน
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
-                                                    setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
-                                                }}
-                                                className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
-                                            >
-                                                ที่อยู่ตามบัตรประชาชน
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                        <div>
-                                            <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
-                                                เลขที่
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="AddressLine"
-                                                name="AddressLine"
-                                                value={currentAddressData.AddressLine || ""}
-                                                onChange={handleChangeCurrentAddress}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="province" className="block text-gray-700 mb-2">
-                                                จังหวัด
-                                            </label>
-                                            <select
-                                                id="province"
-                                                name="province"
-                                                value={currentAddressData.province || ""}
-                                                onChange={handleChangeCurrentAddress}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            >
-                                                <option value="">เลือกจังหวัด</option>
-                                                {provinces.map((province) => (
-                                                    <option key={province.id} value={province.name}>
-                                                        {province.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="District" className="block text-gray-700 mb-2">
-                                                อำเภอ
-                                            </label>
-                                            <select
-                                                id="District"
-                                                name="District"
-                                                value={currentAddressData.District || ""}
-                                                onChange={handleChangeCurrentAddress}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            >
-                                                <option value="">เลือกอำเภอ</option>
-                                                {districtsForCurrentAddress.map((district) => (
-                                                    <option key={district.id} value={district.name}>
-                                                        {district.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
-                                                ตำบล
-                                            </label>
-                                            <select
-                                                id="Subdistrict"
-                                                name="Subdistrict"
-                                                value={currentAddressData.Subdistrict || ""}
-                                                onChange={handleChangeCurrentAddress}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            >
-                                                <option value="">เลือกตำบล</option>
-                                                {subdistrictsForCurrentAddress.map((subdistrict) => (
-                                                    <option key={subdistrict.id} value={subdistrict.name}>
-                                                        {subdistrict.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
-                                                รหัสไปรษณีย์
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="PostalCode"
-                                                name="PostalCode"
-                                                value={currentAddressData.PostalCode || ""}
-                                                onChange={handleChangeCurrentAddress}
-                                                className="w-full p-3 border border-gray-300 rounded"
-                                            />
-                                        </div>
+                            <div className="mb-4 grid grid-cols-1 sm:grid-cols- gap-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-gray-700">
+                                        ที่อยู่ปัจจุบัน
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const { Type, ...addressWithoutType } = addressData; // Destructure and exclude 'Type'
+                                                setCurrentAddressData({ ...addressWithoutType, Type: 'ที่อยู่ปัจจุบัน' }); // Include the 'Type' field explicitly
+                                            }}
+                                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 ml-2"
+                                        >
+                                            ที่อยู่ตามบัตรประชาชน
+                                        </button>
                                     </div>
                                 </div>
+                                <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                    <div>
+                                        <label htmlFor="AddressLine" className="block text-gray-700 mb-2">
+                                            เลขที่
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="AddressLine"
+                                            name="AddressLine"
+                                            value={currentAddressData.AddressLine || ""}
+                                            onChange={handleChangeCurrentAddress}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="province" className="block text-gray-700 mb-2">
+                                            จังหวัด
+                                        </label>
+                                        <select
+                                            id="province"
+                                            name="province"
+                                            value={currentAddressData.province || ""}
+                                            onChange={handleChangeCurrentAddress}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                        >
+                                            <option value="">เลือกจังหวัด</option>
+                                            {provinces.map((province) => (
+                                                <option key={province.id} value={province.name}>
+                                                    {province.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="District" className="block text-gray-700 mb-2">
+                                            อำเภอ
+                                        </label>
+                                        <select
+                                            id="District"
+                                            name="District"
+                                            value={currentAddressData.District || ""}
+                                            onChange={handleChangeCurrentAddress}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                        >
+                                            <option value="">เลือกอำเภอ</option>
+                                            {districtsForCurrentAddress.map((district) => (
+                                                <option key={district.id} value={district.name}>
+                                                    {district.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="Subdistrict" className="block text-gray-700 mb-2">
+                                            ตำบล
+                                        </label>
+                                        <select
+                                            id="Subdistrict"
+                                            name="Subdistrict"
+                                            value={currentAddressData.Subdistrict || ""}
+                                            onChange={handleChangeCurrentAddress}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                        >
+                                            <option value="">เลือกตำบล</option>
+                                            {subdistrictsForCurrentAddress.map((subdistrict) => (
+                                                <option key={subdistrict.id} value={subdistrict.name}>
+                                                    {subdistrict.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="PostalCode" className="block text-gray-700 mb-2">
+                                            รหัสไปรษณีย์
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="PostalCode"
+                                            name="PostalCode"
+                                            value={currentAddressData.PostalCode || ""}
+                                            onChange={handleChangeCurrentAddress}
+                                            className="w-full p-3 border border-gray-300 rounded"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="flex items-end">
                                 <div className="flex-1">
@@ -2279,7 +2279,7 @@ const addFileEntry = () => {
                             <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปีที่ 1
+                                        เกรดเฉลี่ยปีที่ 1
                                     </label>
                                     <input
                                         type="number"
@@ -2294,7 +2294,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปีที่ 2
+                                        เกรดเฉลี่ยปีที่ 2
                                     </label>
                                     <input
                                         type="number"
@@ -2309,7 +2309,7 @@ const addFileEntry = () => {
                                 </div>
                                 <div className="col-span-2">
                                     <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                                    เกรดเฉลี่ยปีที่ 3
+                                        เกรดเฉลี่ยปีที่ 3
                                     </label>
                                     <input
                                         type="number"
@@ -2326,20 +2326,22 @@ const addFileEntry = () => {
 
                             </div>
 
-                            <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
-                                <div className="col-span-3">
-                                    <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
-                                        อาจารย์ที่ปรึกษา
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="AdvisorName"
-                                        name="AdvisorName"
-                                        value={applicationData.AdvisorName}
-                                        onChange={handleChangeApplication}
-                                        className="w-3/4 p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
+                            <div className="col-span-3">
+                                <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
+                                    อาจารย์ที่ปรึกษา
+                                </label>
+                                <input
+                                    type="text"
+                                    id="AdvisorName"
+                                    name="AdvisorName"
+                                    value={applicationData.AdvisorName}
+                                    onChange={(e) => {
+                                        const onlyLettersAndDot = e.target.value.replace(/[^a-zA-Zก-๙.\s]/g, ''); // Allow only letters (English and Thai) and dot
+                                        e.target.value = onlyLettersAndDot; // Modify the input value directly
+                                        handleChangeApplication(e); // Pass the actual event
+                                    }}
+                                    className="w-3/4 p-3 border border-gray-300 rounded"
+                                />
                             </div>
                         </div>
 
@@ -2550,72 +2552,72 @@ const addFileEntry = () => {
             case 5:
                 return (
                     <div>
-                      {application_files.map((file, index) => (
-          <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
-            <div>
-              <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
-              <select
-                id={`DocumentType-${index}`}
-                name="DocumentType"
-                value={file.DocumentType}
-                onChange={(e) => handleFileChange(index, e)}
-                className="w-full p-3 border border-gray-300 rounded"
-              >
-                <option value="">เลือกประเภทไฟล์</option>
-                <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
-                <option value="ใบสมัคร">ใบสมัคร</option>
-                <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
-                <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
-                <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
-                <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
-                <option value="อื่น ๆ">อื่น ๆ</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
-              <input
-                type="text"
-                id={`DocumentName-${index}`}
-                name="DocumentName"
-                value={file.DocumentName}
-                onChange={(e) => handleFileChange(index, e)}
-                className="w-full p-3 border border-gray-300 rounded"
-              />
-            </div>
-            <div>
-              <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
-              <input
-                type="file"
-                id={`FilePath-${index}`}
-                name="FilePath"
-                accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
-                onChange={(e) => handleFileUpload(index, e)}
-                className="w-full p-3 border border-gray-300 rounded"
-              />
-              {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
-              {/* Display selected file name */}
-              {typeof file.FilePath === 'string' && (
-                <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
-              )}
-            </div>
-            <div className="flex items-end">
-              <button
-                type="button"
-                onClick={() => removeFileEntry(index)}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                ลบ
-              </button>
-            </div>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={addFileEntry}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          เพิ่มไฟล์
-        </button>
+                        {application_files.map((file, index) => (
+                            <div key={index} className="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-4">
+                                <div>
+                                    <label htmlFor={`DocumentType-${index}`} className="block text-gray-700 mb-2">ประเภทไฟล์</label>
+                                    <select
+                                        id={`DocumentType-${index}`}
+                                        name="DocumentType"
+                                        value={file.DocumentType}
+                                        onChange={(e) => handleFileChange(index, e)}
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                    >
+                                        <option value="">เลือกประเภทไฟล์</option>
+                                        <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
+                                        <option value="ใบสมัคร">ใบสมัคร</option>
+                                        <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
+                                        <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
+                                        <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
+                                        <option value="ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด">ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด</option>
+                                        <option value="อื่น ๆ">อื่น ๆ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label htmlFor={`DocumentName-${index}`} className="block text-gray-700 mb-2">ชื่อเอกสาร</label>
+                                    <input
+                                        type="text"
+                                        id={`DocumentName-${index}`}
+                                        name="DocumentName"
+                                        value={file.DocumentName}
+                                        onChange={(e) => handleFileChange(index, e)}
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor={`FilePath-${index}`} className="block text-gray-700 mb-2">อัปโหลดไฟล์</label>
+                                    <input
+                                        type="file"
+                                        id={`FilePath-${index}`}
+                                        name="FilePath"
+                                        accept="application/pdf,image/jpeg,image/png" // Restrict to PDF, JPEG, and PNG files
+                                        onChange={(e) => handleFileUpload(index, e)}
+                                        className="w-full p-3 border border-gray-300 rounded"
+                                    />
+                                    {file.error && <p className="text-red-500 mt-2">{file.error}</p>}
+                                    {/* Display selected file name */}
+                                    {typeof file.FilePath === 'string' && (
+                                        <p className="mt-2 text-sm text-gray-600">ไฟล์ที่เลือก: {file.FilePath}</p>
+                                    )}
+                                </div>
+                                <div className="flex items-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFileEntry(index)}
+                                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                    >
+                                        ลบ
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={addFileEntry}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            เพิ่มไฟล์
+                        </button>
                     </div>
                 );
 
@@ -2630,72 +2632,72 @@ const addFileEntry = () => {
             <Header />
             <div className="flex-1 container mx-auto px-4 py-8">
                 <div className="bg-white shadow-md rounded-lg p-6">
-                <div className="flex justify-center mb-6">
-  <div
-    className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}
-    onClick={() => setStep(1)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
-    style={{ cursor: 'pointer' }} // เพิ่ม cursor pointer
-  >
-    <span
-      className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
-    >
-      1
-    </span>
-    <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
-  </div>
+                    <div className="flex justify-center mb-6">
+                        <div
+                            className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(1)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
+                            style={{ cursor: 'pointer' }} // เพิ่ม cursor pointer
+                        >
+                            <span
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
+                            >
+                                1
+                            </span>
+                            <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
+                        </div>
 
-  <div
-    className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}
-    onClick={() => setStep(2)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
-    style={{ cursor: 'pointer' }}
-  >
-    <span
-      className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
-    >
-      2
-    </span>
-    <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
-  </div>
+                        <div
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(2)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <span
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
+                            >
+                                2
+                            </span>
+                            <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
+                        </div>
 
-  <div
-    className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}
-    onClick={() => setStep(3)}
-    style={{ cursor: 'pointer' }}
-  >
-    <span
-      className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
-    >
-      3
-    </span>
-    <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
-  </div>
+                        <div
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(3)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <span
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
+                            >
+                                3
+                            </span>
+                            <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
+                        </div>
 
-  <div
-    className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}
-    onClick={() => setStep(4)}
-    style={{ cursor: 'pointer' }}
-  >
-    <span
-      className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
-    >
-      4
-    </span>
-    <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
-  </div>
+                        <div
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(4)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <span
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
+                            >
+                                4
+                            </span>
+                            <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
+                        </div>
 
-  <div
-    className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}
-    onClick={() => setStep(5)}
-    style={{ cursor: 'pointer' }}
-  >
-    <span
-      className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
-    >
-      5
-    </span>
-    <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
-  </div>
-</div>
+                        <div
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(5)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <span
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
+                            >
+                                5
+                            </span>
+                            <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
+                        </div>
+                    </div>
 
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     <form onSubmit={handleSave}>
