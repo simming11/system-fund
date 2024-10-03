@@ -18,12 +18,14 @@ import Image from 'next/image';
 registerLocale("th", th as unknown as Locale);
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false); // เพิ่ม state สำหรับแสดง/ซ่อนรหัสผ่าน
+  const [showPassword, setShowPassword] = useState(false); // Toggle password visibility
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false); // Toggle confirmation password visibility
   const [StudentID, setStudentID] = useState<string>("");
   const [FirstName, setFirstName] = useState<string>("");
   const [LastName, setLastName] = useState<string>("");
   const [Email, setEmail] = useState<string>("");
   const [Password, setPassword] = useState<string>("");
+  const [PasswordConfirmation, setPasswordConfirmation] = useState<string>(""); // Added state for confirmation password
   const [Year_Entry, setYear_Entry] = useState<string>(""); // Store as string initially
   const [Religion, setReligion] = useState<string>("");
   const [PrefixName, setPrefixName] = useState<string>("");
@@ -34,6 +36,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState({
     StudentID: "",
     Password: "",
+    PasswordConfirmation: "", // Added error for password confirmation
     FirstName: "",
     LastName: "",
     Email: "",
@@ -87,21 +90,21 @@ export default function RegisterPage() {
   };
 
 
-// Handle date change (convert to Buddhist year internally)
-const handleDateChange = (date: Date | null) => {
-  if (date) {
-    const gregorianYear = date.getFullYear();
-    const buddhistYear = gregorianYear + 543; // Convert to พ.ศ.
+  // Handle date change (convert to Buddhist year internally)
+  const handleDateChange = (date: Date | null) => {
+    if (date) {
+      const gregorianYear = date.getFullYear();
+      const buddhistYear = gregorianYear + 543; // Convert to พ.ศ.
 
-    // Format the date for backend storage (Gregorian year format)
-    setDOB(date); // Store the original date internally
-    setErrors((prevErrors) => ({ ...prevErrors, DOB: "" })); // Clear errors if any
-  } else {
-    setErrors((prevErrors) => ({ ...prevErrors, DOB: "กรุณาเลือกวันเกิด" }));
-  }
-};
+      // Format the date for backend storage (Gregorian year format)
+      setDOB(date); // Store the original date internally
+      setErrors((prevErrors) => ({ ...prevErrors, DOB: "" })); // Clear errors if any
+    } else {
+      setErrors((prevErrors) => ({ ...prevErrors, DOB: "กรุณาเลือกวันเกิด" }));
+    }
+  };
 
-  
+
   const handleRegister = async () => {
     let validationErrors = { ...errors };
     let hasErrors = false;
@@ -120,7 +123,9 @@ const handleDateChange = (date: Date | null) => {
       DOB: "",
       Course: "",
       Religion: "",
-      form: ""
+      form: "",
+      PasswordConfirmation: ''
+
     };
 
     // ตรวจสอบความถูกต้องของแต่ละฟิลด์ก่อนทำการลงทะเบียน
@@ -487,28 +492,28 @@ const handleDateChange = (date: Date | null) => {
                 {errors.Religion && <p className="text-red-500 text-sm">{errors.Religion}</p>}
               </div>
 
-            {/* DOB - Date of Birth */}
-<div className="w-full">
-  <label className="block text-gray-700 mb-1">วันเกิดตามปีคริสต์ศักราช</label>
-  <DatePicker
-    selected={DOB}
-    onChange={handleDateChange}
-    dateFormat="dd/MM/yyyy"
-    locale="th" // Using Thai locale for correct date formatting
-    placeholderText="วัน/เดือน/ปี"
-    showYearDropdown
-    yearDropdownItemNumber={100}
-    scrollableYearDropdown
-    customInput={
-      <input
-        value={DOB ? formatToBuddhistYear(DOB) : ""} // Display the date in พ.ศ.
-        className="w-full p-3 mb-1 border border-gray-300 rounded"
-      />
-    }
-    className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
-  />
-  {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
-</div>
+              {/* DOB - Date of Birth */}
+              <div className="w-full">
+                <label className="block text-gray-700 mb-1">วันเกิดตามปีคริสต์ศักราช</label>
+                <DatePicker
+                  selected={DOB}
+                  onChange={handleDateChange}
+                  dateFormat="dd/MM/yyyy"
+                  locale="th" // Using Thai locale for correct date formatting
+                  placeholderText="วัน/เดือน/ปี"
+                  showYearDropdown
+                  yearDropdownItemNumber={100}
+                  scrollableYearDropdown
+                  customInput={
+                    <input
+                      value={DOB ? formatToBuddhistYear(DOB) : ""} // Display the date in พ.ศ.
+                      className="w-full p-3 mb-1 border border-gray-300 rounded"
+                    />
+                  }
+                  className={`w-full p-3 mb-1 border ${errors.DOB ? 'border-red-500' : 'border-gray-300'} rounded`}
+                />
+                {errors.DOB && <p className="text-red-500 text-sm">{errors.DOB}</p>}
+              </div>
 
 
               {/* Phone */}
@@ -546,6 +551,8 @@ const handleDateChange = (date: Date | null) => {
                 {errors.Phone && <p className="text-red-500 text-sm">{errors.Phone}</p>}
               </div>
 
+            </div>
+            <div className="mb-4 mt-6 grid grid-cols-1 sm:grid-cols-4 gap-4">
 
               {/* GPA */}
               <div className="w-full">
@@ -615,16 +622,16 @@ const handleDateChange = (date: Date | null) => {
                 <label className="block text-gray-700 mb-1">รหัสผ่าน</label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'} // เปลี่ยนระหว่าง text และ password
+                    type={showPassword ? 'text' : 'password'} // Toggle between text and password
                     placeholder="รหัสผ่าน"
                     value={Password}
                     onChange={(e) => {
                       const value = e.target.value;
-                      // ลบอักขระภาษาไทยออก
-                      const filteredValue = value.replace(/[\u0E00-\u0E7F]/g, ''); // ตัดตัวอักษรภาษาไทย
-                      setPassword(filteredValue); // อัปเดตรหัสผ่านโดยไม่มีตัวอักษรภาษาไทย
+                      // Remove Thai characters
+                      const filteredValue = value.replace(/[\u0E00-\u0E7F]/g, ''); // Strip Thai characters
+                      setPassword(filteredValue); // Update password without Thai characters
 
-                      // Validate password length and set errors if it's less than 8 characters
+                      // Validate password length
                       if (filteredValue.length < 8) {
                         setErrors((prevErrors) => ({
                           ...prevErrors,
@@ -636,17 +643,30 @@ const handleDateChange = (date: Date | null) => {
                           Password: '',
                         }));
                       }
+
+                      // Check if password matches confirmation
+                      if (PasswordConfirmation && filteredValue !== PasswordConfirmation) {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          PasswordConfirmation: 'รหัสผ่านไม่ตรงกัน',
+                        }));
+                      } else {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          PasswordConfirmation: '',
+                        }));
+                      }
                     }}
                     className={`w-full p-3 mb-1 border ${errors.Password ? 'border-red-500' : 'border-gray-300'} rounded`}
                   />
 
-                  {/* ปุ่มเปิด-ปิดการดูรหัสผ่าน - จะปรากฏเฉพาะเมื่อมีการกรอกรหัสผ่าน */}
+                  {/* Toggle password visibility */}
                   {Password && (
                     <button
                       type="button"
-                      onMouseDown={() => setShowPassword(true)}  // กดปุ่มค้างเพื่อแสดงรหัสผ่าน
-                      onMouseUp={() => setShowPassword(false)}   // ปล่อยปุ่มเพื่อซ่อนรหัสผ่าน
-                      onMouseLeave={() => setShowPassword(false)} // ป้องกันการแสดงรหัสหากเมาส์ออกจากปุ่ม
+                      onMouseDown={() => setShowPassword(true)}  // Show password
+                      onMouseUp={() => setShowPassword(false)}   // Hide password
+                      onMouseLeave={() => setShowPassword(false)} // Prevent showing when mouse leaves
                       className="absolute right-3 top-3"
                     >
                       <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
@@ -656,18 +676,60 @@ const handleDateChange = (date: Date | null) => {
                 {errors.Password && <p className="text-red-500 text-sm mt-1">{errors.Password}</p>}
               </div>
 
+              {/* Password Confirmation */}
+              <div className="w-full">
+                <label className="block text-gray-700 mb-1">ยืนยันรหัสผ่าน</label>
+                <div className="relative">
+                  <input
+                    type={showPasswordConfirmation ? 'text' : 'password'} // Toggle between text and password
+                    placeholder="ยืนยันรหัสผ่าน"
+                    value={PasswordConfirmation}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Remove Thai characters
+                      const filteredValue = value.replace(/[\u0E00-\u0E7F]/g, ''); // Strip Thai characters
+                      setPasswordConfirmation(filteredValue); // Update confirmation password without Thai characters
 
+                      // Check if password matches confirmation
+                      if (Password && filteredValue !== Password) {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          PasswordConfirmation: 'รหัสผ่านไม่ตรงกัน',
+                        }));
+                      } else {
+                        setErrors((prevErrors) => ({
+                          ...prevErrors,
+                          PasswordConfirmation: '',
+                        }));
+                      }
+                    }}
+                    className={`w-full p-3 mb-1 border ${errors.PasswordConfirmation ? 'border-red-500' : 'border-gray-300'} rounded`}
+                  />
 
+                  {/* Toggle password visibility */}
+                  {PasswordConfirmation && (
+                    <button
+                      type="button"
+                      onMouseDown={() => setShowPasswordConfirmation(true)}  // Show password
+                      onMouseUp={() => setShowPasswordConfirmation(false)}   // Hide password
+                      onMouseLeave={() => setShowPasswordConfirmation(false)} // Prevent showing when mouse leaves
+                      className="absolute right-3 top-3"
+                    >
+                      <FontAwesomeIcon icon={showPasswordConfirmation ? faEyeSlash : faEye} />
+                    </button>
+                  )}
+                </div>
+                {errors.PasswordConfirmation && <p className="text-red-500 text-sm mt-1">{errors.PasswordConfirmation}</p>}
+              </div>
+</div>
 
-
-            </div>
 
             {/* Submit Button */}
             <button
               onClick={handleRegister}
               className="w-full bg-green-500 text-white py-2 rounded  mt-6"
             >
-             ลงทะเบียน
+              ลงทะเบียน
             </button>
           </div>
         </div>
