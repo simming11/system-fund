@@ -36,8 +36,7 @@ class ApiAllcreateServiceScholarships {
         const token = localStorage.getItem('token');
         const scholarshipResponse = await axios.post(`${API_URL}/scholarships`, data, {
             headers: {
-                Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true',
+                Authorization: `Bearer ${token}`
             },
         });
 

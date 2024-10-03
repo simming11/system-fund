@@ -7,6 +7,7 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
+import ApiApplicationInternalServices from "@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices"; // Import the service
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
@@ -15,6 +16,8 @@ interface ScholarshipData {
     ScholarshipName: string;
     Description: string;
     Year: string;
+    EndDate: string;
+    StudentCount?: number; // Add a field for student count
 }
 
 export default function InternalApplicationDataPage() {
@@ -22,7 +25,11 @@ export default function InternalApplicationDataPage() {
     const [filteredScholarships, setFilteredScholarships] = useState<ScholarshipData[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>(""); // State for search input
     const [currentPage, setCurrentPage] = useState<number>(1); // State for current page
+    const [filterMode, setFilterMode] = useState<string>("all"); // Set default filter mode to "all"
+    const [selectedYear, setSelectedYear] = useState<string>("all"); // Set default Year filter to "all"
+    const [onlyWaiting, setOnlyWaiting] = useState<boolean>(false); // New state to filter scholarships with waiting students
     const scholarshipsPerPage = 10; // Number of scholarships per page
+    const [loading, setLoading] = useState<boolean>(true); // Loading state
     const router = useRouter();
 
     useEffect(() => {
@@ -41,16 +48,89 @@ export default function InternalApplicationDataPage() {
         const fetchScholarships = async () => {
             try {
                 const response = await ApiServiceScholarships.getAllScholarships();
+                
+                // Filter only scholarships with TypeID === 1
                 const scholarshipsWithTypeID1 = response.data.filter((scholarship: any) => scholarship.TypeID === 1);
-                setScholarships(scholarshipsWithTypeID1);
-                setFilteredScholarships(scholarshipsWithTypeID1); // Set filtered scholarships initially
+                
+                // Fetch the student count for each scholarship
+                const updatedScholarships = await Promise.all(
+                    scholarshipsWithTypeID1.map(async (scholarship: ScholarshipData) => {
+                        try {
+                            const studentResponse = await ApiApplicationInternalServices.getStudentsByScholarshipId(scholarship.ScholarshipID);
+                            const filteredResponse = studentResponse.filter((app: { Status: string }) => app.Status === 'รอประกาศผล');
+                            scholarship.StudentCount = filteredResponse.length;
+                        } catch (error) {
+                            console.error(`Failed to fetch student count for scholarship ID: ${scholarship.ScholarshipID}`, error);
+                            scholarship.StudentCount = 0; // Default to 0 if error occurs
+                        }
+                        return scholarship;
+                    })
+                );
+    
+                setScholarships(updatedScholarships);
+                setFilteredScholarships(updatedScholarships); // Initially set to all scholarships with TypeID 1
             } catch (error) {
                 console.error("Failed to fetch scholarships", error);
+            } finally {
+                setLoading(false);
             }
         };
-
+    
         fetchScholarships();
     }, []);
+    
+
+    // Get the list of unique years from the scholarships data
+    const getUniqueYears = () => {
+        const years = scholarships.map(scholarship => scholarship.Year);
+        return ["all", ...new Set(years)]; // Add "all" option for filtering all years
+    };
+
+    // Function to filter scholarships based on EndDate, Year, filterMode, and waiting students filter
+    const filterScholarships = () => {
+        const currentDate = new Date();
+
+        const filtered = scholarships.filter((scholarship) => {
+            const endDate = new Date(scholarship.EndDate);
+
+            // Apply year filter if a specific year is selected
+            const yearFilter = selectedYear === "all" || scholarship.Year === selectedYear;
+
+            // Apply status filter based on "open" or "closed"
+            const statusFilter = filterMode === "open" 
+                ? endDate >= currentDate 
+                : filterMode === "closed" 
+                ? endDate < currentDate 
+                : true;
+
+            // Apply onlyWaiting filter to include scholarships with students waiting for results
+            const waitingFilter = onlyWaiting ? scholarship.StudentCount && scholarship.StudentCount > 0 : true;
+
+            return yearFilter && statusFilter && waitingFilter;
+        });
+
+        setFilteredScholarships(filtered);
+        setCurrentPage(1); // Reset to the first page after filtering
+    };
+
+    // Call filterScholarships when the filterMode, selectedYear, or onlyWaiting changes
+    useEffect(() => {
+        filterScholarships();
+    }, [filterMode, selectedYear, onlyWaiting, scholarships]);
+
+    const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = e.target.value;
+        setSelectedYear(selected);
+    };
+
+    const handleFilterModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selected = e.target.value;
+        setFilterMode(selected);
+    };
+
+    const handleOnlyWaitingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setOnlyWaiting(e.target.checked); // Set the checkbox state
+    };
 
     const handleRowClick = (scholarshipId: string) => {
         router.push(`/page/internal-application-data/scholarship-details/${scholarshipId}`);
@@ -76,7 +156,7 @@ export default function InternalApplicationDataPage() {
 
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-    if (!scholarships.length) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
@@ -97,14 +177,48 @@ export default function InternalApplicationDataPage() {
                     <div className="bg-white rounded-lg p-6">
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายในมหาวิทยาลัย</h2>
 
-                        {/* Search input */}
-                        <div className="mb-4">
+                        <div className="flex justify-between items-center mb-4 space-x-4">
+                            {/* Filter by year */}
+                            <select
+                                value={selectedYear}
+                                onChange={handleYearChange}
+                                className="p-2 border border-gray-300 rounded w-1/4"
+                            >
+                                {getUniqueYears().map((year) => (
+                                    <option key={year} value={year}>
+                                        {year === "all" ? "ทุนการศึกษาทุกปี" : `ปีการศึกษา ${year}`}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Filter by open, closed, or all */}
+                            <select
+                                value={filterMode}
+                                onChange={handleFilterModeChange}
+                                className="p-2 border border-gray-300 rounded w-1/4"
+                            >
+                                <option value="open">ทุนการศึกษาที่เปิดรับ</option>
+                                <option value="closed">ทุนการศึกษาที่ปิดรับ</option>
+                                <option value="all">ทุนการศึกษาทั้งหมด</option>
+                            </select>
+
+                            {/* Filter for scholarships with students waiting for results */}
+                            <label className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    checked={onlyWaiting}
+                                    onChange={handleOnlyWaitingChange}
+                                />
+                                <span>เฉพาะทุนที่นิสิตรอประกาศผล</span>
+                            </label>
+
+                            {/* Search input */}
                             <input
                                 type="text"
                                 placeholder="ค้นหาทุนการศึกษา..."
                                 value={searchTerm}
                                 onChange={handleSearch}
-                                className="w-full p-2 border border-gray-300 rounded"
+                                className="p-2 border border-gray-300 rounded w-1/4"
                             />
                         </div>
 
@@ -114,6 +228,7 @@ export default function InternalApplicationDataPage() {
                                 <tr className="bg-gray-200">
                                     <th className="border border-gray-300 p-2">ลำดับที่</th>
                                     <th className="border border-gray-300 p-2">ชื่อทุนการศึกษา</th>
+                                    <th className="border border-gray-300 p-2">นิสิตที่รอประกาศผล</th>
                                     <th className="border border-gray-300 p-2">ดำเนินการ</th>
                                 </tr>
                             </thead>
@@ -123,6 +238,9 @@ export default function InternalApplicationDataPage() {
                                         <td className="border border-gray-300 p-2 text-center">{indexOfFirstScholarship + index + 1}</td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             {scholarship.ScholarshipName} {scholarship.Year}
+                                        </td>
+                                        <td className="border border-gray-300 p-2 text-center">
+                                            {scholarship.StudentCount} คน
                                         </td>
                                         <td className="border border-gray-300 p-2 text-center">
                                             <button

@@ -22,6 +22,7 @@ interface QualificationData {
 }
 
 interface ScholarshipFileData {
+    ScholarshipID:number
     FileType: string;
     FilePath: File;
     Description?: string;
@@ -105,26 +106,29 @@ class ApiUpdateServiceScholarships {
         });
     }
 
-    static async updateFiles(scholarshipID: number, filesData: ScholarshipFileData[], id: number) {
+    static async updateFiles(ScholarshipID: number, filesData: ScholarshipFileData[], id: number) {
         const token = localStorage.getItem('token');
         const formData = new FormData();
-
+    
+        // Append each file and its metadata to FormData
         filesData.forEach((fileData, index) => {
             formData.append(`FileTypes[${index}]`, fileData.FileType);
-            formData.append(`FilePaths[${index}]`, fileData.FilePath);
+            formData.append(`FilePaths[${index}]`, fileData.FilePath); // Ensure this is a File object
             if (fileData.Description) {
                 formData.append(`Descriptions[${index}]`, fileData.Description);
             }
         });
-
+    
+        // Send POST request to update scholarship files
         return axios.post(`${API_URL}/scholarship-files/${id}`, formData, {
             headers: {
                 Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true',
                 'Content-Type': 'multipart/form-data', 
             },
         });
     }
+    
+    
 }
 
 export default ApiUpdateServiceScholarships;

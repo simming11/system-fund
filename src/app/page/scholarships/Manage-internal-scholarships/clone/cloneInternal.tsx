@@ -7,16 +7,15 @@ import Sidebar from "@/app/components/Sidebar/Sidebar";
 import Footer from "@/app/components/footer/footer";
 import Swal from "sweetalert2";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
-import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
 import ApiAllcreateServiceScholarships from "@/app/services/scholarships/createScholarship";
 import ApiLineNotifyServices from "@/app/services/line-notifies/line";
 import ScholarshipService from "@/app/services/scholarships/ApiScholarShips"; // Adjust the path accordingly
 const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
-export default function EditInternalScholarshipPage() {
+export default function CloneInternalScholarshipPage() {
   const router = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get('id');
-  const [lineToken, setLineToken] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -33,7 +32,7 @@ export default function EditInternalScholarshipPage() {
 
 
   const [formData, setFormData] = useState(() => {
-    const savedFormData = sessionStorage.getItem('editInternalScholarshipForm');
+    const savedFormData = sessionStorage.getItem('CloneInternalScholarshipForm');
     return savedFormData
       ? JSON.parse(savedFormData)
       : {
@@ -48,11 +47,15 @@ export default function EditInternalScholarshipPage() {
         CreatedBy: localStorage.getItem('AcademicID') || '',
         otherDocument: "",
         otherQualificationText: "",
-        documents: [] as { text: string, isActive: boolean }[],
-        qualifications: [] as { text: string, isActive: boolean }[],
-        Files: [] as { file: File | null, existing: boolean, id?: number }[],
+        AnnouncementFile: [] as { file: File | null, existing: boolean, id?: number }[], // Ensure this is an array
+        documents: [] as { text: string, isActive: boolean }[], // Ensure this is an array
+        qualifications: [] as { text: string, isActive: boolean }[], // Ensure this is an array
+        Files: [] as { file: File | null, existing: boolean, id?: number }[], // Ensure this is an array
         Image: null as File | null,
-        course: [] as string[],
+        course: [] as string[], // Ensure this is an array
+        Major: [] as string[], // Initialize Major as an array
+        information: [] as string[], // Initialize information as an array
+        Description: [] as string[], // Initialize Description as an array
       };
   });
 
@@ -64,20 +67,34 @@ export default function EditInternalScholarshipPage() {
   const [errorGpa, setErrorGpa] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
   const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
+  const [lineToken, setLineToken] = useState<string | null>(null);
   const [showSection, setShowSection] = useState({
     scholarshipInfo: true,
     additionalInfo: true,
     files: true,
   });
-
+  const AcademicID = typeof window !== "undefined" ? localStorage.getItem('AcademicID') ?? '' : '';
   useEffect(() => {
-    sessionStorage.setItem('editInternalScholarshipForm', JSON.stringify(formData));
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const Role = localStorage.getItem('UserRole');
+
+      if (!token || Role?.trim().toLowerCase() !== 'admin') {
+        console.error('Unauthorized access or missing token. Redirecting to login.');
+        router.push('/page/control');
+      }
+    }
+  }, [router]);
+  useEffect(() => {
+    sessionStorage.setItem('CloneInternalScholarshipForm', JSON.stringify(formData));
 
   }, [formData]);
+
 
   useEffect(() => {
     const fetchScholarshipData = async () => {
       if (id) {
+
         try {
           const response = await ApiServiceScholarships.getScholarship(Number(id));
           const data = response.data;
@@ -153,11 +170,6 @@ export default function EditInternalScholarshipPage() {
         } catch (error) {
           console.error("Failed to fetch scholarship data:", error);
           setError("Failed to load data.");
-
-          // Retry by reloading after 5 seconds if the fetch failed
-          setTimeout(() => {
-            window.location.reload();
-          }, 100); // Reload the page after 5 seconds
         }
       }
     };
@@ -268,6 +280,7 @@ export default function EditInternalScholarshipPage() {
   };
 
 
+  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -294,9 +307,9 @@ export default function EditInternalScholarshipPage() {
       newErrors[index] = ''; // Clear error
       setFileErrors(newErrors);
 
-      // Update the file in form data, making sure to keep the "file" as an object.
+      // Update file in form data
       const newFiles = [...formData.Files];
-      newFiles[index] = { file: file, existing: false };  // Ensure the file is stored correctly
+      newFiles[index] = file; // Update the selected file at the given index
       setFormData({
         ...formData,
         Files: newFiles,  // Update the form data with the new file array
@@ -356,138 +369,141 @@ export default function EditInternalScholarshipPage() {
     }
   };
 
-  // const handleCopyAndPostNew = async () => {
-  //   try {
-  //     // Log the original formData
-  //     console.log("Original formData:", formData);
+  const handleAnnouncementFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const announcementFile = e.target.files[0];
 
-  //     // Check if formData.information and formData.Description are defined and set to empty array if not
-  //     const information = Array.isArray(formData.information) ? formData.information : [];
-  //     const description = Array.isArray(formData.Description) ? formData.Description : [];
+      // Check file size (limit to 20MB)
+      const fileSizeInMB = announcementFile.size / 1024 / 1024;
+      if (fileSizeInMB > 20) {
+        setErrorMessage("ขนาดไฟล์ไม่ควรเกิน 20MB");
+        e.target.value = ""; // Clear the input value
+        return;
+      }
 
-  //     // Modify the ScholarshipName to avoid duplication
-  //     const newScholarshipName = formData.ScholarshipName + " (คัดลอก)";
+      // Check file type (PDF, DOC, DOCX, JPG, PNG)
+      const validFileTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png"];
+      if (!validFileTypes.includes(announcementFile.type)) {
+        setErrorMessage("กรุณาอัพโหลดไฟล์ประกาศในรูปแบบ PDF, DOC, DOCX, JPG หรือ PNG");
+        e.target.value = ""; // Clear the input value
+        return;
+      }
 
-  //     // Prepare the form data for submission
-  //     const submitFormData = {
-  //       ...formData,
-  //       ScholarshipName: newScholarshipName, // Use the new name to avoid duplication
-  //       information: information.filter((item: string) => item !== "อื่น ๆ"),
-  //       Description: description.filter((item: string) => item !== "อื่น ๆ"),
-  //     };
+      // If no error, clear the error message and store the file
+      setErrorMessage(null);
 
-  //     // Log submitFormData to see what it contains
-  //     console.log("submitFormData:", submitFormData);
+      // Store the announcement file in formData
+      setFormData((prevFormData: any) => ({
+        ...prevFormData,
+        AnnouncementFile: announcementFile, // Update the formData with the selected file
+      }));
+    }
+  };
 
-  //     const payload = new FormData();
-  //     for (const [key, value] of Object.entries(submitFormData)) {
-  //       if (Array.isArray(value)) {
-  //         value.forEach((item: string) => {
-  //           payload.append(`${key}[]`, item);
-  //         });
-  //       } else if (value instanceof Blob) {
-  //         payload.append(key, value);
-  //       } else {
-  //         payload.append(key, value as string);
-  //       }
-  //     }
+  const handleCopyAndPostNew = async () => {
+    try {
+      // Check if formData.information and formData.Description are defined and set to empty array if not
+      const information = Array.isArray(formData.information) ? formData.information : [];
+      const description = Array.isArray(formData.Description) ? formData.Description : [];
 
-  //     // Log payload to check what will be sent
-  //     payload.forEach((value, key) => {
-  //       console.log(key, value);
-  //     });
+      // Modify the ScholarshipName to avoid duplication
+      const newScholarshipName = formData.ScholarshipName + " (คัดลอก)";
 
-  //     // Check if an announcement file exists before adding it to the payload
-  //     if (formData.AnnouncementFile) {
-  //       payload.append('AnnouncementFile', formData.AnnouncementFile);
-  //       console.log('AnnouncementFile:', formData.AnnouncementFile);
-  //     }
+      // Prepare the form data for submission
+      const submitFormData = {
+        ...formData,
+        ScholarshipName: newScholarshipName, // Use the new name to avoid duplication
+        information: information.filter((item: string) => item !== "อื่น ๆ"),
+        Description: description.filter((item: string) => item !== "อื่น ๆ"),
+      };
 
-  //     // Create a new scholarship
-  //     const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-  //     console.log("Scholarship created with ID:", scholarshipID);
+      const payload = new FormData();
+      for (const [key, value] of Object.entries(submitFormData)) {
+        if (Array.isArray(value)) {
+          value.forEach((item: string) => {
+            payload.append(`${key}[]`, item);
+          });
+        } else if (value instanceof Blob) {
+          payload.append(key, value);
+        } else {
+          payload.append(key, value as string);
+        }
+      }
 
-  //     // Send notification if lineToken exists
-  //     if (lineToken) {
-  //       const message = `ทุนการศึกษาใหม่ ${newScholarshipName} \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
-  //       await ApiLineNotifyServices.sendLineNotify(message, lineToken);
-  //       console.log("Line notify sent with message:", message);
-  //     } else {
-  //       console.error("LINE Notify token is null");
-  //     }
+      // Create a new scholarship
+      const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
 
-  //     // Update Courses
-  //     if (formData.Major.length > 0) {
-  //       await ApiAllcreateServiceScholarships.createCourses({
-  //         ScholarshipID: scholarshipID,
-  //         CourseName: formData.Major,
-  //       });
-  //       console.log("Courses updated with Major:", formData.Major);
-  //     }
+      // Send notification if lineToken exists
+      if (lineToken) {
+        const message = `ทุนการศึกษาใหม่ ${newScholarshipName} \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
+        await ApiLineNotifyServices.sendLineNotify(message, lineToken);
+      } else {
+        console.error("LINE Notify token is null");
+      }
 
-  //     // Update Documents
-  //     if (submitFormData.information.length > 0 || formData.otherDocument) {
-  //       await ApiAllcreateServiceScholarships.createDocuments({
-  //         ScholarshipID: scholarshipID,
-  //         documents: submitFormData.information,
-  //         otherDocument: formData.otherDocument,
-  //       });
-  //       console.log("Documents updated with information:", submitFormData.information);
-  //     }
+      // Update Courses
+      if (formData.Major.length > 0) {
+        await ApiAllcreateServiceScholarships.createCourses({
+          ScholarshipID: scholarshipID,
+          CourseName: formData.Major,
+        });
+      }
 
-  //     // Update Qualifications
-  //     if (submitFormData.Description.length > 0) {
-  //       await ApiAllcreateServiceScholarships.createQualifications({
-  //         ScholarshipID: scholarshipID,
-  //         qualifications: submitFormData.Description,
-  //         otherQualificationText: formData.otherQualificationText,
-  //       });
-  //       console.log("Qualifications updated with Description:", submitFormData.Description);
-  //     }
+      // Update Documents
+      if (submitFormData.information.length > 0 || formData.otherDocument) {
+        await ApiAllcreateServiceScholarships.createDocuments({
+          ScholarshipID: scholarshipID,
+          documents: submitFormData.information,
+          otherDocument: formData.otherDocument,
+        });
+      }
 
-  //     // Upload the image if it exists
-  //     if (formData.Image) {
-  //       await ApiAllcreateServiceScholarships.createImage({
-  //         ScholarshipID: scholarshipID,
-  //         ImagePath: formData.Image,
-  //       });
-  //       console.log("Image uploaded:", formData.Image);
-  //     }
+      // Update Qualifications
+      if (submitFormData.Description.length > 0) {
+        await ApiAllcreateServiceScholarships.createQualifications({
+          ScholarshipID: scholarshipID,
+          qualifications: submitFormData.Description,
+          otherQualificationText: formData.otherQualificationText,
+        });
+      }
 
-  //     // Upload other files if they exist
-  //     for (const file of formData.Files) {
-  //       if (file && file.file) {
-  //         await ApiAllcreateServiceScholarships.createFile({
-  //           ScholarshipID: scholarshipID,
-  //           FileType: "ไฟล์",
-  //           FilePath: file.file,
-  //         });
-  //         console.log("File uploaded:", file.file);
-  //       }
-  //     }
+      // Upload the image
+      if (formData.Image) {
+        await ApiAllcreateServiceScholarships.createImage({
+          ScholarshipID: scholarshipID,
+          ImagePath: formData.Image,
+        });
+      }
 
-  //     // Display success message
-  //     Swal.fire({
-  //       title: "",
-  //       text: "คัดลอกและสร้างทุนการศึกษาใหม่เรียบร้อยแล้ว!",
-  //       icon: "success"
-  //     });
+      for (const file of formData.Files) {
+        if (file) {
+          await ApiAllcreateServiceScholarships.createFile({
+            ScholarshipID: scholarshipID,
+            FileType: "ไฟล์",
+            FilePath: file,
+          });
+        }
+      }
 
-  //     // Clear session storage and redirect
-  //     sessionStorage.clear();
-  //     router.push("/page/scholarships/Manage-internal-scholarships");
-  //   } catch (error) {
-  //     console.error("Error copying scholarship:", error);
-  //     Swal.fire({
-  //       title: "Error",
-  //       text: "ไม่สามารถคัดลอกทุนการศึกษาได้ กรุณาลองอีกครั้ง",
-  //       icon: "error",
-  //     });
-  //   }
-  // };
+      // Display success message
+      Swal.fire({
+        title: "",
+        text: "คัดลอกและสร้างทุนการศึกษาใหม่เรียบร้อยแล้ว!",
+        icon: "success"
+      });
 
-
-
+      // Clear session storage and redirect
+      sessionStorage.clear();
+      router.push("/page/scholarships/Manage-internal-scholarships");
+    } catch (error) {
+      console.error("Error copying scholarship:", error);
+      Swal.fire({
+        title: "Error",
+        text: "ไม่สามารถคัดลอกทุนการศึกษาได้ กรุณาลองอีกครั้ง",
+        icon: "error",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -508,7 +524,6 @@ export default function EditInternalScholarshipPage() {
       StartDate: formData.StartDate,
       EndDate: formData.EndDate,
       CreatedBy: formData.CreatedBy,
-      status: 'finalized', // Set status to 'finalized' here
     };
 
     let timerInterval: string | number | NodeJS.Timeout | undefined;
@@ -542,16 +557,16 @@ export default function EditInternalScholarshipPage() {
 
           // Ensure id is not null and is passed as a string
           if (id) {
-            await ApiUpdateServiceScholarships.updateScholarship(id, payload);
+            await ApiAllcreateServiceScholarships.createScholarship(payload);
           } else {
             throw new Error("Scholarship ID is missing.");
           }
 
           // Update Courses
-          if ((formData.course || []).length > 0) {
-            await ApiUpdateServiceScholarships.updateCourse(scholarshipID, {
+          if (formData.Major.length > 0) {
+            await ApiAllcreateServiceScholarships.createCourses({
               ScholarshipID: scholarshipID,
-              CourseName: formData.course,
+              CourseName: formData.Major,
             });
           }
 
@@ -565,14 +580,13 @@ export default function EditInternalScholarshipPage() {
           }
 
           if (selectedDocuments.length > 0) {
-            await ApiUpdateServiceScholarships.updateDocument(scholarshipID, {
+            await ApiAllcreateServiceScholarships.createDocuments({
               ScholarshipID: scholarshipID,
               documents: selectedDocuments,
               otherDocument: formData.otherDocument,
-              IsActive: true,
+
             });
           }
-
           // Update Qualifications
           const selectedQualifications = formData.qualifications
             .filter((item: { text: string, isActive: boolean }) => item.isActive && item.text !== "อื่น ๆ")
@@ -583,31 +597,33 @@ export default function EditInternalScholarshipPage() {
           }
 
           if (selectedQualifications.length > 0) {
-            await ApiUpdateServiceScholarships.updateQualification(scholarshipID, {
+            await ApiAllcreateServiceScholarships.createQualifications({
               ScholarshipID: scholarshipID,
               qualifications: selectedQualifications,
               otherQualificationText: formData.otherQualificationText,
-              IsActive: true,
+
             });
           }
 
           if (formData.Image) {
-            await ApiUpdateServiceScholarships.updateImage(scholarshipID, formData.Image);
+            await ApiAllcreateServiceScholarships.createImage(
+              formData.Image
+            );
           }
 
+          // Prepare and Update other files
           const filesToUpdate = formData.Files
             .filter((fileObj: { file: File | null }) => fileObj.file)
             .map((fileObj: { file: File | null }) => ({
               FileType: "ไฟล์",
-              FilePath: fileObj.file as File,  // Make sure fileObj.file is a File object
-              Description: fileObj.file?.name || ""  // Add description as file name or empty
+              FilePath: fileObj.file as File,
+              Description: fileObj.file?.name || ""
             }));
 
-          // Log the filesToUpdate array to check its structure
-          console.log("Files to be updated:", filesToUpdate);
-
           if (filesToUpdate.length > 0) {
-            await ApiUpdateServiceScholarships.updateFiles(scholarshipID, filesToUpdate, scholarshipID);
+            await ApiAllcreateServiceScholarships.createFile(
+              filesToUpdate,
+            );
           }
 
           Swal.fire({
@@ -616,11 +632,6 @@ export default function EditInternalScholarshipPage() {
             icon: "success"
           });
 
-          // Clear form data and reset states
-          setFormData({
-            ...formData,
-            Files: []  // Reset the Files array
-          });
 
           // Clear session storage and redirect
           sessionStorage.clear();
@@ -636,9 +647,6 @@ export default function EditInternalScholarshipPage() {
 
 
 
-
-
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <HeaderHome />
@@ -649,7 +657,7 @@ export default function EditInternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
+            <h2 className="text-2xl font-semibold mb-6">คัดลอกข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
             {loading && (
               <div className="flex items-center justify-center mb-4">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
@@ -706,12 +714,9 @@ export default function EditInternalScholarshipPage() {
                             { value: "1", label: "ปี 1" },
                             { value: "2", label: "ปี 2" },
                             { value: "3", label: "ปี 3" },
-                            { value: "4", label: "ปี 4" },
-                            { value: "1-2", label: "ปี 1-2" },
-                            { value: "1-3", label: "ปี 1-3" },
-                            { value: "1-4", label: "ปี 1-4" },
-                            { value: "2-3", label: "ปี 2-3" },
-                            { value: "3-4", label: "ปี 3-4" }
+                            { value: "1-4", label: "ทุกชั้นปี" },
+                            { value: "2-4", label: "2ขึ้นไป" },
+                            { value: "3-4", label: "3ขึ้นไป" },
                           ].map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
@@ -748,6 +753,7 @@ export default function EditInternalScholarshipPage() {
                             if (value === "" || decimalPattern.test(value)) {
                               // Allow empty or valid decimal inputs
                               setFormData({ ...formData, Minimum_GPA: value });
+
                               if (value === "") {
                                 setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
                               } else {
@@ -767,6 +773,19 @@ export default function EditInternalScholarshipPage() {
                         {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>}
                       </div>
                     </div>
+                    <div className="w-full md:w-1/2 px-4 mb-4">
+                      <label htmlFor="AnnouncementFile" className="block text-gray-700 mb-2">ไฟล์ประกาศ</label>
+                      <input
+                        type="file"
+                        id="AnnouncementFile"
+                        name="AnnouncementFile"
+                        accept=".pdf,.doc,.docx,.jpg,.png" // Allow the specified file types
+                        onChange={(e) => handleAnnouncementFileChange(e)} // Create a function to handle this
+                        className="w-full p-3 border border-gray-300 rounded"
+                      />
+                      {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+                    </div>
+
                   </div>
                   <div className="mb-4">
                     <label className="block text-gray-700 mb-2">สาขาวิชา</label>
@@ -934,7 +953,7 @@ export default function EditInternalScholarshipPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="flex">
+                  <div className="flex ...">
                     <div className="w-1/2">
                       <div className="mb-4">
                         {showSection.files && (
@@ -975,6 +994,7 @@ export default function EditInternalScholarshipPage() {
                         )}
                       </div>
                     </div>
+
                     <div className="w-1/2">
                       <div className="mb-4">
                         <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
@@ -982,14 +1002,16 @@ export default function EditInternalScholarshipPage() {
                           type="file"
                           id="Image"
                           name="Image"
-                          accept="image/*" // Only allow image types
+                          accept=".png, .jpg, .jpeg" // Only allow PNG, JPG, and JPEG formats
                           onChange={handleImageChange}
                           className="w-1/3 p-3 border border-gray-300 rounded"
                         />
                         {/* Display error message */}
                         {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
                       </div>
+
                     </div>
+
                   </div>
 
                   <div className="flex">
@@ -1024,27 +1046,14 @@ export default function EditInternalScholarshipPage() {
                 </>
 
               </div>
-              {/* <div className="flex ...">
+              <div className="flex ...">
                 <div className="w-5/6 ..."></div>
                 <div className="w-1/6 ...">
                   <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
                     บันทึก
                   </button>
                 </div>
-              </div> */}
-              <div className="flex justify-end mt-6 mb-8">
-                <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                บันทึก
-                </button>
-                {/* <button
-                  type="button"
-                  className="bg-blue-500 text-white px-4 py-2 rounded ml-4 hover:bg-blue-600"
-                  onClick={handleCopyAndPostNew}
-                >
-                  คัดลอกและโพสใหม่
-                </button> */}
               </div>
-
             </form>
           </div>
         </div>

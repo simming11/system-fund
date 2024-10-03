@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
 import Swal from "sweetalert2";
 import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
+import axios from "axios";
 
 interface Scholarship {
   StartDate: Date;
@@ -86,6 +87,45 @@ export default function ManageInternalScholarshipsPage() {
   const handleEdit = (id: number) => {
     router.push(`/page/scholarships/Manage-internal-scholarships/Edit?id=${id}`);
 };
+
+
+const handleClone = async (id: number) => {
+  try {
+    const response = await ApiServiceScholarships.cloneScholarship(id);
+    
+    // Success SweetAlert
+    Swal.fire({
+      icon: 'success',
+      title: 'สำเร็จ!',
+      text: 'Scholarship cloned successfully!',
+      confirmButtonText: 'OK',
+    });
+
+    // Optionally, update the state or UI here if needed
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      // SweetAlert for Axios error
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: `Error cloning scholarship: ${error.response?.data?.error || error.message}`,
+        confirmButtonText: 'OK',
+      });
+    } else {
+      // SweetAlert for non-Axios errors
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: `Error cloning scholarship: ${String(error)}`,
+        confirmButtonText: 'OK',
+      });
+    }
+  }
+};
+
+
+
+
 const handleHide = async (id: string) => {
   Swal.fire({
     title: 'ต้องการซ่อนข้อมูลหรือไม่?',
@@ -242,13 +282,15 @@ const handleUnhide = async (id: string) => {
                       )}
                     </td>
                     <td className="border border-gray-300 p-2 text-center">
-                      <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">✏️</button>
-                      {scholarship.status === 'hidden' ? (
-                        <button onClick={() => handleUnhide(scholarship.ScholarshipID.toString())} className="mr-2">👁️</button>
-                      ) : (
-                        <button onClick={() => handleHide(scholarship.ScholarshipID.toString())}>🚫</button>
-                      )}
-                    </td>
+  <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">✏️</button>
+  <button onClick={() => handleClone(scholarship.ScholarshipID)} className="mr-2">🔁 คัดลอก</button>
+  {scholarship.status === 'hidden' ? (
+    <button onClick={() => handleUnhide(scholarship.ScholarshipID.toString())} className="mr-2">👁️</button>
+  ) : (
+    <button onClick={() => handleHide(scholarship.ScholarshipID.toString())}>🚫</button>
+  )}
+</td>
+
                   </tr>
                 ))}
               </tbody>

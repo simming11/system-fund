@@ -61,15 +61,15 @@ export default function ApplyScholarShipsPage() {
    
 
   // Fetch all scholarships and student applications
+  
   useEffect(() => {
-
     const fetchData = async () => {
       try {
         // Fetch all scholarships
         const scholarshipsResponse = await ApiServiceScholarships.getAllScholarships();
         const scholarshipsData = scholarshipsResponse.data;
-      
-
+        console.log(scholarshipsData);
+  
         const updatedScholarships = await Promise.all(
           scholarshipsData.map(async (scholarship: Scholarship) => {
             if (scholarship.ScholarshipID) {
@@ -85,35 +85,39 @@ export default function ApplyScholarShipsPage() {
             return scholarship;
           })
         );
-
+  
         const now = new Date();
-
-        // กรองทุนที่ "เปิดรับอยู่"
+  
+        // กรองทุนที่ "เปิดรับอยู่" และไม่มี status เป็น 'clone'
         const openScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-        
+  
           // เงื่อนไขเปิดรับ: ถ้าวันปัจจุบันอยู่ในช่วง start ถึง end (รวมถึงวัน start และ end ด้วย)
-          return (now >= start && now <= end) || now.toDateString() === start.toDateString() || now.toDateString() === end.toDateString();
+          return (
+            ((now >= start && now <= end) || now.toDateString() === start.toDateString() || now.toDateString() === end.toDateString()) &&
+            scholarship.status !== "clone"
+          );
         });
-        
-        // กรองทุนที่ "ปิดรับแล้ว"
+  
+        // กรองทุนที่ "ปิดรับแล้ว" และไม่มี status เป็น 'clone'
         const closedScholarships = updatedScholarships.filter(scholarship => {
           const start = new Date(scholarship.StartDate);
           const end = new Date(scholarship.EndDate);
-        
+  
           // เงื่อนไขปิดรับ: ถ้าวันปัจจุบันเกิน `endDate` หรือยังไม่ถึง `startDate` และไม่ตรงกับ `endDate`
-          return (now > end || now < start) && now.toDateString() !== end.toDateString() && now.toDateString() !== start.toDateString();
+          return (
+            ((now > end || now < start) && now.toDateString() !== end.toDateString() && now.toDateString() !== start.toDateString()) &&
+            scholarship.status !== "clone"
+          );
         });
-        
+  
         // อัปเดต state สำหรับทุนการศึกษาทั้งหมด
         setScholarships(updatedScholarships);
         setOpenScholarships(openScholarships);
         setClosedScholarships(closedScholarships);
         setAllScholarships(updatedScholarships);
-        
-
-
+  
         // Fetch student data
         const StudentID = localStorage.getItem('UserID');
         let appliedScholarshipsData: number[] = []; // Store applied scholarship IDs
@@ -122,22 +126,19 @@ export default function ApplyScholarShipsPage() {
           setStudent(studentResponse.data);
           // Calculate and set the recommended scholarships based on the student's GPA and Course
           recommendScholarships(studentResponse.data.GPA, studentResponse.data.Course, studentResponse.data.Year_Entry);
-
-
+  
           // Fetch internal and external applications
-        const internalApplications = await ApiApplicationServices.showByStudentId(StudentID);
-        const externalApplications = await ApiApplicationExternalServices.showByStudent(StudentID);
-
-        // Combine internal and external applications to collect applied scholarship IDs
-        appliedScholarshipsData = [
-          ...internalApplications.map((app: any) => app.ScholarshipID),
-          ...externalApplications.map((app: any) => app.ScholarshipID),
-        ];
-
-        // Set applied scholarships state
-        setAppliedScholarships(appliedScholarshipsData);
-
-
+          const internalApplications = await ApiApplicationServices.showByStudentId(StudentID);
+          const externalApplications = await ApiApplicationExternalServices.showByStudent(StudentID);
+  
+          // Combine internal and external applications to collect applied scholarship IDs
+          appliedScholarshipsData = [
+            ...internalApplications.map((app: any) => app.ScholarshipID),
+            ...externalApplications.map((app: any) => app.ScholarshipID),
+          ];
+  
+          // Set applied scholarships state
+          setAppliedScholarships(appliedScholarshipsData);
         } else {
           // console.warn('No StudentID found in localStorage');
           // router.push('/page/login');
@@ -148,10 +149,12 @@ export default function ApplyScholarShipsPage() {
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, [router]); // Dependencies: only run on initial load
-
+  }, [router]);
+  
+  
+  // Dependencies: only run on initial load
   // Separate useEffect for recommending scholarships
   // Function to calculate the academic year
   const calculateAcademicYear = (yearEntry: number | null) => {
@@ -354,248 +357,302 @@ export default function ApplyScholarShipsPage() {
         <Header />
       </div>
       <div className="container mx-auto px-4 py-8 lg:pl-40 ">
-        <main className="flex-1">
-          
-   {/* Use the getStatus function and conditionally apply color classes based on status */}
-{recommendedScholarships.length > 0 && (
-  <div>
-    <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา</h2>
-    <div className="flex flex-wrap justify-start">
-      {paginate(recommendedScholarships, recommendedPage).map((scholarship) => {
-        const status = getStatus(scholarship.StartDate, scholarship.EndDate);
-        const statusColor = status === "ปิดรับแล้ว" ? "text-red-500" : status === "เปิดรับอยู่" ? "text-green-500" : "text-gray-500";
+      <main className="flex-1">
+  {/* Check if there are recommended scholarships */}
+  {recommendedScholarships.length > 0 ? (
+    <div>
+      <h2 className="text-2xl font-semibold mb-6">แนะนำทุนการศึกษา</h2>
+      <div className="flex flex-wrap justify-start">
+        {paginate(recommendedScholarships, recommendedPage).map((scholarship) => {
+          const status = getStatus(scholarship.StartDate, scholarship.EndDate);
+          const statusColor =
+            status === "ปิดรับแล้ว"
+              ? "text-red-500"
+              : status === "เปิดรับอยู่"
+              ? "text-green-500"
+              : "text-gray-500";
 
-        return (
-          <Link
-            key={scholarship.ScholarshipID}
-            href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
-            legacyBehavior
-          >
-            <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-              <img
-                src={scholarship.ImagePath}
-                alt={scholarship.ScholarshipName}
-                className="w-full h-80 object-cover rounded-lg"
-              />
-              <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-              <p className="text-sm text-gray-600 mt-1">ปีการศึกษา {scholarship.Year}</p>
-              <p className="text-gray-600">{scholarship.Description}</p>
-              <p className="text-gray-500 text-sm">
-                โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
-              </p>
-             {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
-             {hasApplied(scholarship.ScholarshipID) ? (
-                <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
-              ) : (
-                <p className={`text-sm ${statusColor}`}>{status}</p>
-              )}
-            </a>
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={scholarship.ScholarshipID}
+              href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
+              legacyBehavior
+            >
+              <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                <img
+                  src={scholarship.ImagePath}
+                  alt={scholarship.ScholarshipName}
+                  className="w-full h-80 object-cover rounded-lg"
+                />
+                <h3 className="text-xl font-bold mt-2">
+                  {scholarship.ScholarshipName}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  ปีการศึกษา {scholarship.Year}
+                </p>
+                <p className="text-gray-600">{scholarship.Description}</p>
+                <p className="text-gray-500 text-sm">
+                  โพสเมื่อ{" "}
+                  {scholarship.StartDate
+                    ? new Date(scholarship.StartDate).toLocaleDateString()
+                    : "N/A"}
+                </p>
+                {hasApplied(scholarship.ScholarshipID) ? (
+                  <p className="text-green-500 font-semibold">
+                    ท่านได้สมัครทุนนี้แล้ว
+                  </p>
+                ) : (
+                  <p className={`text-sm ${statusColor}`}>{status}</p>
+                )}
+              </a>
+            </Link>
+          );
+        })}
+      </div>
+      {/* Pagination for Recommended Scholarships */}
+      <div className="mt-4 flex justify-center">
+        <button
+          onClick={() => setRecommendedPage((prev) => Math.max(prev - 1, 1))}
+          className="px-4 py-2 bg-gray-300 rounded-lg"
+          disabled={recommendedPage === 1}
+        >
+          ก่อนหน้า
+        </button>
+        <span className="px-4 py-2">
+          {recommendedPage} of {totalPages(recommendedScholarships.length)}
+        </span>
+        <button
+          onClick={() =>
+            setRecommendedPage((prev) =>
+              Math.min(prev + 1, totalPages(recommendedScholarships.length))
+            )
+          }
+          className="px-4 py-2 bg-gray-300 rounded-lg"
+          disabled={recommendedPage === totalPages(recommendedScholarships.length)}
+        >
+          ถัดไป
+        </button>
+      </div>
     </div>
-    {/* Pagination for Recommended Scholarships */}
-    <div className="mt-4 flex justify-center">
-      <button
-        onClick={() => setRecommendedPage((prev) => Math.max(prev - 1, 1))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={recommendedPage === 1}
-      >
-        ก่อนหน้า
-      </button>
-      <span className="px-4 py-2">{recommendedPage} of {totalPages(recommendedScholarships.length)}</span>
-      <button
-        onClick={() => setRecommendedPage((prev) => Math.min(prev + 1, totalPages(recommendedScholarships.length)))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={recommendedPage === totalPages(recommendedScholarships.length)}
-      >
-       ถัดไป
-      </button>
-    </div>
-  </div>
-)}
-          <main className="flex-1">
-          {openScholarships.length > 0 && (
-  <div>
-    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่เปิดรับอยู่</h2>
-    <div className="flex flex-wrap justify-start">
-      {paginate(openScholarships, openPage).map((scholarship) => {
-        const status = getStatus(scholarship.StartDate, scholarship.EndDate);
-        const statusColor = status === "ปิดรับแล้ว" ? "text-red-500" : status === "เปิดรับอยู่" ? "text-green-500" : "text-gray-500";
+  ) : (
+    <>
+      {/* If there are no recommended scholarships, show the other sections */}
+      {openScholarships.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่เปิดรับอยู่</h2>
+          <div className="flex flex-wrap justify-start">
+            {paginate(openScholarships, openPage).map((scholarship) => {
+              const status = getStatus(scholarship.StartDate, scholarship.EndDate);
+              const statusColor =
+                status === "ปิดรับแล้ว"
+                  ? "text-red-500"
+                  : status === "เปิดรับอยู่"
+                  ? "text-green-500"
+                  : "text-gray-500";
 
-        return (
-          <Link
-            key={scholarship.ScholarshipID}
-            href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
-            legacyBehavior
-          >
-            <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-              <img
-                src={scholarship.ImagePath}
-                alt={scholarship.ScholarshipName}
-                className="w-full h-80 object-cover rounded-lg"
-              />
-              <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-              <p className="text-sm text-gray-600 mt-1">ปีการศึกษา {scholarship.Year}</p>
-              <p className="text-gray-600">{scholarship.Description}</p>
-              <p className="text-gray-500 text-sm">
-                โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
-              </p>
-               {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
-               {hasApplied(scholarship.ScholarshipID) ? (
-                <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
-              ) : (
-                <p className={`text-sm ${statusColor}`}>{status}</p>
-              )}
-            </a>
-          </Link>
-        );
-      })}
-    </div>
-    {/* Pagination for Open Scholarships */}
-    <div className="mt-4 flex justify-center">
-      <button
-        onClick={() => setOpenPage((prev) => Math.max(prev - 1, 1))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={openPage === 1}
-      >
-        ก่อนหน้า
-      </button>
-      <span className="px-4 py-2">{openPage} of {totalPages(openScholarships.length)}</span>
-      <button
-        onClick={() => setOpenPage((prev) => Math.min(prev + 1, totalPages(openScholarships.length)))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={openPage === totalPages(openScholarships.length)}
-      >
-        ถัดไป
-      </button>
-    </div>
-  </div>
-)}
+              return (
+                <Link
+                  key={scholarship.ScholarshipID}
+                  href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
+                  legacyBehavior
+                >
+                  <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                    <img
+                      src={scholarship.ImagePath}
+                      alt={scholarship.ScholarshipName}
+                      className="w-full h-80 object-cover rounded-lg"
+                    />
+                    <h3 className="text-xl font-bold mt-2">
+                      {scholarship.ScholarshipName}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      ปีการศึกษา {scholarship.Year}
+                    </p>
+                    <p className="text-gray-600">{scholarship.Description}</p>
+                    <p className="text-gray-500 text-sm">
+                      โพสเมื่อ{" "}
+                      {scholarship.StartDate
+                        ? new Date(scholarship.StartDate).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                    {hasApplied(scholarship.ScholarshipID) ? (
+                      <p className="text-green-500 font-semibold">
+                        ท่านได้สมัครทุนนี้แล้ว
+                      </p>
+                    ) : (
+                      <p className={`text-sm ${statusColor}`}>{status}</p>
+                    )}
+                  </a>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Pagination for Open Scholarships */}
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setOpenPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={openPage === 1}
+            >
+              ก่อนหน้า
+            </button>
+            <span className="px-4 py-2">{openPage} of {totalPages(openScholarships.length)}</span>
+            <button
+              onClick={() => setOpenPage((prev) => Math.min(prev + 1, totalPages(openScholarships.length)))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={openPage === totalPages(openScholarships.length)}
+            >
+              ถัดไป
+            </button>
+          </div>
+        </div>
+      )}
 
+      {closedScholarships.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่ปิดรับแล้ว</h2>
+          <div className="flex flex-wrap justify-start">
+            {paginate(closedScholarships, closedPage).map((scholarship) => {
+              const status = getStatus(scholarship.StartDate, scholarship.EndDate);
+              const statusColor =
+                status === "ปิดรับแล้ว"
+                  ? "text-red-500"
+                  : status === "เปิดรับอยู่"
+                  ? "text-green-500"
+                  : "text-gray-500";
 
-       {/* Closed Scholarships */}
-       {closedScholarships.length > 0 && (
-  <div>
-    <h2 className="text-2xl font-semibold mb-10">ทุนการศึกษาที่ปิดรับแล้ว</h2>
-    <div className="flex flex-wrap justify-start">
-      {paginate(closedScholarships, closedPage).map((scholarship) => {
-        const status = getStatus(scholarship.StartDate, scholarship.EndDate);
-        const statusColor = status === "ปิดรับแล้ว" ? "text-red-500" : status === "เปิดรับอยู่" ? "text-green-500" : "text-gray-500";
+              return (
+                <Link
+                  key={scholarship.ScholarshipID}
+                  href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
+                  legacyBehavior
+                >
+                  <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                    <img
+                      src={scholarship.ImagePath}
+                      alt={scholarship.ScholarshipName}
+                      className="w-full h-80 object-cover rounded-lg"
+                    />
+                    <h3 className="text-xl font-bold mt-2">
+                      {scholarship.ScholarshipName}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      ปีการศึกษา {scholarship.Year}
+                    </p>
+                    <p className="text-gray-600">{scholarship.Description}</p>
+                    <p className="text-gray-500 text-sm">
+                      โพสเมื่อ{" "}
+                      {scholarship.StartDate
+                        ? new Date(scholarship.StartDate).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                    {hasApplied(scholarship.ScholarshipID) ? (
+                      <p className="text-green-500 font-semibold">
+                        ท่านได้สมัครทุนนี้แล้ว
+                      </p>
+                    ) : (
+                      <p className={`text-sm ${statusColor}`}>{status}</p>
+                    )}
+                  </a>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Pagination for Closed Scholarships */}
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setClosedPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={closedPage === 1}
+            >
+              ก่อนหน้า
+            </button>
+            <span className="px-4 py-2">{closedPage} of {totalPages(closedScholarships.length)}</span>
+            <button
+              onClick={() => setClosedPage((prev) => Math.min(prev + 1, totalPages(closedScholarships.length)))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={closedPage === totalPages(closedScholarships.length)}
+            >
+              ถัดไป
+            </button>
+          </div>
+        </div>
+      )}
 
-        return (
-          <Link
-            key={scholarship.ScholarshipID}
-            href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
-            legacyBehavior
-          >
-            <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-              <img
-                src={scholarship.ImagePath}
-                alt={scholarship.ScholarshipName}
-                className="w-full h-80 object-cover rounded-lg"
-              />
-              <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-              <p className="text-sm text-gray-600 mt-1">ปีการศึกษา {scholarship.Year}</p>
-              <p className="text-gray-600">{scholarship.Description}</p>
-              <p className="text-gray-500 text-sm">
-                โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
-              </p>
-              {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
-              {hasApplied(scholarship.ScholarshipID) ? (
-                <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
-              ) : (
-                <p className={`text-sm ${statusColor}`}>{status}</p>
-              )}
-            </a>
-          </Link>
-        );
-      })}
-    </div>
-    {/* Pagination for Closed Scholarships */}
-    <div className="mt-4 flex justify-center">
-      <button
-        onClick={() => setClosedPage((prev) => Math.max(prev - 1, 1))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={closedPage === 1}
-      >
-        ก่อนหน้า
-      </button>
-      <span className="px-4 py-2">{closedPage} of {totalPages(closedScholarships.length)}</span>
-      <button
-        onClick={() => setClosedPage((prev) => Math.min(prev + 1, totalPages(closedScholarships.length)))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={closedPage === totalPages(closedScholarships.length)}
-      >
-        ถัดไป
-      </button>
-    </div>
-  </div>
-)}
+      {allScholarships.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
+          <div className="flex flex-wrap justify-start">
+            {paginate(allScholarships, allPage).map((scholarship) => {
+              const status = getStatus(scholarship.StartDate, scholarship.EndDate);
+              const statusColor =
+                status === "ปิดรับแล้ว"
+                  ? "text-red-500"
+                  : status === "เปิดรับอยู่"
+                  ? "text-green-500"
+                  : "text-gray-500";
 
+              return (
+                <Link
+                  key={scholarship.ScholarshipID}
+                  href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
+                  legacyBehavior
+                >
+                  <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
+                    <img
+                      src={scholarship.ImagePath}
+                      alt={scholarship.ScholarshipName}
+                      className="w-full h-80 object-cover rounded-lg"
+                    />
+                    <h3 className="text-xl font-bold mt-2">
+                      {scholarship.ScholarshipName}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      ปีการศึกษา {scholarship.Year}
+                    </p>
+                    <p className="text-gray-600">{scholarship.Description}</p>
+                    <p className="text-gray-500 text-sm">
+                      โพสเมื่อ{" "}
+                      {scholarship.StartDate
+                        ? new Date(scholarship.StartDate).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                    {hasApplied(scholarship.ScholarshipID) ? (
+                      <p className="text-green-500 font-semibold">
+                        ท่านได้สมัครทุนนี้แล้ว
+                      </p>
+                    ) : (
+                      <p className={`text-sm ${statusColor}`}>{status}</p>
+                    )}
+                  </a>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Pagination for All Scholarships */}
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setAllPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={allPage === 1}
+            >
+              ก่อนหน้า
+            </button>
+            <span className="px-4 py-2">{allPage} of {totalPages(allScholarships.length)}</span>
+            <button
+              onClick={() => setAllPage((prev) => Math.min(prev + 1, totalPages(allScholarships.length)))}
+              className="px-4 py-2 bg-gray-300 rounded-lg"
+              disabled={allPage === totalPages(allScholarships.length)}
+            >
+              ถัดไป
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )}
+</main>
 
-      {/* All Scholarships */}
-{allScholarships.length > 0 && (
-  <div>
-    <h2 className="text-2xl font-semibold mb-6">ทุนการศึกษาทั้งหมด</h2>
-    <div className="flex flex-wrap justify-start">
-      {paginate(allScholarships, allPage).map((scholarship) => {
-        const status = getStatus(scholarship.StartDate, scholarship.EndDate);
-        const statusColor = status === "ปิดรับแล้ว" ? "text-red-500" : status === "เปิดรับอยู่" ? "text-green-500" : "text-gray-500";
-
-        return (
-          <Link
-            key={scholarship.ScholarshipID}
-            href={`/page/scholarships/detail?id=${scholarship.ScholarshipID}`}
-            legacyBehavior
-          >
-            <a className="w-full sm:w-1/2 lg:w-1/4 bg-white p-4 shadow-lg rounded-lg m-2 border border-gray-200">
-              <img
-                src={scholarship.ImagePath}
-                alt={scholarship.ScholarshipName}
-                className="w-full h-80 object-cover rounded-lg"
-              />
-              <h3 className="text-xl font-bold mt-2">{scholarship.ScholarshipName}</h3>
-              <p className="text-sm text-gray-600 mt-1">ปีการศึกษา {scholarship.Year}</p>
-              <p className="text-gray-600">{scholarship.Description}</p>
-              <p className="text-gray-500 text-sm">
-                โพสเมื่อ {scholarship.StartDate ? new Date(scholarship.StartDate).toLocaleDateString() : 'N/A'}
-              </p>
-
-             {/* Show "ท่านได้สมัครทุนนี้แล้ว" if the user has applied, otherwise show the status */}
-             {hasApplied(scholarship.ScholarshipID) ? (
-                <p className="text-green-500 font-semibold">ท่านได้สมัครทุนนี้แล้ว</p>
-              ) : (
-                <p className={`text-sm ${statusColor}`}>{status}</p>
-              )}
-            </a>
-          </Link>
-        );
-      })}
-    </div>
-    {/* Pagination for All Scholarships */}
-    <div className="mt-4 flex justify-center">
-      <button
-        onClick={() => setAllPage((prev) => Math.max(prev - 1, 1))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={allPage === 1}
-      >
-        ก่อนหน้า
-      </button>
-      <span className="px-4 py-2">{allPage} of {totalPages(allScholarships.length)}</span>
-      <button
-        onClick={() => setAllPage((prev) => Math.min(prev + 1, totalPages(allScholarships.length)))}
-        className="px-4 py-2 bg-gray-300 rounded-lg"
-        disabled={allPage === totalPages(allScholarships.length)}
-      >
-        ถัดไป
-      </button>
-    </div>
-  </div>
-)}
-
-          </main>
-        </main>
       </div>
       <Footer />
     </div>

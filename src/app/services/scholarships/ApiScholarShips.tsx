@@ -13,6 +13,31 @@ class ApiServiceScholarships {
         });
     }
 
+// Clone a scholarship with draft mode for editing before final submission
+static async cloneScholarship(id: number) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await axios.post(`${API_URL}/scholarships/${id}/clone`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+        });
+        return response.data;
+    } catch (error: any) { // Narrow the type of 'error' to 'any'
+        if (axios.isAxiosError(error)) {
+            // Handle Axios-specific error response
+            throw new Error(`Error cloning scholarship: ${error.response?.data?.error || error.message}`);
+        } else {
+            // Handle non-Axios errors
+            throw new Error(`Error cloning scholarship: ${String(error)}`);
+        }
+    }
+}
+
+
+
+
+
     static async downloadAnnouncementFile(scholarshipId: string) {
         const token = localStorage.getItem('token');
 

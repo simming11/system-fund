@@ -146,7 +146,12 @@ const Header = () => {
       <img src="/images/sci.png" alt="Logo" className="h-10 mr-4" />
       <nav className="hidden md:flex space-x-4">
         <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-        <button
+{user ?(
+  <>
+  </>
+):(
+<>
+<button
           type="button"
           className="inline-flex justify-center items-center text-gray-600 hover:text-gray-900"
           onClick={toggleScholarshipDropdown}
@@ -157,6 +162,11 @@ const Header = () => {
             className="ml-2" // เพิ่มระยะห่างระหว่างข้อความและไอคอน
           />
         </button>
+</>
+)}
+       
+
+
         {isScholarshipDropdownOpen && ( 
           <div ref={scholarshipDropdownRef} className="origin-top-right absolute mt-8 w-50 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
             <div className="py-1">
@@ -210,8 +220,25 @@ const Header = () => {
 <div className="md:hidden absolute top-16 left-0 w-full bg-white shadow-lg">
   <nav className="flex flex-col space-y-2 p-4">
     <Link href="/" className="text-gray-600 hover:text-gray-900">HOME</Link>
-    <Link href="/page/internal-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายใน</Link>
-    <Link href="/page/external-scholarships" className="text-gray-600 hover:text-gray-900">ทุนภายนอก</Link>
+
+    {user ?(
+  <>
+  </>
+):(
+<>
+<Link href="/page/internal-scholarships" className="text-gray-600 hover:text-gray-900"> ทุนภายในคณะ</Link>
+<Link href="/page/external-scholarships" className="text-gray-600 hover:text-gray-900">ทุนที่มาจากภายนอก</Link>
+</>
+)}
+       
+
+    
+
+
+      
+
+
+
 
     
 
