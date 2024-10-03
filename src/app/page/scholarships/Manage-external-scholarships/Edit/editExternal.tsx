@@ -1,6 +1,6 @@
 'use client';
-import { Suspense, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import HeaderHome from "@/app/components/headerHome/headerHome";
 import AdminHeader from "@/app/components/headerAdmin/headerAdmin";
 import Sidebar from "@/app/components/Sidebar/Sidebar";
@@ -8,12 +8,34 @@ import Footer from "@/app/components/footer/footer";
 import Swal from "sweetalert2";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
 import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
-
+import ApiLineNotifyServices from "@/app/services/line-notifies/line";
+const URL = `${process.env.NEXT_PUBLIC_API_Forned}`;
 export default function EditExternalScholarshipPage() {
   const router = useRouter();
   const searchParams = new URLSearchParams(window.location.search);
   const id = searchParams.get('id');
+  const [lineToken, setLineToken] = useState<string | null>(null);
+  const pathname = usePathname(); // ใช้ usePathname แทน router.events
+  const [loading, setLoading] = useState(true); // เพิ่ม loading state
+  const [isLoaded, setIsLoaded] = useState(false); // state เพื่อบอกว่าข้อมูลโหลดสำเร็จหรือไม่
+  const [fileInputs, setFileInputs] = useState([0]);
+  const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
+  const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
+  const [error, setError] = useState("");
+  const [errorGpa, setErrorGpa] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
+  const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
+  const [isDraft, setIsdraft] = useState(false);
+  const [existingImagePath, setExistingImagePath] = useState<string | null>(null);
+  const [errorDate, setErrorDate] = useState<string | null>(null);
+  const [Sstatus, setStatus] = useState(""); // เพิ่ม loading state
+  const [showSection, setShowSection] = useState({
+    scholarshipInfo: true,
+    additionalInfo: true,
+    files: true,
+  });
 
+  const AcademicID = typeof window !== "undefined" ? localStorage.getItem('AcademicID') ?? '' : '';
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
@@ -26,10 +48,146 @@ export default function EditExternalScholarshipPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    const clearSessionStorage = () => {
+      sessionStorage.removeItem('editInternalScholarshipForm');
+    };
 
+    // ล้างข้อมูลเมื่อผู้ใช้ปิดหรือโหลดหน้าใหม่
+    window.addEventListener('beforeunload', clearSessionStorage);
+
+    // ล้างข้อมูลเมื่อเส้นทางเปลี่ยนแปลง
+    return () => {
+      window.removeEventListener('beforeunload', clearSessionStorage);
+      clearSessionStorage(); // ล้างข้อมูลเมื่อเส้นทางเปลี่ยน
+    };
+  }, [pathname]); // ใช้ pathname แทน router
+
+  const fetchLineNotifies = async () => {
+    try {
+      if (!AcademicID) {
+        throw new Error('AcademicID is missing');
+      }
+      const response = await ApiLineNotifyServices.getLineNotifiesByAcademicID(AcademicID);
+
+      if (response.length > 0) {
+        const { client_secret, notify_client_id, LineToken } = response[0];
+        setLineToken(LineToken);
+      }
+    } catch (error) {
+      console.error('Error fetching line notifies:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLineNotifies();
+  }, []);
+
+  useEffect(() => {
+    const fetchScholarshipData = async () => {
+      if (id) {
+        try {
+          const response = await ApiServiceScholarships.getScholarship(Number(id));
+          const data = response.data;
+          console.log(data);
+          setStatus(data.status);
+
+          // Store the existing image path
+          setExistingImagePath(data.ImagePath || null);
+          // Determine if scholarship is in 'draft' status
+          setIsLoaded(true); // ตั้งค่าว่าข้อมูลถูกโหลดสำเร็จแล้ว
+          setLoading(false); // หยุดโหลด
+          setIsdraft(data.status !== 'draft');
+
+          const knownQualifications = [
+            "มีฐานะยากจน หรือขาดแคลนทุนทรัพย์",
+            "เป็นผู้พิการ",
+            "มีความประพฤติดี มีความขยันหมั่นเพียร",
+            "ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)",
+            "กำลังศึกษาอยู่ในระดับปริญญาตรี",
+          ];
+
+          const knowndocuments = [
+            "รูปถ่ายหน้าตรง",
+            "สำเนาบัตรประชาชนผู้สมัคร",
+            "หนังสือรับรองสภาพการเป็นนิสิต",
+            "ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด",
+            "ใบสะสมผลการเรียน",
+          ];
+
+          // Processing qualifications
+          const qualificationsArray: { text: string; isActive: boolean }[] = [];
+          let otherQualificationText = "";
+          data.qualifications.forEach((q: { QualificationText: string, IsActive: boolean }) => {
+            if (knownQualifications.includes(q.QualificationText)) {
+              qualificationsArray.push({
+                text: q.QualificationText,
+                isActive: q.IsActive,
+              });
+            } else {
+              otherQualificationText += `${q.QualificationText} `;
+            }
+          });
+
+
+          // Processing documents
+          const documentsArray: { text: string; isActive: boolean }[] = [];
+          let otherDocument = "";
+          data.documents.forEach((doc: any) => {
+            if (knowndocuments.includes(doc.DocumentText)) {
+              documentsArray.push({
+                text: doc.DocumentText,
+                isActive: doc.IsActive,
+              });
+            } else {
+              otherDocument += `${doc.DocumentText} `;
+            }
+          });
+
+
+          // Store the fetched data in the form state
+          setFormData((prev: any) => ({
+            ...prev,
+            ...data,
+            course: data.courses.map((course: any) => course.CourseName),
+            qualifications: qualificationsArray,
+            otherQualificationText: otherQualificationText.trim(),
+            documents: documentsArray,
+            otherDocument: otherDocument.trim(),
+            Files: data.files.map((file: any) => ({
+              file: null,
+              existing: true,
+              id: file.FileID,
+              FilePath: file.FilePath,
+              Image: null, // Initially set Image to null until the user uploads a new one
+            })),
+          }));
+          setLoading(false); // Data has been fetched
+
+          // Show additional input fields if needed
+          if (otherQualificationText) setShowDescriptionOtherInput(true);
+          if (otherDocument) setShowinformationOtherInput(true);
+        } catch (error) {
+          console.error("Failed to fetch scholarship data:", error);
+          setError("Failed to load data.");
+          setLoading(false); // Stop loading even if there's an error
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
+      }
+    };
+
+    // รีโหลดหน้าใหม่ถ้ายังไม่มีข้อมูล
+    if (!isLoaded && !loading) {
+      window.location.reload(); // รีโหลดหน้าใหม่ถ้าข้อมูลยังไม่มา
+    } else {
+      fetchScholarshipData(); // ถ้ามีข้อมูลก็ทำการ fetch
+    }
+  }, [id, isLoaded]);
 
   const [formData, setFormData] = useState(() => {
-    const savedFormData = sessionStorage.getItem('editInternalScholarshipForm');
+    const savedFormData = sessionStorage.getItem('editExternalScholarshipForm');
     return savedFormData
       ? JSON.parse(savedFormData)
       : {
@@ -52,109 +210,6 @@ export default function EditExternalScholarshipPage() {
       };
   });
 
-  const [fileInputs, setFileInputs] = useState([0]);
-  const [showDescriptionOtherInput, setShowDescriptionOtherInput] = useState(false);
-  const [showinformationOtherInput, setShowinformationOtherInput] = useState(false);
-  const [error, setError] = useState("");
-  const [errorGpa, setErrorGpa] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // For displaying errors
-  const [fileErrors, setFileErrors] = useState<string[]>([]); // State to track errors for each file
-
-  const [showSection, setShowSection] = useState({
-    scholarshipInfo: true,
-    additionalInfo: true,
-    files: true,
-  });
-
-  useEffect(() => {
-    sessionStorage.setItem('editInternalScholarshipForm', JSON.stringify(formData));
-  }, [formData]);
-
-  useEffect(() => {
-    const fetchScholarshipData = async () => {
-      if (id) {
-        try {
-          const response = await ApiServiceScholarships.getScholarship(Number(id));
-          const data = response.data;
-
-          const knownQualifications = [
-            "มีฐานะยากจน หรือขาดแคลนทุนทรัพย์",
-            "เป็นผู้พิการ",
-            "มีความประพฤติดี มีความขยันหมั่นเพียร",
-            "ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)",
-            "กำลังศึกษาอยู่ในระดับปริญญาตรี"
-          ];
-
-          const knowndocuments = [
-            "รูปถ่ายหน้าตรง",
-            "สำเนาบัตรประชาชนผู้สมัคร",
-            "หนังสือรับรองสภาพการเป็นนิสิต",
-            "ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด",
-            "ใบสะสมผลการเรียน",
-          ];
-
-          const qualificationsArray: { text: string; isActive: boolean }[] = [];
-          let otherQualificationText = "";
-
-          data.qualifications.forEach((qual: any) => {
-            if (knownQualifications.includes(qual.QualificationText)) {
-              qualificationsArray.push({
-                text: qual.QualificationText,
-                isActive: qual.IsActive,
-              });
-            } else {
-              otherQualificationText += `${qual.QualificationText} `;
-            }
-          });
-
-          const documentsArray: { text: string; isActive: boolean }[] = [];
-          let otherDocument = "";
-
-          data.documents.forEach((doc: any) => {
-            if (knowndocuments.includes(doc.DocumentText)) {
-              documentsArray.push({
-                text: doc.DocumentText,
-                isActive: doc.IsActive,
-              });
-            } else {
-              otherDocument += `${doc.DocumentText} `;
-            }
-          });
-
-          if (data) {
-            setFormData((prev: any) => ({
-              ...prev,
-              ...data,
-              course: data.courses.map((course: any) => course.CourseName),
-              qualifications: qualificationsArray,
-              otherQualificationText: otherQualificationText.trim(),
-              documents: documentsArray,
-              otherDocument: otherDocument.trim(),
-              Files: data.files.map((file: any) => ({
-                file: null,
-                existing: true,
-                id: file.FileID,
-                FilePath: file.FilePath
-              })),
-            }));
-
-            if (otherQualificationText) {
-              setShowDescriptionOtherInput(true);
-            }
-            if (otherDocument) {
-              setShowinformationOtherInput(true);
-            }
-          }
-        } catch (error) {
-          console.error("Failed to fetch scholarship data:", error);
-          setError("Failed to load data.");
-        }
-      }
-    };
-
-    fetchScholarshipData();
-  }, [id]);
-
   const handleArrayMajorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
     let updatedArray = [...(formData.course || [])];
@@ -176,7 +231,7 @@ export default function EditExternalScholarshipPage() {
   const handleArrayChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     arrayName: string,
-    otherInputSetter?: React.Dispatch<React.SetStateAction<string>>,
+    otherInputSetter?: React.Dispatch<React.SetStateAction<string>> | React.Dispatch<React.SetStateAction<boolean>>,
     showOtherInputSetter?: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
     const { value, checked } = e.target;
@@ -186,15 +241,24 @@ export default function EditExternalScholarshipPage() {
 
     if (value === "อื่น ๆ") {
       if (checked) {
-        showOtherInputSetter && showOtherInputSetter(true);
+        showOtherInputSetter && showOtherInputSetter(true); // Show "อื่น ๆ" input
         if (itemIndex === -1) {
           updatedArray.push({ text: value, isActive: true });
         } else {
           updatedArray[itemIndex].isActive = true;
         }
       } else {
-        showOtherInputSetter && showOtherInputSetter(false);
-        otherInputSetter && otherInputSetter("");
+        showOtherInputSetter && showOtherInputSetter(false); // Hide "อื่น ๆ" input
+        if (otherInputSetter) {
+          // Type narrowing based on `typeof`
+          if (typeof otherInputSetter === "function" && otherInputSetter.toString().includes("string")) {
+            // If it's a string setter, set it to an empty string
+            (otherInputSetter as React.Dispatch<React.SetStateAction<string>>)("");
+          } else {
+            // If it's a boolean setter, set it to false
+            (otherInputSetter as React.Dispatch<React.SetStateAction<boolean>>)(false);
+          }
+        }
         if (itemIndex !== -1) {
           updatedArray[itemIndex].isActive = false;
         }
@@ -219,45 +283,26 @@ export default function EditExternalScholarshipPage() {
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // If the field is "Minimum_GPA", validate it
-    if (name === "Minimum_GPA") {
-      // Allow users to type and see validation immediately without truncating their input
-      let gpa = parseFloat(value);
-
-      // Allow any value input, but show an error if it's out of the valid range
-      if (!isNaN(gpa)) {
-        if (gpa < 1 || gpa > 4) {
-          setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00");
-        } else {
-          setErrorGpa(""); // Clear error when value is valid
-
-          // Truncate GPA to 2 decimal places without rounding
-          const truncatedGPA = Math.floor(gpa * 100) / 100; // Truncate to 2 decimal places
-          setFormData({
-            ...formData,
-            [name]: truncatedGPA.toString(),
-          });
-        }
-      } else if (value === "") {
-        setErrorGpa("กรุณากรอกข้อมูลในฟิลด์ เกรดเฉลี่ยขั้นต่ำ 1.00-4.00"); // Handle empty input
-        setFormData({
-          ...formData,
-          [name]: "", // Allow the user to clear the input
-        });
+    // Check if the field being changed is the date fields
+    if (name === "EndDate") {
+      if (formData.StartDate && value < formData.StartDate) {
+        setErrorDate("วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม");
+        return; // Prevent updating the end date if it is before the start date
+      } else {
+        setErrorDate(null); // Clear the error if the date is valid
       }
-    } else {
-      // Update form data for other fields
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
     }
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -284,9 +329,9 @@ export default function EditExternalScholarshipPage() {
       newErrors[index] = ''; // Clear error
       setFileErrors(newErrors);
 
-      // Update file in form data
+      // Update the file in form data, making sure to keep the "file" as an object.
       const newFiles = [...formData.Files];
-      newFiles[index] = file; // Update the selected file at the given index
+      newFiles[index] = { file: file, existing: false };  // Ensure the file is stored correctly
       setFormData({
         ...formData,
         Files: newFiles,  // Update the form data with the new file array
@@ -342,9 +387,14 @@ export default function EditExternalScholarshipPage() {
         Image: imageFile, // Store the image file directly
       }));
 
- 
+
     }
   };
+
+
+
+
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -353,7 +403,10 @@ export default function EditExternalScholarshipPage() {
       return;
     }
 
-    const scholarshipID = id ? Number(id) : 0; // Ensure scholarshipID is a valid number, or fallback to 0
+    const scholarshipID = id ? Number(id) : 0; // Ensure scholarshipID is a valid number
+    const originalStatus = Sstatus;  // Store the original status
+    console.log(`Original status before update: ${originalStatus}`); // Log the original status
+
     const submitFormData = {
       ScholarshipName: formData.ScholarshipName,
       Year: formData.Year,
@@ -364,6 +417,7 @@ export default function EditExternalScholarshipPage() {
       StartDate: formData.StartDate,
       EndDate: formData.EndDate,
       CreatedBy: formData.CreatedBy,
+      status: 'finalized', // Set status to 'finalized' here
     };
 
     let timerInterval: string | number | NodeJS.Timeout | undefined;
@@ -401,6 +455,29 @@ export default function EditExternalScholarshipPage() {
           } else {
             throw new Error("Scholarship ID is missing.");
           }
+
+          // Log the status after the update to see if it changed
+          console.log(`Status after update: ${submitFormData.status}`);
+
+          // Check if the **original status** is "draft" before sending LINE notification
+          if (originalStatus === "draft") {
+            console.log('Original status is draft. Preparing to send LINE notification...');
+            if (lineToken) {
+              const message = `ทุนการศึกษาใหม่ ${formData.ScholarshipName} \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
+              try {
+                await ApiLineNotifyServices.sendLineNotify(message, lineToken);
+                console.log('LINE notification sent successfully');
+              } catch (error) {
+                console.error('Error sending LINE notification:', error);
+              }
+            } else {
+              console.log('LINE token is missing. Cannot send notification.');
+            }
+          } else {
+            console.log('Notification not sent because original status is not "draft"');
+          }
+
+
 
           // Update Courses
           if ((formData.course || []).length > 0) {
@@ -445,23 +522,31 @@ export default function EditExternalScholarshipPage() {
               IsActive: true,
             });
           }
-
+          // Only update the image if a new one is uploaded or the existing one is provided
           if (formData.Image) {
             await ApiUpdateServiceScholarships.updateImage(scholarshipID, formData.Image);
+          } else if (existingImagePath) {
+            // Send existing image path if no new image is provided
+            await ApiUpdateServiceScholarships.updateImage(scholarshipID, existingImagePath);
           }
 
-          // Prepare and Update other files
+
           const filesToUpdate = formData.Files
             .filter((fileObj: { file: File | null }) => fileObj.file)
             .map((fileObj: { file: File | null }) => ({
               FileType: "ไฟล์",
-              FilePath: fileObj.file as File,
-              Description: fileObj.file?.name || ""
+              FilePath: fileObj.file as File,  // Make sure fileObj.file is a File object
+              Description: fileObj.file?.name || ""  // Add description as file name or empty
             }));
+
+          // Log the filesToUpdate array to check its structure
+          console.log("Files to be updated:", filesToUpdate);
 
           if (filesToUpdate.length > 0) {
             await ApiUpdateServiceScholarships.updateFiles(scholarshipID, filesToUpdate, scholarshipID);
           }
+
+          console.log('Scholarship update process completed.');
 
           Swal.fire({
             title: "",
@@ -469,6 +554,11 @@ export default function EditExternalScholarshipPage() {
             icon: "success"
           });
 
+          // Clear form data and reset states
+          setFormData({
+            ...formData,
+            Files: []  // Reset the Files array
+          });
 
           // Clear session storage and redirect
           sessionStorage.clear();
@@ -484,12 +574,8 @@ export default function EditExternalScholarshipPage() {
 
 
 
-  const toggleSection = (section: keyof typeof showSection) => {
-    setShowSection((prevShowSection) => ({
-      ...prevShowSection,
-      [section]: !prevShowSection[section],
-    }));
-  };
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -501,7 +587,13 @@ export default function EditExternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายนอกมหาวิทยาลัย</h2>
+            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
+            {loading && (
+              <div className="flex items-center justify-center mb-4">
+                <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
+                <p className="ml-4 text-gray-600">Loading...</p>
+              </div>
+            )}
             {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
@@ -519,45 +611,456 @@ export default function EditExternalScholarshipPage() {
                     />
                   </div>
 
-                  <div className="flex">
-                    <div className="w-1/2">
-                      <div className="mb-4">
-                        <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
-                        <input
-                          type="date"
-                          id="StartDate"
-                          name="StartDate"
-                          value={formData.StartDate}
-                          onChange={handleChange}
-                          className="w-5/6 p-3 border border-gray-300 rounded"
-                        />
+                  {isDraft || (
+                    <>
+                      <div className="flex flex-wrap">
+                        <div className="w-full md:w-1/2 px-4 mb-4">
+                          <div className="mb-4">
+                            <label htmlFor="Year" className="block text-gray-700 mb-2">ปีการศึกษา</label>
+                            <select
+                              id="Year"
+                              name="Year"
+                              value={formData.Year}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded"
+                            >
+                              {Array.from({ length: 18 }, (_, i) => (
+                                <option key={2563 + i} value={2563 + i}>
+                                  {2563 + i}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="w-full md:w-1/2 px-4 mb-4">
+                          <div className="mb-4">
+                            <label htmlFor="YearLevel" className="block text-gray-700 mb-2">ชั้นปี</label>
+                            <select
+                              id="YearLevel"
+                              name="YearLevel"
+                              value={formData.YearLevel}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded"
+                            >
+                              {[
+                                { value: "1", label: "ปี 1" },
+                                { value: "2", label: "ปี 2" },
+                                { value: "3", label: "ปี 3" },
+                                { value: "4", label: "ปี 4" },
+                                { value: "1-2", label: "ปี 1-2" },
+                                { value: "1-3", label: "ปี 1-3" },
+                                { value: "1-4", label: "ปี 1-4" },
+                                { value: "2-3", label: "ปี 2-3" },
+                                { value: "3-4", label: "ปี 3-4" }
+                              ].map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="w-full md:w-1/2 px-4 mb-4">
+                          <div className="mb-4">
+                            <label htmlFor="Num_scholarship" className="block text-gray-700 mb-2">จำนวนทุน</label>
+                            <input
+                              type="number"
+                              id="Num_scholarship"
+                              name="Num_scholarship"
+                              value={formData.Num_scholarship}
+                              onChange={handleChange}
+                              className="w-full p-3 border border-gray-300 rounded"
+                            />
+                          </div>
+                        </div>
+                        <div className="w-full md:w-1/2 px-4 mb-4">
+                          <div className="mb-4">
+                            <label htmlFor="Minimum_GPA" className="block mb-2">เกรดเฉลี่ย</label>
+                            <input
+                              type="text"
+                              id="Minimum_GPA"
+                              name="Minimum_GPA"
+                              value={formData.Minimum_GPA}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                // ตรวจสอบว่ามีทศนิยมเกิน 2 ตำแหน่งหรือไม่
+                                const decimalPattern = /^\d*\.?\d{0,2}$/;
+                                if (value === "" || decimalPattern.test(value)) {
+                                  // Allow empty or valid decimal inputs
+                                  setFormData({ ...formData, Minimum_GPA: value });
+                                  if (value === "") {
+                                    setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+                                  } else {
+                                    const numericValue = parseFloat(value);
+                                    if (numericValue >= 0 && numericValue <= 4.00) {
+                                      setErrorGpa(""); // Clear error if the value is valid
+                                    } else {
+                                      setErrorGpa("กรุณากรอกเกรดเฉลี่ยระหว่าง 0.00 ถึง 4.00");
+                                    }
+                                  }
+                                } else {
+                                  setErrorGpa("กรุณากรอกทศนิยมไม่เกิน 2 ตำแหน่ง");
+                                }
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded"
+                            />
+                            {errorGpa && <p className="text-red-500 text-sm mt-1">{errorGpa}</p>}
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="w-1/2">
                       <div className="mb-4">
-                        <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
-                        <input
-                          type="date"
-                          id="EndDate"
-                          name="EndDate"
-                          value={formData.EndDate}
-                          onChange={handleChange}
-                          className="w-5/6 p-3 border border-gray-300 rounded"
-                        />
+                        <label className="block text-gray-700 mb-2">สาขาวิชา</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="math"
+                              value="คณิตศาสตร์และการจัดการข้อมูล"
+                              checked={formData.course?.includes("คณิตศาสตร์และการจัดการข้อมูล") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="math">คณิตศาสตร์และการจัดการข้อมูล</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="cs"
+                              value="วิทยาการคอมพิวเตอร์และสารสนเทศ"
+                              checked={formData.course?.includes("วิทยาการคอมพิวเตอร์และสารสนเทศ") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="cs">วิทยาการคอมพิวเตอร์และสารสนเทศ</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="env_sci"
+                              value="วิทยาศาสตร์สิ่งแวดล้อม"
+                              checked={formData.course?.includes("วิทยาศาสตร์สิ่งแวดล้อม") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="env_sci">วิทยาศาสตร์สิ่งแวดล้อม</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="chem"
+                              value="เคมี"
+                              checked={formData.course?.includes("เคมี") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="chem">เคมี</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="fish"
+                              value="วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ"
+                              checked={formData.course?.includes("วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="fish">วิทยาศาสตร์การประมงและทรัพยากรทางน้ำ</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="bio"
+                              value="ชีววิทยาศาสตร์"
+                              checked={formData.course?.includes("ชีววิทยาศาสตร์") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="bio">ชีววิทยาศาสตร์</label>
+                          </div>
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="phy"
+                              value="ฟิสิกส์วัสดุและนาโนเทคโนโลยี"
+                              checked={formData.course?.includes("ฟิสิกส์วัสดุและนาโนเทคโนโลยี") || false}
+                              onChange={handleArrayMajorChange}
+                              className="mr-2"
+                            />
+                            <label htmlFor="phy">ฟิสิกส์วัสดุและนาโนเทคโนโลยี</label>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+
+                      <div className="mb-4">
+                        <label className="block text-gray-700 mb-2">คุณสมบัติ</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="undergrad"
+                              value="กำลังศึกษาอยู่ในระดับปริญญาตรี"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "กำลังศึกษาอยู่ในระดับปริญญาตรี" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications")}
+                              className="mr-2"
+                            />
+                            <label htmlFor="undergrad">กำลังศึกษาอยู่ในระดับปริญญาตรี</label>
+                          </div>
+
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="notReceivingOtherScholarships"
+                              value="ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications")}
+                              className="mr-2"
+                            />
+                            <label htmlFor="notReceivingOtherScholarships">ไม่ได้รับทุนการศึกษาจากหน่วยงานหรือองค์กรอื่นใดยกเว้น  (กยศ.)</label>
+                          </div>
+
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="goodBehavior"
+                              value="มีความประพฤติดี มีความขยันหมั่นเพียร"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "มีความประพฤติดี มีความขยันหมั่นเพียร" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications")}
+                              className="mr-2"
+                            />
+                            <label htmlFor="goodBehavior">มีความประพฤติดี มีความขยันหมั่นเพียร</label>
+                          </div>
+
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="disabled"
+                              value="เป็นผู้พิการ"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "เป็นผู้พิการ" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications")}
+                              className="mr-2"
+                            />
+                            <label htmlFor="disabled">เป็นผู้พิการ</label>
+                          </div>
+
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="poorFinancialStatus"
+                              value="มีฐานะยากจน หรือขาดแคลนทุนทรัพย์"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "มีฐานะยากจน หรือขาดแคลนทุนทรัพย์" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications")}
+                              className="mr-2"
+                            />
+                            <label htmlFor="poorFinancialStatus">มีฐานะยากจน หรือขาดแคลนทุนทรัพย์</label>
+                          </div>
+
+                          <div>
+                            <input
+                              type="checkbox"
+                              id="other"
+                              value="อื่น ๆ"
+                              checked={formData.qualifications?.some((q: { text: string; isActive: any; }) => q.text === "อื่น ๆ" && q.isActive) || false}
+                              onChange={(e) => handleArrayChange(e, "qualifications", setShowDescriptionOtherInput)}
+                              className="mr-2"
+                            />
+                            <label htmlFor="other">อื่น ๆ</label>
+
+                            {showDescriptionOtherInput && (
+                              <input
+                                type="text"
+                                name="otherQualificationText"
+                                value={formData.otherQualificationText}
+                                onChange={handleChange}
+                                className="ml-4 p-2 border border-gray-300 rounded"
+                                placeholder="ระบุคุณสมบัติอื่น ๆ"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+
+
+
+                      <div className="mb-4">
+                        <label className="block text-gray-700 mb-2">เอกสารประกอบการสมัคร</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          {[
+                            "รูปถ่ายหน้าตรง",
+                            "สำเนาบัตรประชาชนผู้สมัคร",
+                            "หนังสือรับรองสภาพการเป็นนิสิต",
+                            "ภาพถ่ายบ้านที่เห็นตัวบ้านทั้งหมด",
+                            "ใบสะสมผลการเรียน",
+                            "อื่น ๆ"
+                          ].map((document) => (
+                            <div key={document}>
+                              <input
+                                type="checkbox"
+                                id={document}
+                                value={document}
+                                checked={formData.documents?.some((q: { text: string; isActive: any; }) => q.text === document && q.isActive) || false}
+                                onChange={(e) =>
+                                  handleArrayChange(
+                                    e,
+                                    "documents",
+                                    setFormData,
+                                    document === "อื่น ๆ" ? setShowinformationOtherInput : undefined
+                                  )
+                                }
+                                className="mr-2"
+                              />
+                              <label htmlFor={document}>{document}</label>
+                              {document === "อื่น ๆ" && showinformationOtherInput && (
+                                <input
+                                  type="text"
+                                  name="otherDocument"
+                                  value={formData.otherDocument}
+                                  onChange={handleChange}
+                                  className="ml-4 p-2 border border-gray-300 rounded"
+                                  placeholder="ระบุเอกสารอื่น ๆ"
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex">
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            {showSection.files && (
+                              <>
+                                {fileInputs.map((_, index) => (
+                                  <div className="mb-4" key={index}>
+                                    <label htmlFor={`Files-${index}`} className="block mb-2">
+                                      อัพโหลดไฟล์ {index + 1}
+                                    </label>
+                                    <input
+                                      type="file"
+                                      id={`Files-${index}`}
+                                      name="Files"
+                                      accept="application/pdf" // Allow only PDF files
+                                      onChange={(e) => handleFileChange(e, index)}
+                                      className="w-1/3 p-3 border border-gray-300 rounded"
+                                    />
+                                    {fileErrors[index] && (
+                                      <p className="text-red-500 text-sm mt-1">{fileErrors[index]}</p> // Display error message if exists
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveFileInput(index)}
+                                      className="bg-red-500 text-white px-2 py-1 rounded ml-2"
+                                    >
+                                      ลบ
+                                    </button>
+                                  </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={handleAddFileInput}
+                                  className="bg-blue-500 text-white px-2 py-1 text-sm rounded hover:bg-blue-600 mt-2"
+                                >
+                                  เพิ่มอัพโหลดไฟล์
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            <label htmlFor="Image" className="block mb-2">อัพโหลดรูปภาพ</label>
+                            <input
+                              type="file"
+                              id="Image"
+                              name="Image"
+                              accept="image/*" // Only allow image types
+                              onChange={handleImageChange}
+                              className="w-1/3 p-3 border border-gray-300 rounded"
+                            />
+                            {/* Display error message */}
+                            {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex">
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
+                            <input
+                              type="date"
+                              id="StartDate"
+                              name="StartDate"
+                              value={formData.StartDate}
+                              onChange={handleChange}
+                              className="w-5/6 p-3 border border-gray-300 rounded"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                            <input
+                              type="date"
+                              id="EndDate"
+                              name="EndDate"
+                              value={formData.EndDate}
+                              onChange={handleChange}
+                              className="w-5/6 p-3 border border-gray-300 rounded"
+                            />
+                            {errorDate && <p className="text-red-500">{errorDate}</p>} {/* Error message */}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-6 mb-8">
+                        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                          บันทึก
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {!isDraft || (
+                    <>
+                      <div className="flex">
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            <label htmlFor="StartDate" className="block text-gray-700 mb-2">วันที่เริ่ม</label>
+                            <input
+                              type="date"
+                              id="StartDate"
+                              name="StartDate"
+                              value={formData.StartDate}
+                              onChange={handleChange}
+                              className="w-5/6 p-3 border border-gray-300 rounded"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="w-1/2">
+                          <div className="mb-4">
+                            <label htmlFor="EndDate" className="block text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                            <input
+                              type="date"
+                              id="EndDate"
+                              name="EndDate"
+                              value={formData.EndDate}
+                              onChange={handleChange}
+                              className="w-5/6 p-3 border border-gray-300 rounded"
+                            />
+                            {errorDate && <p className="text-red-500">{errorDate}</p>} {/* Error message */}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-6 mb-8">
+                        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                          บันทึก
+                        </button>
+                      </div>
+                    </>
+                  )}
+
                 </>
-
-              </div>
-              <div className="flex ...">
-                <div className="w-5/6 ..."></div>
-                <div className="w-1/6 ...">
-                  <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-6 mb-8">
-                    บันทึก
-                  </button>
-                </div>
               </div>
             </form>
           </div>
