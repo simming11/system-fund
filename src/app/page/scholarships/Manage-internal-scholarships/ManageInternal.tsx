@@ -67,126 +67,146 @@ export default function ManageInternalScholarshipsPage() {
       }
     }
   }, [router]);
-  // Fetch scholarships from API
-  useEffect(() => {
-    const fetchScholarships = async () => {
-      try {
-        const response = await ApiServiceScholarships.getAllScholarships();
-        const typeOneScholarships = response.data.filter((scholarship: Scholarship) => scholarship.TypeID === 1);
-        setScholarships(typeOneScholarships);
-        setFilteredScholarships(typeOneScholarships); // Initialize filtered scholarships
-      } catch (error) {
-        console.error("Failed to fetch scholarships", error);
-      }
-    };
 
-    fetchScholarships();
-    
-  }, []);
-
-  const handleEdit = (id: number) => {
-    router.push(`/page/scholarships/Manage-internal-scholarships/Edit?id=${id}`);
-};
-
-
-const handleClone = async (id: number) => {
+// Fetch all scholarships function with sorting
+const fetchScholarships = async () => {
   try {
-    const response = await ApiServiceScholarships.cloneScholarship(id);
-    
-    // Success SweetAlert
-    Swal.fire({
-      icon: 'success',
-      title: 'สำเร็จ!',
-      text: 'Scholarship cloned successfully!',
-      confirmButtonText: 'OK',
-    });
-
-    // Optionally, update the state or UI here if needed
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      // SweetAlert for Axios error
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: `Error cloning scholarship: ${error.response?.data?.error || error.message}`,
-        confirmButtonText: 'OK',
-      });
-    } else {
-      // SweetAlert for non-Axios errors
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: `Error cloning scholarship: ${String(error)}`,
-        confirmButtonText: 'OK',
-      });
-    }
+    const response = await ApiServiceScholarships.getAllScholarships();
+    const typeOneScholarships = response.data
+      .filter((scholarship: Scholarship) => scholarship.TypeID === 1)
+      .sort((a: Scholarship, b: Scholarship) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); // Sort by created_at descending
+    setScholarships(typeOneScholarships);
+    setFilteredScholarships(typeOneScholarships); // Initialize filtered scholarships
+  } catch (error) {
+    console.error("Failed to fetch scholarships", error);
   }
 };
 
+// Use fetchScholarships in useEffect to load initially
+useEffect(() => {
+  fetchScholarships();
+}, []);
 
 
+  const handleEdit = (id: number) => {
+    router.push(`/page/scholarships/Manage-internal-scholarships/Edit?id=${id}`);
+  };
 
-const handleHide = async (id: string) => {
-  Swal.fire({
-    title: 'ต้องการซ่อนข้อมูลหรือไม่?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'ใช่',
-    cancelButtonText: 'ไม่',
-  }).then(async (result) => {
+
+  const handleClone = async (id: number) => {
+    // Show a confirmation dialog before proceeding
+    const result = await Swal.fire({
+      title: 'คุณแน่ใจหรือไม่?',
+      text: 'คุณต้องการคัดลอกทุนการศึกษานี้ใช่หรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ใช่, คัดลอกเลย!',
+      cancelButtonText: 'ยกเลิก',
+    });
+  
+    // If the user confirms, proceed with the clone operation
     if (result.isConfirmed) {
       try {
-        await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'hidden' });
-        Swal.fire('ซ่อนแล้ว!', '', 'success');
-        
-        // Update both scholarships and filteredScholarships states
-        setScholarships(prevScholarships =>
-          prevScholarships.map(scholarship =>
-            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'hidden' } : scholarship
-          )
-        );
-        setFilteredScholarships(prevFiltered =>
-          prevFiltered.map(scholarship =>
-            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'hidden' } : scholarship
-          )
-        );
-      } catch (error) {
-        Swal.fire('ล้มเหลว!', 'ไม่สามารถซ่อนข้อมูลได้', 'error');
+        const response = await ApiServiceScholarships.cloneScholarship(id);
+  
+        // Success SweetAlert
+        Swal.fire({
+          icon: 'success',
+          title: 'สำเร็จ!',
+          text: 'คัดลอกทุนการศึกษาเรียบร้อยแล้ว!',
+          confirmButtonText: 'OK',
+        });
+  
+        // After cloning, refetch the scholarships to update the table
+        await fetchScholarships(); // Call the function to update the table
+      } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+          // SweetAlert for Axios error
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: `Error cloning scholarship: ${error.response?.data?.error || error.message}`,
+            confirmButtonText: 'OK',
+          });
+        } else {
+          // SweetAlert for non-Axios errors
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: `Error cloning scholarship: ${String(error)}`,
+            confirmButtonText: 'OK',
+          });
+        }
       }
+    } else {
+      // If the user cancels, you can log or take any necessary actions here
+      console.log("Cloning canceled by user");
     }
-  });
-};
+  };
+  
 
-const handleUnhide = async (id: string) => {
-  Swal.fire({
-    title: 'ต้องการเลิกซ่อนข้อมูลหรือไม่?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'ใช่',
-    cancelButtonText: 'ไม่',
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'active' });
-        Swal.fire('เลิกซ่อนแล้ว!', '', 'success');
-        
-        // Update both scholarships and filteredScholarships states
-        setScholarships(prevScholarships =>
-          prevScholarships.map(scholarship =>
-            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'active' } : scholarship
-          )
-        );
-        setFilteredScholarships(prevFiltered =>
-          prevFiltered.map(scholarship =>
-            scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'active' } : scholarship
-          )
-        );
-      } catch (error) {
-        Swal.fire('ล้มเหลว!', 'ไม่สามารถเลิกซ่อนได้', 'error');
+
+  const handleHide = async (id: string) => {
+    Swal.fire({
+      title: 'ต้องการซ่อนข้อมูลหรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ใช่',
+      cancelButtonText: 'ไม่',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'hidden' });
+          Swal.fire('ซ่อนแล้ว!', '', 'success');
+
+          // Update both scholarships and filteredScholarships states
+          setScholarships(prevScholarships =>
+            prevScholarships.map(scholarship =>
+              scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'hidden' } : scholarship
+            )
+          );
+          setFilteredScholarships(prevFiltered =>
+            prevFiltered.map(scholarship =>
+              scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'hidden' } : scholarship
+            )
+          );
+        } catch (error) {
+          Swal.fire('ล้มเหลว!', 'ไม่สามารถซ่อนข้อมูลได้', 'error');
+        }
       }
-    }
-  });
-};
+    });
+  };
+
+  const handleUnhide = async (id: string) => {
+    Swal.fire({
+      title: 'ต้องการเลิกซ่อนข้อมูลหรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ใช่',
+      cancelButtonText: 'ไม่',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await ApiUpdateServiceScholarships.updateScholarship(id, { status: 'active' });
+          Swal.fire('เลิกซ่อนแล้ว!', '', 'success');
+
+          // Update both scholarships and filteredScholarships states
+          setScholarships(prevScholarships =>
+            prevScholarships.map(scholarship =>
+              scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'active' } : scholarship
+            )
+          );
+          setFilteredScholarships(prevFiltered =>
+            prevFiltered.map(scholarship =>
+              scholarship.ScholarshipID === Number(id) ? { ...scholarship, status: 'active' } : scholarship
+            )
+          );
+        } catch (error) {
+          Swal.fire('ล้มเหลว!', 'ไม่สามารถเลิกซ่อนได้', 'error');
+        }
+      }
+    });
+  };
 
   // Handle search input change
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,23 +244,23 @@ const handleUnhide = async (id: string) => {
           <div className="bg-white rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในคณะ</h2>
             <div className="mb-4 flex items-center justify-between space-x-4">
-  {/* Add Button */}
-  <button
-    onClick={() => router.push('Manage-internal-scholarships/create')}
-    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-  >
-    + เพิ่ม
-  </button>
+              {/* Add Button */}
+              <button
+                onClick={() => router.push('Manage-internal-scholarships/create')}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                + เพิ่ม
+              </button>
 
-  {/* Search input */}
-  <input
-    type="text"
-    placeholder="ค้นหาทุนการศึกษา..."
-    value={searchTerm}
-    onChange={handleSearch}
-    className="w-full p-2 border border-gray-300 rounded"
-  />
-</div>
+              {/* Search input */}
+              <input
+                type="text"
+                placeholder="ค้นหาทุนการศึกษา..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </div>
 
 
             {/* Scholarship table */}
@@ -282,14 +302,14 @@ const handleUnhide = async (id: string) => {
                       )}
                     </td>
                     <td className="border border-gray-300 p-2 text-center">
-  <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">✏️</button>
-  <button onClick={() => handleClone(scholarship.ScholarshipID)} className="mr-2">🔁 คัดลอก</button>
-  {scholarship.status === 'hidden' ? (
-    <button onClick={() => handleUnhide(scholarship.ScholarshipID.toString())} className="mr-2">👁️</button>
-  ) : (
-    <button onClick={() => handleHide(scholarship.ScholarshipID.toString())}>🚫</button>
-  )}
-</td>
+                      <button onClick={() => handleEdit(scholarship.ScholarshipID)} className="mr-2">✏️</button>
+                      <button onClick={() => handleClone(scholarship.ScholarshipID)} className="mr-2">🔁 คัดลอก</button>
+                      {scholarship.status === 'hidden' ? (
+                        <button onClick={() => handleUnhide(scholarship.ScholarshipID.toString())} className="mr-2">👁️</button>
+                      ) : (
+                        <button onClick={() => handleHide(scholarship.ScholarshipID.toString())}>🚫</button>
+                      )}
+                    </td>
 
                   </tr>
                 ))}
