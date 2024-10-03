@@ -92,19 +92,30 @@ class ApiUpdateServiceScholarships {
         });
     }
 
-    static async updateImage(scholarshipID: number, imageFile: File) {
+    static async updateImage(scholarshipID: number, imageFile: File | string | null) {
         const token = localStorage.getItem('token');
         const formData = new FormData();
-        formData.append("ImagePath", imageFile);
-
+        
+        // Append image if imageFile is a File object
+        if (imageFile instanceof File) {
+          formData.append("ImagePath", imageFile);
+        } else if (typeof imageFile === "string" && imageFile !== "") {
+          // If imageFile is a string (existing image path), send it to the API
+          formData.append("ImagePath", imageFile);
+        } else {
+          // Handle the case where no image is provided
+          formData.append("ImagePath", ""); // You can modify this as needed
+        }
+      
         return axios.post(`${API_URL}/scholarship-images/${scholarshipID}`, formData, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true',
-                'Content-Type': 'multipart/form-data', 
-            },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'ngrok-skip-browser-warning': 'true',
+            'Content-Type': 'multipart/form-data', 
+          },
         });
-    }
+      }
+      
 
     static async updateFiles(ScholarshipID: number, filesData: ScholarshipFileData[], id: number) {
         const token = localStorage.getItem('token');
