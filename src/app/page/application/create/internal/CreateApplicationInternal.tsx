@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './createApplication.module.css';
 import Swal from 'sweetalert2';
+import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 interface Students {
   StudentID: string;
   PrefixName: string;
@@ -109,6 +110,7 @@ export default function CreateApplicationInternalPage() {
   const id = searchParams.get('scholarshipId');
   const idStudent = localStorage.getItem('UserID');
   const token = localStorage.getItem('token');
+  const [scholarshipData, setScholarshipData] = useState<any>(null); // State to store the scholarship data
   const router = useRouter();
 
 
@@ -324,6 +326,7 @@ export default function CreateApplicationInternalPage() {
   const [isParentEditing, setIsParentEditing] = useState(true); // Initially, parent fields are enabled
   const [numberOfSiblings, setNumberOfSiblings] = useState<number>(() => {
     const savedNumberOfSiblings = sessionStorage.getItem('numberOfSiblings');
+
     return savedNumberOfSiblings ? Number(savedNumberOfSiblings) : 0;
   });
   const [siblingsData, setSiblingsData] = useState<SiblingsData[]>(() => {
@@ -415,7 +418,7 @@ export default function CreateApplicationInternalPage() {
     if (!token) {
       router.push('/page/login');
     }
-  
+
     if (idStudent) {
       const fetchStudentData = async () => {
         try {
@@ -431,7 +434,7 @@ export default function CreateApplicationInternalPage() {
           }));
         } catch (error: unknown) {
           console.error('Error fetching student data:', error);
-  
+
           // ตรวจสอบถ้าเป็น AxiosError เพื่อให้เข้าถึง response ได้
           if (axios.isAxiosError(error)) {
             if (error.response?.status === 401) {
@@ -468,7 +471,32 @@ export default function CreateApplicationInternalPage() {
       fetchStudentData();
     }
   }, [token, idStudent, router]);
-  
+
+
+  useEffect(() => {
+    if (id) {
+      const fetchScholarshipData = async () => {
+        try {
+          const response = await ApiServiceScholarships.getScholarship(Number(id)); // Convert `id` to a number
+          setScholarshipData(response.data);
+          console.log(response.data);
+
+          setLoading(false);
+        } catch (error: unknown) {
+          setLoading(false);
+          if (axios.isAxiosError(error)) {
+            setError(error.response?.data?.message || "Error fetching scholarship data.");
+          } else {
+            setError("An unknown error occurred.");
+          }
+          console.error("Error fetching scholarship data:", error);
+        }
+      };
+
+      fetchScholarshipData(); // Fetch the scholarship data when ID is available
+    }
+  }, [id]);
+
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -1101,6 +1129,12 @@ export default function CreateApplicationInternalPage() {
       isValid = false;
     }
 
+    // ถ้าเลือก "ไม่ระบุ" ไม่ต้อง validate ฟิลด์อื่น
+    if (fatherData.PrefixName === 'ไม่ระบุ') {
+      setFatherErrors(errors);
+      return true; // return true if PrefixName is "ไม่ระบุ"
+    }
+
     // ตรวจสอบชื่อบิดา
     if (!fatherData.FirstName) {
       errors.FirstName = 'กรุณากรอกชื่อบิดา';
@@ -1162,6 +1196,7 @@ export default function CreateApplicationInternalPage() {
   };
 
 
+
   const handlemotherValidation = () => {
     const errors = {
       PrefixName: '',
@@ -1176,43 +1211,49 @@ export default function CreateApplicationInternalPage() {
     };
     let isValid = true;
 
-    // ตรวจสอบคำนำหน้า (PrefixName)
+    // If prefix is 'ไม่ระบุ', skip all validations and return
+    if (motherData.PrefixName === 'ไม่ระบุ') {
+      setMotherErrors(errors);
+      return true; // Valid because we're skipping validation
+    }
+
+    // Validate PrefixName
     if (!motherData.PrefixName) {
       errors.PrefixName = 'กรุณากรอกคำนำหน้า';
       isValid = false;
     }
 
-    // ตรวจสอบชื่อมารดา
+    // Validate FirstName
     if (!motherData.FirstName) {
       errors.FirstName = 'กรุณากรอกชื่อมารดา';
       isValid = false;
     }
 
-    // ตรวจสอบนามสกุลมารดา
+    // Validate LastName
     if (!motherData.LastName) {
       errors.LastName = 'กรุณากรอกนามสกุล';
       isValid = false;
     }
 
-    // ตรวจสอบอายุ
+    // Validate Age
     if (!motherData.Age || motherData.Age <= 0 || motherData.Age > 150) {
       errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
       isValid = false;
     }
 
-    // ตรวจสอบสถานภาพ (มารดา)
+    // Validate Status
     if (!motherData.Status) {
       errors.Status = 'กรุณาระบุสถานภาพของมารดา';
       isValid = false;
     }
 
-    // ถ้าเสียชีวิตแล้ว ไม่ต้อง validate ฟิลด์อื่น
+    // If deceased, skip further validation
     if (motherData.Status === 'เสียชีวิตแล้ว') {
       setMotherErrors(errors);
       return isValid;
     }
 
-    // ตรวจสอบอาชีพเมื่อยังมีชีวิตอยู่
+    // Validate Occupation, Income, Workplace, Phone if alive
     if (motherData.Status === 'ยังมีชีวิตอยู่') {
       if (!motherData.Occupation) {
         errors.Occupation = 'กรุณากรอกอาชีพ';
@@ -1235,10 +1276,8 @@ export default function CreateApplicationInternalPage() {
       }
     }
 
-    // อัปเดต state ของ errors
+    // Update state for errors
     setMotherErrors(errors);
-
-    // return true ถ้าไม่มีข้อผิดพลาด หรือ false ถ้ามี
     return isValid;
   };
 
@@ -1480,11 +1519,12 @@ export default function CreateApplicationInternalPage() {
     }
     try {
       setLoading(true); // Start loading
-
+      const ScholarshipID = id ?? ''; // Default to an empty string if id is null
       // Update the application data with the new status
       const updatedApplicationData = {
         ...applicationData,
         Status: 'บันทึกแล้ว',
+        ScholarshipID: ScholarshipID
       };
 
       // Create the application and retrieve the ApplicationID
@@ -1498,20 +1538,20 @@ export default function CreateApplicationInternalPage() {
         const updatedGuardianData = {
           ...guardianData,
           ApplicationID: applicationID,
-          FirstName: guardianData.FirstName || '-',
-          LastName: guardianData.LastName || '-',
-          PrefixName: guardianData.PrefixName || '-',
-          Occupation: guardianData.Occupation || '-',
-          Phone: guardianData.Phone || '-',
-          Workplace: guardianData.Workplace || '-',
-          Status: guardianData.Status || '-',
+          FirstName: guardianData.FirstName || '',
+          LastName: guardianData.LastName || '',
+          PrefixName: guardianData.PrefixName || '',
+          Occupation: guardianData.Occupation || '',
+          Phone: guardianData.Phone || '',
+          Workplace: guardianData.Workplace || '',
+          Status: guardianData.Status || '',
           Age: guardianData.Age || 0,  // Set Age to 0 if not provided
         };
         return ApiApplicationCreateInternalServices.createGuardian(updatedGuardianData);
       };
 
       // Submit caretaker, father, and mother data
-      // tasks.push(createGuardian(caretakerData));
+      tasks.push(createGuardian(caretakerData));
       tasks.push(createGuardian(fatherData));
       tasks.push(createGuardian(motherData));
 
@@ -1678,7 +1718,7 @@ export default function CreateApplicationInternalPage() {
           };
 
           // Submit caretaker, father, and mother data
-          // tasks.push(createGuardian(caretakerData));
+          tasks.push(createGuardian(caretakerData));
           tasks.push(createGuardian(fatherData));
           tasks.push(createGuardian(motherData));
 
@@ -2162,7 +2202,7 @@ export default function CreateApplicationInternalPage() {
               <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-2">
                 <div className="flex-1">
                   <label htmlFor="MonthlyIncome" className="block text-gray-700 mb-2">
-                    รายได้ของนิสิตเดือนละ  &nbsp;&nbsp;  *ไม่เกิน 5 แสนบาท
+                    รายได้ของนิสิตเดือนละ  &nbsp;&nbsp;  *ไม่เกิน 6000 บาท
                   </label>
                   <div className="flex items-center">
                     <input
@@ -2202,7 +2242,7 @@ export default function CreateApplicationInternalPage() {
 
                 <div className="flex-1">
                   <label htmlFor="MonthlyExpenses" className="block text-gray-700 mb-2">
-                    รายจ่ายของนิสิตเดือนละ  &nbsp;&nbsp;   *ไม่เกิน 5 แสนบาท
+                    รายจ่ายของนิสิตเดือนละ  &nbsp;&nbsp;  *ไม่เกิน 6000 บาท
                   </label>
                   <div className="flex items-center">
                     <input
@@ -2265,6 +2305,7 @@ export default function CreateApplicationInternalPage() {
 
                 >
                   <option value="">คำนำหน้า</option>
+                  <option value="ไม่ระบุ">ไม่ระบุ</option>
                   <option value="นาย">นาย</option>
 
                 </select>
@@ -2285,7 +2326,7 @@ export default function CreateApplicationInternalPage() {
                     }
                   }}
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName}
+                  disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {fatherErrors.FirstName && <p className="text-red-500">{fatherErrors.FirstName}</p>}
               </div>
@@ -2304,7 +2345,7 @@ export default function CreateApplicationInternalPage() {
                     }
                   }}
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName}
+                  disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {fatherErrors.LastName && <p className="text-red-500">{fatherErrors.LastName}</p>}
               </div>
@@ -2325,7 +2366,7 @@ export default function CreateApplicationInternalPage() {
                   min="1"
                   max="150"
                   className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!fatherData.PrefixName}
+                  disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {fatherErrors.Age && <p className="text-red-500">{fatherErrors.Age}</p>}
               </div>
@@ -2344,7 +2385,7 @@ export default function CreateApplicationInternalPage() {
                     checked={fatherData.Status === 'ยังมีชีวิตอยู่'}
                     onChange={handleChangeFather}
                     className={`mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!fatherData.PrefixName}
+                    disabled={fatherData.PrefixName === 'ไม่ระบุ'}
 
                   />{' '}
 
@@ -2357,7 +2398,7 @@ export default function CreateApplicationInternalPage() {
                     checked={fatherData.Status === 'เสียชีวิตแล้ว'}
                     onChange={handleChangeFather}
                     className={`ml-4 mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!fatherData.PrefixName}
+                    disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                   />{' '}
                   เสียชีวิตแล้ว
                 </div>
@@ -2394,6 +2435,7 @@ export default function CreateApplicationInternalPage() {
                       }}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
+                      disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                     />
                     {fatherErrors.Phone && <p className="text-red-500">{fatherErrors.Phone}</p>}
                   </div>
@@ -2418,6 +2460,7 @@ export default function CreateApplicationInternalPage() {
                       }}
                       className="w-full p-3 border border-gray-300"
                       inputMode="text"
+                      disabled={fatherData.PrefixName === 'ไม่ระบุ'}
 
                     />
                     {fatherErrors.Occupation && <p className="text-red-500">{fatherErrors.Occupation}</p>}
@@ -2457,6 +2500,7 @@ export default function CreateApplicationInternalPage() {
                       className="w-full p-3 border border-gray-300"
                       min={0}
                       max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
+                      disabled={fatherData.PrefixName === 'ไม่ระบุ'}
                     />
                     {fatherErrors.Income && <p className="text-red-500">{fatherErrors.Income}</p>}
                   </div>
@@ -2472,6 +2516,7 @@ export default function CreateApplicationInternalPage() {
                       onChange={handleChangeFather}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
+                      disabled={fatherData.PrefixName === 'ไม่ระบุ'}
 
                     />
                     {fatherErrors.Workplace && <p className="text-red-500">{fatherErrors.Workplace}</p>}
@@ -2494,6 +2539,7 @@ export default function CreateApplicationInternalPage() {
                 // Disable if caretaker info is being edited
                 >
                   <option value="">คำนำหน้า</option>
+                  <option value="ไม่ระบุ">ไม่ระบุ</option>
                   <option value="นาง">นาง</option>
                   <option value="นางสาว">นางสาว</option>
                 </select>
@@ -2514,7 +2560,7 @@ export default function CreateApplicationInternalPage() {
                     }
                   }}
                   className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!motherData.PrefixName} // Disable if no prefix or caretaker is editing
+                  disabled={motherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {motherErrors.FirstName && <p className="text-red-500">{motherErrors.FirstName}</p>}
               </div>
@@ -2533,7 +2579,7 @@ export default function CreateApplicationInternalPage() {
                     }
                   }}
                   className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!motherData.PrefixName}
+                  disabled={motherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {motherErrors.LastName && <p className="text-red-500">{motherErrors.LastName}</p>}
               </div>
@@ -2554,7 +2600,7 @@ export default function CreateApplicationInternalPage() {
                   min="1"
                   max="150"
                   className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                  disabled={!motherData.PrefixName}
+                  disabled={motherData.PrefixName === 'ไม่ระบุ'}
                 />
                 {motherErrors.Age && <p className="text-red-500">{motherErrors.Age}</p>}
               </div>
@@ -2571,7 +2617,7 @@ export default function CreateApplicationInternalPage() {
                     checked={motherData.Status === 'ยังมีชีวิตอยู่'}
                     onChange={handleChangeMother}
                     className={`mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!motherData.PrefixName}
+                    disabled={motherData.PrefixName === 'ไม่ระบุ'}
                   />{' '}
                   ยังมีชีวิตอยู่
                   <input
@@ -2582,7 +2628,7 @@ export default function CreateApplicationInternalPage() {
                     checked={motherData.Status === 'เสียชีวิตแล้ว'}
                     onChange={handleChangeMother}
                     className={`ml-4 mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
-                    disabled={!motherData.PrefixName}
+                    disabled={motherData.PrefixName === 'ไม่ระบุ'}
                   />{' '}
                   เสียชีวิตแล้ว
                 </div>
@@ -2609,6 +2655,7 @@ export default function CreateApplicationInternalPage() {
                           }));
                         }
                       }}
+                      disabled={motherData.PrefixName === 'ไม่ระบุ'}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
 
@@ -2635,6 +2682,7 @@ export default function CreateApplicationInternalPage() {
                       }}
                       className="w-full p-3 border border-gray-300"
                       inputMode="text"
+                      disabled={motherData.PrefixName === 'ไม่ระบุ'}
 
                     />
                     {motherErrors.Occupation && <p className="text-red-500">{motherErrors.Occupation}</p>}
@@ -2674,6 +2722,7 @@ export default function CreateApplicationInternalPage() {
                       className="w-full p-3 border border-gray-300"
                       min={0}
                       max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
+                      disabled={motherData.PrefixName === 'ไม่ระบุ'}
                     />
                     {motherErrors.Income && <p className="text-red-500">{motherErrors.Income}</p>}
                   </div>
@@ -2689,6 +2738,7 @@ export default function CreateApplicationInternalPage() {
                       onChange={handleChangeMother}
                       className="w-full p-3 border border-gray-300"
                       inputMode="numeric"
+                      disabled={motherData.PrefixName === 'ไม่ระบุ'}
 
                     />
                     {motherErrors.Workplace && <p className="text-red-500">{motherErrors.Workplace}</p>}
@@ -2697,7 +2747,236 @@ export default function CreateApplicationInternalPage() {
               )}
             </div>
 
-
+            {/* Caretaker Information */}
+            <div className="mb-6">
+              <div className="flex justify-start items-center space-x-4">
+                <h2 className={`text-red-500 ${isCaretakerEditing ? 'text-gray-700' : ''}`}>
+                  {isCaretakerEditing
+                    ? 'กำลังกรอกข้อมูลผู้อุปการะ (ถ้าเป็นบิดามารดาไม่ต้องกรอกข้อมูล)'
+                    : '*ผู้อุปการะ/ผู้เลี้ยงดู (ถ้าเป็นบิดาและมารดาไม่ต้องกรอกข้อมูล)'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleToggleCaretakerForm}
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  {isCaretakerEditing ? 'คลิกเพื่อปิดการกรอกข้อมูล' : 'คลิกเพื่อกรอกข้อมูล'}
+                </button>
+              </div>
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                <div>
+                  <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
+                    คำนำหน้า
+                  </label>
+                  <select
+                    id="CaretakerPrefixName"
+                    name="PrefixName"
+                    value={caretakerData.PrefixName}
+                    onChange={handleChangeCaretaker}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  >
+                    <option value="">คำนำหน้า</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                  </select>
+                  {caretakerErrors.PrefixName && <p className="text-red-500">{caretakerErrors.PrefixName}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
+                    ชื่อ
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerFirstName"
+                    name="FirstName"
+                    value={caretakerData.FirstName}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        FirstName: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.FirstName && <p className="text-red-500">{caretakerErrors.FirstName}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
+                    นามสกุล
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerLastName"
+                    name="LastName"
+                    value={caretakerData.LastName}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        LastName: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.LastName && <p className="text-red-500">{caretakerErrors.LastName}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">อายุ</label>
+                  <input
+                    type="number"
+                    id="CaretakerAge"
+                    name="Age"
+                    value={caretakerData.Age} // ใช้ caretakerData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของผู้อุปการะ
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if ((value >= 1 && value <= 150) || e.target.value === "") {
+                        handleChangeCaretaker(e); // อัปเดตเฉพาะค่าที่อยู่ในช่วง 1-150 หรือถ้าค่าว่าง
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    min="1"
+                    max="150"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.Age && <p className="text-red-500">{caretakerErrors.Age}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
+                    สถานภาพ
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="CaretakerStatusAlive"
+                      name="Status"
+                      value="ยังมีชีวิตอยู่"
+                      checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
+                      onChange={handleChangeCaretaker}
+                      className="mr-2"
+                      disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                    />{' '}
+                    ยังมีชีวิตอยู่
+                    <input
+                      type="radio"
+                      id="CaretakerStatusDeceased"
+                      name="Status"
+                      value="เสียชีวิตแล้ว"
+                      checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
+                      onChange={handleChangeCaretaker}
+                      className="ml-4 mr-2"
+                      disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                    />{' '}
+                    เสียชีวิตแล้ว
+                  </div>
+                  {caretakerErrors.Status && <p className="text-red-500">{caretakerErrors.Status}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
+                    เบอร์โทร
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerPhone"
+                    name="Phone"
+                    value={caretakerData.Phone}
+                    onChange={(e) => {
+                      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                      if (onlyNumbers.length <= 15) { // จำกัดไม่เกิน 10 ตัว
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers,
+                        }));
+                      } else {
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers.slice(0, 10), // ตัดตัวเลขเกิน 10 ตัว
+                        }));
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.Phone && <p className="text-red-500">{caretakerErrors.Phone}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
+                    อาชีพ
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerOccupation"
+                    name="Occupation"
+                    value={caretakerData.Occupation}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        Occupation: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.Occupation && <p className="text-red-500">{caretakerErrors.Occupation}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
+                    รายได้ต่อเดือน
+                  </label>
+                  <input
+                    type="number"
+                    id="CaretakerIncome"
+                    name="Income"
+                    value={caretakerData.Income}
+                    onChange={handleChangeCaretaker}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.Income && <p className="text-red-500">{caretakerErrors.Income}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
+                    สถานที่ทำงาน
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerWorkplace"
+                    name="Workplace"
+                    value={caretakerData.Workplace}
+                    onChange={handleChangeCaretaker}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.Workplace && <p className="text-red-500">{caretakerErrors.Workplace}</p>}
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
+                    เกี่ยวข้องเป็น
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerType"
+                    name="CaretakerType"
+                    value={caretakerData.CaretakerType}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        CaretakerType: onlyLetters, // Directly update CaretakerType
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled={!isCaretakerEditing} // Disable if parent info is being edited
+                  />
+                  {caretakerErrors.CaretakerType && <p className="text-red-500">{caretakerErrors.CaretakerType}</p>}
+                </div>
+              </div>
+            </div>
 
             {/* Sibling Information */}
             <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -2749,35 +3028,35 @@ export default function CreateApplicationInternalPage() {
               </div>
 
               <div className="">
-  <label htmlFor="NumberOfSisters" className="block text-gray-700 mb-2">
-    จำนวนพี่-น้องผู้หญิง
-  </label>
-  <input
-    type="number"
-    id="NumberOfSisters"
-    name="NumberOfSisters"
-    value={applicationData.NumberOfSisters}
-    onChange={(e) => {
-      let value = parseInt(e.target.value, 10);
+                <label htmlFor="NumberOfSisters" className="block text-gray-700 mb-2">
+                  จำนวนพี่-น้องผู้หญิง
+                </label>
+                <input
+                  type="number"
+                  id="NumberOfSisters"
+                  name="NumberOfSisters"
+                  value={applicationData.NumberOfSisters}
+                  onChange={(e) => {
+                    let value = parseInt(e.target.value, 10);
 
-      // ถ้าค่าที่ป้อนน้อยกว่า 0 ให้ปรับเป็น 0
-      if (isNaN(value) || value < 0) {
-        value = 0;
-      }
+                    // ถ้าค่าที่ป้อนน้อยกว่า 0 ให้ปรับเป็น 0
+                    if (isNaN(value) || value < 0) {
+                      value = 0;
+                    }
 
-      // ส่งค่าไปยัง handleChangeApplication
-      handleChangeApplication({
-        target: {
-          name: e.target.name,
-          value: String(value), // แปลงตัวเลขเป็นสตริง
-        },
-      } as React.ChangeEvent<HTMLInputElement>);
-    }}
-    inputMode="numeric"
-    className="w-50 p-3 border border-gray-300 rounded"
-    min={0} // ตั้งค่า min ใน input HTML เพื่อป้องกันการป้อนค่าที่น้อยกว่า 0
-  />
-</div>
+                    // ส่งค่าไปยัง handleChangeApplication
+                    handleChangeApplication({
+                      target: {
+                        name: e.target.name,
+                        value: String(value), // แปลงตัวเลขเป็นสตริง
+                      },
+                    } as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  inputMode="numeric"
+                  className="w-50 p-3 border border-gray-300 rounded"
+                  min={0} // ตั้งค่า min ใน input HTML เพื่อป้องกันการป้อนค่าที่น้อยกว่า 0
+                />
+              </div>
 
             </div>
 
@@ -2877,32 +3156,32 @@ export default function CreateApplicationInternalPage() {
 
                 {/* Income */}
                 <div>
-  <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
-  <input
-    type="number"
-    id={`Income-${index}`}
-    name="Income"
-    value={sibling.Income}
-    onChange={(e) => {
-      let value = parseInt(e.target.value, 10);
+                  <label htmlFor={`Income-${index}`} className="block text-gray-700 mb-2">รายได้</label>
+                  <input
+                    type="number"
+                    id={`Income-${index}`}
+                    name="Income"
+                    value={sibling.Income}
+                    onChange={(e) => {
+                      let value = parseInt(e.target.value, 10);
 
-      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
-      if (isNaN(value) || value < 0) {
-        value = 0;
-      }
+                      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                      if (isNaN(value) || value < 0) {
+                        value = 0;
+                      }
 
-      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
-      if (value > 500000) {
-        value = 500000;
-      }
+                      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                      if (value > 500000) {
+                        value = 500000;
+                      }
 
-      // เรียกฟังก์ชัน handleChangeSibling พร้อมค่าที่ปรับแล้ว
-      handleChangeSibling(index, 'Income', value);
-    }}
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-  {siblingsErrors[index]?.Income && <p className="text-red-500">{siblingsErrors[index].Income}</p>}
-</div>
+                      // เรียกฟังก์ชัน handleChangeSibling พร้อมค่าที่ปรับแล้ว
+                      handleChangeSibling(index, 'Income', value);
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                  {siblingsErrors[index]?.Income && <p className="text-red-500">{siblingsErrors[index].Income}</p>}
+                </div>
 
 
                 {/* Status */}
@@ -2969,7 +3248,7 @@ export default function CreateApplicationInternalPage() {
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                  เกรดเฉลี่ยปีที่ 2
+                    เกรดเฉลี่ยปีที่ 2
                   </label>
                   <input
                     type="number"
@@ -2985,7 +3264,7 @@ export default function CreateApplicationInternalPage() {
                 </div>
                 <div className="col-span-2">
                   <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                  เกรดเฉลี่ยปีที่ 3
+                    เกรดเฉลี่ยปีที่ 3
                   </label>
                   <input
                     type="number"
@@ -3003,26 +3282,26 @@ export default function CreateApplicationInternalPage() {
 
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
 
-              <div className="col-span-3">
-  <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
-    อาจารย์ที่ปรึกษา
-  </label>
-  <input
-    type="text"
-    id="AdvisorName"
-    name="AdvisorName"
-    value={applicationData.AdvisorName}
-    onChange={(e) => {
-      const onlyLettersAndDot = e.target.value.replace(/[^a-zA-Zก-๙.\s]/g, ''); // Allow only letters (English and Thai) and dot
-      e.target.value = onlyLettersAndDot; // Modify the input value directly
-      handleChangeApplication(e); // Pass the actual event
-    }}
-    className="w-3/4 p-3 border border-gray-300 rounded"
-  />
-  {applicationErrors.AdvisorName && (
-    <p className="text-red-500">{applicationErrors.AdvisorName}</p>
-  )}
-</div>
+                <div className="col-span-3">
+                  <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
+                    อาจารย์ที่ปรึกษา
+                  </label>
+                  <input
+                    type="text"
+                    id="AdvisorName"
+                    name="AdvisorName"
+                    value={applicationData.AdvisorName}
+                    onChange={(e) => {
+                      const onlyLettersAndDot = e.target.value.replace(/[^a-zA-Zก-๙.\s]/g, ''); // Allow only letters (English and Thai) and dot
+                      e.target.value = onlyLettersAndDot; // Modify the input value directly
+                      handleChangeApplication(e); // Pass the actual event
+                    }}
+                    className="w-3/4 p-3 border border-gray-300 rounded"
+                  />
+                  {applicationErrors.AdvisorName && (
+                    <p className="text-red-500">{applicationErrors.AdvisorName}</p>
+                  )}
+                </div>
 
 
               </div>
@@ -3042,10 +3321,10 @@ export default function CreateApplicationInternalPage() {
                       onChange={(e) => handleActivityChange(index, e)}
                       className="w-full p-3 border border-gray-300 rounded"
                     >
-                    <option value="">เลือกปีการศึกษา</option>
-{Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
-  <option key={year} value={year}>{year}</option>
-))}
+                      <option value="">เลือกปีการศึกษา</option>
+                      {Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
 
                     </select>
                   </div>
@@ -3125,45 +3404,45 @@ export default function CreateApplicationInternalPage() {
                       onChange={(e) => handleScholarshipChange(index, e)}
                       className="w-full p-3 border border-gray-300 rounded"
                     >
-                                       <option value="">เลือกปีการศึกษา</option>
-{Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
-  <option key={year} value={year}>{year}</option>
-))}
+                      <option value="">เลือกปีการศึกษา</option>
+                      {Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 543 - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
-  <label htmlFor={`AmountReceived-${index}`} className="block text-gray-700 mb-2">จำนวนเงินทุน (บาท/ปี)</label>
-  <input
-    type="number"
-    id={`AmountReceived-${index}`}
-    name="AmountReceived"
-    value={scholarship.AmountReceived}
-    onChange={(e) => {
-      let value = parseInt(e.target.value, 10);
+                    <label htmlFor={`AmountReceived-${index}`} className="block text-gray-700 mb-2">จำนวนเงินทุน (บาท/ปี)</label>
+                    <input
+                      type="number"
+                      id={`AmountReceived-${index}`}
+                      name="AmountReceived"
+                      value={scholarship.AmountReceived}
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
 
-      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
-      if (isNaN(value) || value < 0) {
-        value = 0;
-      }
+                        // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
 
-      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
-      if (value > 500000) {
-        value = 500000;
-      }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
 
-      // เรียกฟังก์ชัน handleScholarshipChange เพื่อจัดการการเปลี่ยนแปลง
-      handleScholarshipChange(index, {
-        target: {
-          name: e.target.name,
-          value: String(value), // แปลงค่าตัวเลขเป็นสตริงก่อนส่งไป
-        },
-      } as React.ChangeEvent<HTMLInputElement>);
-    }}
-    inputMode="numeric"
-    pattern="[0-9]*"
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-</div>
+                        // เรียกฟังก์ชัน handleScholarshipChange เพื่อจัดการการเปลี่ยนแปลง
+                        handleScholarshipChange(index, {
+                          target: {
+                            name: e.target.name,
+                            value: String(value), // แปลงค่าตัวเลขเป็นสตริงก่อนส่งไป
+                          },
+                        } as React.ChangeEvent<HTMLInputElement>);
+                      }}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-full p-3 border border-gray-300 rounded"
+                    />
+                  </div>
 
                   <div className="flex items-end">
                     <button
@@ -3223,36 +3502,36 @@ export default function CreateApplicationInternalPage() {
                   />
                 </div>
                 <div>
-  <label htmlFor={`Earnings-${index}`} className="block text-gray-700 mb-2">รายได้</label>
-  <input
-    type="number"
-    id={`Earnings-${index}`}
-    name="Earnings"
-    value={experience.Earnings}
-    onChange={(e) => {
-      let value = parseInt(e.target.value, 10);
+                  <label htmlFor={`Earnings-${index}`} className="block text-gray-700 mb-2">รายได้</label>
+                  <input
+                    type="number"
+                    id={`Earnings-${index}`}
+                    name="Earnings"
+                    value={experience.Earnings}
+                    onChange={(e) => {
+                      let value = parseInt(e.target.value, 10);
 
-      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
-      if (isNaN(value) || value < 0) {
-        value = 0;
-      }
+                      // ตรวจสอบค่าที่ป้อน ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                      if (isNaN(value) || value < 0) {
+                        value = 0;
+                      }
 
-      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
-      if (value > 500000) {
-        value = 500000;
-      }
+                      // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                      if (value > 500000) {
+                        value = 500000;
+                      }
 
-      // เรียกฟังก์ชัน handleWorkExperienceChange พร้อมค่าที่ปรับแล้ว
-      handleWorkExperienceChange(index, {
-        target: {
-          name: 'Earnings',
-          value: String(value),
-        },
-      } as React.ChangeEvent<HTMLInputElement>);
-    }}
-    className="w-full p-3 border border-gray-300 rounded"
-  />
-</div>
+                      // เรียกฟังก์ชัน handleWorkExperienceChange พร้อมค่าที่ปรับแล้ว
+                      handleWorkExperienceChange(index, {
+                        target: {
+                          name: 'Earnings',
+                          value: String(value),
+                        },
+                      } as React.ChangeEvent<HTMLInputElement>);
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                  />
+                </div>
 
                 <div className="flex items-end">
                   <button
@@ -3364,7 +3643,14 @@ export default function CreateApplicationInternalPage() {
 
       </div>
       <div className="flex-1 container mx-auto px-4 py-20">
+        <div className="p-6 border border-gray-300 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center text-gray-800">
+            {scholarshipData?.ScholarshipName}
+          </h1>
+        </div>
         <div className="bg-white shadow-md rounded-lg p-6">
+
+
           <div className="flex justify-center mb-6">
             <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>
               <span
@@ -3388,6 +3674,7 @@ export default function CreateApplicationInternalPage() {
               >
                 3
               </span>
+
               <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
             </div>
             <div className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}>
@@ -3430,6 +3717,18 @@ export default function CreateApplicationInternalPage() {
               )}
 
             </div>
+            {step === 3 && (
+              <div className="flex justify-center mt-6 text-center w-full">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                >
+                  บันทึก
+                </button>
+
+              </div>
+            )}
             {step === 5 && (
               <div className="flex justify-center mt-6 text-center w-full">
                 <button
