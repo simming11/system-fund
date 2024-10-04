@@ -25,7 +25,7 @@ export default function RegisterPage() {
   const [LastName, setLastName] = useState<string>("");
   const [Email, setEmail] = useState<string>("");
   const [Password, setPassword] = useState<string>("");
-  const [PasswordConfirmation, setPasswordConfirmation] = useState<string>(""); // Added state for confirmation password
+  const [Password_confirmation, setPasswordConfirmation] = useState<string>(""); // Added state for confirmation password
   const [Year_Entry, setYear_Entry] = useState<string>(""); // Store as string initially
   const [Religion, setReligion] = useState<string>("");
   const [PrefixName, setPrefixName] = useState<string>("");
@@ -36,7 +36,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState({
     StudentID: "",
     Password: "",
-    PasswordConfirmation: "", // Added error for password confirmation
+    Password_confirmation: "", // Added error for password confirmation
     FirstName: "",
     LastName: "",
     Email: "",
@@ -124,7 +124,7 @@ export default function RegisterPage() {
       Course: "",
       Religion: "",
       form: "",
-      PasswordConfirmation: ''
+      Password_confirmation: ''
 
     };
 
@@ -216,7 +216,8 @@ export default function RegisterPage() {
         Course,
         formattedDOB,
         gpaNumber,
-        Religion
+        Religion,
+        Password_confirmation,  // Ensure this is included in the payload
       );
 
 
@@ -645,7 +646,7 @@ export default function RegisterPage() {
                       }
 
                       // Check if password matches confirmation
-                      if (PasswordConfirmation && filteredValue !== PasswordConfirmation) {
+                      if (Password_confirmation && filteredValue !== Password_confirmation) {
                         setErrors((prevErrors) => ({
                           ...prevErrors,
                           PasswordConfirmation: 'รหัสผ่านไม่ตรงกัน',
@@ -683,7 +684,7 @@ export default function RegisterPage() {
                   <input
                     type={showPasswordConfirmation ? 'text' : 'password'} // Toggle between text and password
                     placeholder="ยืนยันรหัสผ่าน"
-                    value={PasswordConfirmation}
+                    value={Password_confirmation}
                     onChange={(e) => {
                       const value = e.target.value;
                       // Remove Thai characters
@@ -703,11 +704,11 @@ export default function RegisterPage() {
                         }));
                       }
                     }}
-                    className={`w-full p-3 mb-1 border ${errors.PasswordConfirmation ? 'border-red-500' : 'border-gray-300'} rounded`}
+                    className={`w-full p-3 mb-1 border ${errors.Password_confirmation ? 'border-red-500' : 'border-gray-300'} rounded`}
                   />
 
                   {/* Toggle password visibility */}
-                  {PasswordConfirmation && (
+                  {Password_confirmation && (
                     <button
                       type="button"
                       onMouseDown={() => setShowPasswordConfirmation(true)}  // Show password
@@ -719,7 +720,7 @@ export default function RegisterPage() {
                     </button>
                   )}
                 </div>
-                {errors.PasswordConfirmation && <p className="text-red-500 text-sm mt-1">{errors.PasswordConfirmation}</p>}
+                {errors.Password_confirmation && <p className="text-red-500 text-sm mt-1">{errors.Password_confirmation}</p>}
               </div>
 </div>
 
