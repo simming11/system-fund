@@ -16,6 +16,7 @@ interface Application {
   Status: string;
   scholarship?: {
     ScholarshipName: string;
+    ScholarshipID:string
   };
 }
 
@@ -38,7 +39,8 @@ export default function SubmissionHistoryPage() {
           ];
 
           setApplications(combinedApplications);
-    
+          console.log(combinedApplications);
+          
         } else {
           console.error('StudentID not found in localStorage');
         }
@@ -59,6 +61,11 @@ export default function SubmissionHistoryPage() {
       router.push(`/page/application/viewApplicationInternal/${applicationId}`);
     }
   };
+
+  const handleRowClick = (scholarshipId: string) => {
+    // Navigate to the details page of the selected scholarship
+    router.push(`/page/results-announcement/${scholarshipId}`);
+};
 
   const handleEdit = (applicationId: string) => {
     // Navigate to an edit page for the application
@@ -101,7 +108,7 @@ export default function SubmissionHistoryPage() {
                       {/* Handle view and edit actions based on internal or external application */}
                       {application.Status === "ได้รับทุน" || application.Status === "ไม่ได้รับทุน" ? (
                         <button
-                          onClick={() => handleView(application.ApplicationID || application.Application_EtID!, !!application.Application_EtID)}
+                          onClick={() =>handleRowClick(application.scholarship?.ScholarshipID || "")}
                           className="bg-gray-200 text-gray-500 px-4 py-2 rounded"
                           title="View Application"
                         >
