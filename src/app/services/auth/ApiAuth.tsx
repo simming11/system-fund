@@ -24,6 +24,7 @@ class ApiAuthService {
     DOB: string,
     GPA: number,
     Religion: string,
+    Password_confirmation:string  // Ensure this is included in the payload
   ) {
     
     return axios.post(`${API_URL}/register/student`, {
@@ -39,6 +40,7 @@ class ApiAuthService {
       DOB,
       GPA,
       Religion,
+      Password_confirmation
     });
   }
 
