@@ -734,443 +734,595 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
             case 2:
                 return (
                     <div className="">
-                        {/* Father's Information */}
-                        <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                            <div>
-                                <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">
-                                    คำนำหน้า
-                                </label>
-                                <input
-                                    id="FatherPrefixName"
-                                    name="PrefixName"
-                                    value={fatherData.PrefixName || ""}
-                                    className="w-30 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
+             {/* Father's Information */}
+             <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div>
+                <label htmlFor="FatherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
+                <select
+                  id="FatherPrefixName"
+                  name="PrefixName"
+                  value={fatherData.PrefixName}
+                  className="w-full p-3 border border-gray-300 rounded"
+                  disabled
 
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherFirstName" className="block text-gray-700 mb-2">
-                                    บิดาชื่อ
-                                </label>
-                                <input
-                                    type="text"
-                                    id="FatherFirstName"
-                                    name="FirstName"
-                                    value={fatherData.FirstName}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherLastName" className="block text-gray-700 mb-2">
-                                    นามสกุล
-                                </label>
-                                <input
-                                    type="text"
-                                    id="FatherLastName"
-                                    name="LastName"
-                                    value={fatherData.LastName}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherAge" className="block text-gray-700 mb-2">
-                                    อายุ
-                                </label>
-                                <input
-                                    type="number"
-                                    id="FatherAge"
-                                    name="Age"
-                                    value={fatherData.Age}
-                                    className="w-20 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">
-                                    สถานภาพ (พ่อ)
-                                </label>
-                                <div className="flex items-center">
-                                    <input
-                                        type="radio"
-                                        id="FatherStatusAlive"
-                                        name="FatherStatus"
-                                        value="มีชีวิต"
-                                        checked={fatherData.Status === 'มีชีวิต'}
-                                        className="mr-2"
-                                        disabled // Disabled to make the field non-editable
-                                    />{' '}
-                                    มีชีวิต
-                                    <input
-                                        type="radio"
-                                        id="FatherStatusDeceased"
-                                        name="FatherStatus"
-                                        value="ไม่มีชีวิต"
-                                        checked={fatherData.Status === 'ไม่มีชีวิต'}
-                                        className="ml-4 mr-2"
-                                        disabled // Disabled to make the field non-editable
-                                    />{' '}
-                                    ไม่มีชีวิต
-                                </div>
-                            </div>
+                >
+                  <option value="">คำนำหน้า</option>
+                  <option value="ไม่ระบุ">ไม่ระบุ</option>
+                  <option value="นาย">นาย</option>
 
-                            <div className="">
-                                <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">
-                                    เบอร์โทร
-                                </label>
-                                <input
-                                    type="text"
-                                    id="FatherPhone"
-                                    name="Phone"
-                                    value={fatherData.Phone}
-                                    className="w-70 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">
-                                    อาชีพ
-                                </label>
-                                <input
-                                    type="text"
-                                    id="FatherOccupation"
-                                    name="Occupation"
-                                    value={fatherData.Occupation}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">
-                                    รายได้ต่อเดือน
-                                </label>
-                                <input
-                                    type="number"
-                                    id="FatherIncome"
-                                    name="Income"
-                                    value={fatherData.Income}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">
-                                    สถานที่ทำงาน
-                                </label>
-                                <input
-                                    type="text"
-                                    id="FatherWorkplace"
-                                    name="Workplace"
-                                    value={fatherData.Workplace}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                        </div>
+                </select>
+        
+              </div>
 
-                        {/* Mother's Information */}
-                        <div className="mb-10 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                            <div>
-                                <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">
-                                    คำนำหน้า
-                                </label>
-                                <input
-                                    id="MotherPrefixName"
-                                    name="PrefixName"
-                                    value={motherData.PrefixName || ""}
-                                    className="w-30 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
+              <div className="">
+                <label htmlFor="FatherFirstName" className="block text-gray-700 mb-2">บิดาชื่อ</label>
+                <input
+                  type="text"
+                  id="FatherFirstName"
+                  name="FirstName"
+                  value={fatherData.FirstName}
+          
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+             
+              </div>
 
-                            </div>
+              <div className="">
+                <label htmlFor="FatherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
+                <input
+                  type="text"
+                  id="FatherLastName"
+                  name="LastName"
+                  value={fatherData.LastName}
+             
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+            
+              </div>
 
-                            <div className="">
-                                <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">
-                                    มารดาชื่อ
-                                </label>
-                                <input
-                                    type="text"
-                                    id="MotherFirstName"
-                                    name="FirstName"
-                                    value={motherData.FirstName}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">
-                                    นามสกุล
-                                </label>
-                                <input
-                                    type="text"
-                                    id="MotherLastName"
-                                    name="LastName"
-                                    value={motherData.LastName}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="MotherAge" className="block text-gray-700 mb-2">
-                                    อายุ
-                                </label>
-                                <input
-                                    type="number"
-                                    id="MotherAge"
-                                    name="Age"
-                                    value={motherData.Age}
-                                    className="w-20 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">
-                                    สถานภาพ (แม่)
-                                </label>
-                                <div className="flex items-center">
-                                    <input
-                                        type="radio"
-                                        id="MotherStatusAlive"
-                                        name="MotherStatus"
-                                        value="มีชีวิต"
-                                        checked={motherData.Status === 'มีชีวิต'}
-                                        className="mr-2"
-                                        disabled // Disabled to make the field non-editable
-                                    />{' '}
-                                    มีชีวิต
-                                    <input
-                                        type="radio"
-                                        id="MotherStatusDeceased"
-                                        name="MotherStatus"
-                                        value="ไม่มีชีวิต"
-                                        checked={motherData.Status === 'ไม่มีชีวิต'}
-                                        className="ml-4 mr-2"
-                                        disabled // Disabled to make the field non-editable
-                                    />{' '}
-                                    ไม่มีชีวิต
-                                </div>
-                            </div>
+              <div className="">
+                <label htmlFor="FatherAge" className="block text-gray-700 mb-2">อายุ</label>
+                <input
+                  type="number"
+                  id="FatherAge"
+                  name="Age"
+                  value={fatherData.Age || ""} // ใช้ค่าว่างถ้าไม่มีค่า
+             
+                  min="1"
+                  max="150"
+                  className={`w-full p-3 border ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+              
+              </div>
 
-                            <div className="">
-                                <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">
-                                    เบอร์โทร
-                                </label>
-                                <input
-                                    type="text"
-                                    id="MotherPhone"
-                                    name="Phone"
-                                    value={motherData.Phone}
-                                    className="w-70 p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">
-                                    อาชีพ
-                                </label>
-                                <input
-                                    type="text"
-                                    id="MotherOccupation"
-                                    name="Occupation"
-                                    value={motherData.Occupation}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">
-                                    รายได้ต่อเดือน
-                                </label>
-                                <input
-                                    type="number"
-                                    id="MotherIncome"
-                                    name="Income"
-                                    value={motherData.Income}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                            <div className="">
-                                <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">
-                                    สถานที่ทำงาน
-                                </label>
-                                <input
-                                    type="text"
-                                    id="MotherWorkplace"
-                                    name="Workplace"
-                                    value={motherData.Workplace}
-                                    className="w-full p-3 border border-gray-300 rounded"
-                                    disabled // Disabled to make the field non-editable
-                                />
-                            </div>
-                        </div>
 
-                        {/* Caretaker Information */}
-                        {/* <div className="mb-6">
-                            <div className="flex justify-start items-center space-x-4 mb-5">
-                                <h1>ผู้อุปการะ</h1>
-                            </div>
 
-                            <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                                <div>
-                                    <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
-                                        คำนำหน้า
-                                    </label>
-                                    <input
-                                        id="CaretakerPrefixName"
-                                        name="PrefixName"
-                                        value={caretakerData.PrefixName}
+              {/* Father's status */}
+              <div>
+                <label htmlFor="FatherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (บิดา)</label>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="FatherStatusAlive"
+                    name="FatherStatus"
+                    value="ยังมีชีวิตอยู่"
+                    checked={fatherData.Status === 'ยังมีชีวิตอยู่'}
+                   
+                    className={`mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                        />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
-                                        ชื่อ
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerFirstName"
-                                        name="FirstName"
-                                        value={caretakerData.FirstName}
+                  />{' '}
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
-                                        นามสกุล
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerLastName"
-                                        name="LastName"
-                                        value={caretakerData.LastName}
+                  ยังมีชีวิตอยู่
+                  <input
+                    type="radio"
+                    id="FatherStatusDeceased"
+                    name="FatherStatus"
+                    value="เสียชีวิตแล้ว"
+                    checked={fatherData.Status === 'เสียชีวิตแล้ว'}
+                 
+                    className={`ml-4 mr-2 ${!fatherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled
+                  />{' '}
+                  เสียชีวิตแล้ว
+                </div>
+             
+              </div>
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">
-                                        อายุ
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="CaretakerAge"
-                                        name="Age"
-                                        value={caretakerData.Age}
+              {/* Additional fields based on status */}
+              {fatherData.Status === 'ยังมีชีวิตอยู่' && fatherData.PrefixName && (
+                <>
+                  <div className="">
+                    <label htmlFor="FatherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+                    <input
+                      type="text"
+                      id="FatherPhone"
+                      name="Phone"
+                      value={fatherData.Phone}
+                
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled
+                    />
+                  
+                  </div>
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
-                                        สถานภาพ
-                                    </label>
-                                    <div className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            id="CaretakerStatusAlive"
-                                            name="Status"
-                                            value="ยังมีชีวิตอยู่"
-                                            checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
 
-                                            className="mr-2"
-                                            disabled
-                                        />{' '}
-                                        ยังมีชีวิตอยู่
-                                        <input
-                                            type="radio"
-                                            id="CaretakerStatusDeceased"
-                                            name="Status"
-                                            value="เสียชีวิตแล้ว"
-                                            checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
+                  <div className="">
+                    <label htmlFor="FatherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
+                    <input
+                      type="text"
+                      id="FatherOccupation"
+                      name="Occupation"
+                      value={fatherData.Occupation}
+           
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="text"
+                      disabled
 
-                                            className="ml-4 mr-2"
-                                            disabled
-                                        />{' '}
-                                        เสียชีวิตแล้ว
-                                    </div>
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
-                                        เบอร์โทร
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerPhone"
-                                        name="Phone"
-                                        value={caretakerData.Phone}
+                    />
+                 
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
-                                        อาชีพ
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerOccupation"
-                                        name="Occupation"
-                                        value={caretakerData.Occupation}
+                  </div>
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
-                                        รายได้ต่อเดือน
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="CaretakerIncome"
-                                        name="Income"
-                                        value={caretakerData.Income}
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div className="">
-                                    <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
-                                        สถานที่ทำงาน
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerWorkplace"
-                                        name="Workplace"
-                                        value={caretakerData.Workplace}
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
-                                        เกี่ยวข้องเป็น
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="CaretakerType"
-                                        name="Type"
-                                        value={caretakerData.Type}
+                  <div className="">
+                    <label htmlFor="FatherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
+                    <input
+                      type="number"
+                      id="FatherIncome"
+                      name="Income"
+                      value={fatherData.Income}
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
 
-                                        className="w-full p-3 border border-gray-300 rounded"
-                                        disabled
-                                    />
-                                </div>
-                            </div>
-                        </div> */}
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
 
+                        // ส่งค่าไปยัง handleChangeFather
+                  
+                      }}
+                      inputMode="numeric"
+                      className="w-full p-3 border border-gray-300"
+                      min={0}
+                      max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
+                      disabled
+                    />
+           
+                  </div>
+
+
+                  <div className="">
+                    <label htmlFor="FatherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
+                    <input
+                      type="text"
+                      id="FatherWorkplace"
+                      name="Workplace"
+                      value={fatherData.Workplace}
+      
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled
+
+                    />
+                  
+                  </div>
+                </>
+              )}
+            </div>
+
+
+            {/* Mother's Information */}
+            <div className="mb-10 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <div>
+                <label htmlFor="MotherPrefixName" className="block text-gray-700 mb-2">คำนำหน้า</label>
+                <select
+                  id="MotherPrefixName"
+                  name="PrefixName"
+                  value={motherData.PrefixName}
+        
+                  className="w-full p-3 border border-gray-300 rounded"
+                  disabled
+                // Disable if caretaker info is being edited
+                >
+                  <option value="">คำนำหน้า</option>
+                  <option value="ไม่ระบุ">ไม่ระบุ</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
+                </select>
+          
+              </div>
+
+              <div className="">
+                <label htmlFor="MotherFirstName" className="block text-gray-700 mb-2">มารดาชื่อ</label>
+                <input
+                  type="text"
+                  id="MotherFirstName"
+                  name="FirstName"
+                  value={motherData.FirstName}
+        
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+           
+              </div>
+
+              <div className="">
+                <label htmlFor="MotherLastName" className="block text-gray-700 mb-2">นามสกุล</label>
+                <input
+                  type="text"
+                  id="MotherLastName"
+                  name="LastName"
+                  value={motherData.LastName}
+         
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+         
+              </div>
+
+              <div className="">
+                <label htmlFor="MotherAge" className="block text-gray-700 mb-2">อายุ</label>
+                <input
+                  type="number"
+                  id="MotherAge"
+                  name="Age"
+                  value={motherData.Age} // ใช้ motherData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของแม่
+              
+                  min="1"
+                  max="150"
+                  className={`w-full p-3 border ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                  disabled
+                />
+              </div>
+
+              {/* Mother's status */}
+              <div>
+                <label htmlFor="MotherStatusAlive" className="block text-gray-700 mb-2">สถานภาพ (มารดา)</label>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="MotherStatusAlive"
+                    name="MotherStatus"
+                    value="ยังมีชีวิตอยู่"
+                    checked={motherData.Status === 'ยังมีชีวิตอยู่'}
+                    className={`mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled
+                  />{' '}
+                  ยังมีชีวิตอยู่
+                  <input
+                    type="radio"
+                    id="MotherStatusDeceased"
+                    name="MotherStatus"
+                    value="เสียชีวิตแล้ว"
+                    checked={motherData.Status === 'เสียชีวิตแล้ว'}
+               
+                    className={`ml-4 mr-2 ${!motherData.PrefixName ? 'bg-gray-200' : 'border-gray-300'}`}
+                    disabled
+                  />{' '}
+                  เสียชีวิตแล้ว
+                </div>
+              </div>
+
+              {/* Additional fields based on status */}
+              {motherData.Status === 'ยังมีชีวิตอยู่' && motherData.PrefixName && (
+                <>
+                  <div className="">
+                    <label htmlFor="MotherPhone" className="block text-gray-700 mb-2">เบอร์โทร</label>
+                    <input
+                      type="text"
+                      id="MotherPhone"
+                      name="Phone"
+                      value={motherData.Phone}
+                      onChange={(e) => {
+                        const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                        if (onlyNumbers.length <= 10) {
+                          // Directly update the state without simulating an event
+                          setMotherData((prevData) => ({
+                            ...prevData,
+                            Phone: onlyNumbers,
+                          }));
+                        }
+                      }}
+                      disabled
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+
+                    />
+                  </div>
+
+
+
+
+                  <div className="">
+                    <label htmlFor="MotherOccupation" className="block text-gray-700 mb-2">อาชีพ</label>
+                    <input
+                      type="text"
+                      id="MotherOccupation"
+                      name="Occupation"
+                      value={motherData.Occupation}
+                      onChange={(e) => {
+                        const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // อนุญาตเฉพาะตัวอักษรไทย, อังกฤษ และช่องว่าง
+                        setMotherData((prevData) => ({
+                          ...prevData,
+                          Occupation: onlyLetters // Update Occupation directly in the state
+                        }));
+                      }}
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="text"
+                      disabled
+
+                    />
+                  </div>
+
+
+
+
+                  <div className="">
+                    <label htmlFor="MotherIncome" className="block text-gray-700 mb-2">รายได้ต่อเดือน</label>
+                    <input
+                      type="number"
+                      id="MotherIncome"
+                      name="Income"
+                      value={motherData.Income}
+                      onChange={(e) => {
+                        let value = parseInt(e.target.value, 10);
+
+                        // ตรวจสอบค่าที่ใส่ ถ้าไม่ใช่ตัวเลขหรือมีค่าน้อยกว่า 0 ให้ปรับเป็น 0
+                        if (isNaN(value) || value < 0) {
+                          value = 0;
+                        }
+                        // ถ้าค่าเกิน 500,000 ให้ปรับเป็น 500,000
+                        if (value > 500000) {
+                          value = 500000;
+                        }
+
+                        // ส่งค่าไปยัง handleChangeMother
+       
+                      }}
+                      inputMode="numeric"
+                      className="w-full p-3 border border-gray-300"
+                      min={0}
+                      max={500000} // ตั้งค่าขั้นสูงสุดใน input HTML เพื่อป้องกันค่าเกิน
+                      disabled
+                    />
+         
+                  </div>
+
+
+                  <div className="">
+                    <label htmlFor="MotherWorkplace" className="block text-gray-700 mb-2">สถานที่ทำงาน</label>
+                    <input
+                      type="text"
+                      id="MotherWorkplace"
+                      name="Workplace"
+                      value={motherData.Workplace}
+
+                      className="w-full p-3 border border-gray-300"
+                      inputMode="numeric"
+                      disabled
+
+                    />
+         
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Caretaker Information */}
+            <div className="mb-6">
+              <div className="flex justify-start items-center space-x-4">
+            
+           
+              </div>
+              <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                <div>
+                  <label htmlFor="CaretakerPrefixName" className="block text-gray-700 mb-2">
+                    คำนำหน้า
+                  </label>
+                  <select
+                    id="CaretakerPrefixName"
+                    name="PrefixName"
+                    value={caretakerData.PrefixName}
+            
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled
+                  >
+                    <option value="">คำนำหน้า</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                  </select>
+          
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerFirstName" className="block text-gray-700 mb-2">
+                    ชื่อ
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerFirstName"
+                    name="FirstName"
+                    value={caretakerData.FirstName}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        FirstName: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerLastName" className="block text-gray-700 mb-2">
+                    นามสกุล
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerLastName"
+                    name="LastName"
+                    value={caretakerData.LastName}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        LastName: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerAge" className="block text-gray-700 mb-2">อายุ</label>
+                  <input
+                    type="number"
+                    id="CaretakerAge"
+                    name="Age"
+                    value={caretakerData.Age} // ใช้ caretakerData.Age เพื่อให้แน่ใจว่าแสดงข้อมูลของผู้อุปการะ
+           
+                    className="w-full p-3 border border-gray-300 rounded"
+                    min="1"
+                    max="150"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerStatus" className="block text-gray-700 mb-2">
+                    สถานภาพ
+                  </label>
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      id="CaretakerStatusAlive"
+                      name="Status"
+                      value="ยังมีชีวิตอยู่"
+                      checked={caretakerData.Status === 'ยังมีชีวิตอยู่'}
+                      className="mr-2"
+                 disabled
+                    />{' '}
+                    ยังมีชีวิตอยู่
+                    <input
+                      type="radio"
+                      id="CaretakerStatusDeceased"
+                      name="Status"
+                      value="เสียชีวิตแล้ว"
+                      checked={caretakerData.Status === 'เสียชีวิตแล้ว'}
+                      className="ml-4 mr-2"
+                 disabled
+                    />{' '}
+                    เสียชีวิตแล้ว
+                  </div>
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerPhone" className="block text-gray-700 mb-2">
+                    เบอร์โทร
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerPhone"
+                    name="Phone"
+                    value={caretakerData.Phone}
+                    onChange={(e) => {
+                      const onlyNumbers = e.target.value.replace(/\D/g, ''); // ลบตัวอักษรที่ไม่ใช่ตัวเลข
+                      if (onlyNumbers.length <= 15) { // จำกัดไม่เกิน 10 ตัว
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers,
+                        }));
+                      } else {
+                        setCaretakerData((prevState) => ({
+                          ...prevState,
+                          Phone: onlyNumbers.slice(0, 10), // ตัดตัวเลขเกิน 10 ตัว
+                        }));
+                      }
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerOccupation" className="block text-gray-700 mb-2">
+                    อาชีพ
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerOccupation"
+                    name="Occupation"
+                    value={caretakerData.Occupation}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        Occupation: onlyLetters,
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+                    disabled
+                
+                  />
+      
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerIncome" className="block text-gray-700 mb-2">
+                    รายได้ต่อเดือน
+                  </label>
+                  <input
+                    type="number"
+                    id="CaretakerIncome"
+                    name="Income"
+                    value={caretakerData.Income}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerWorkplace" className="block text-gray-700 mb-2">
+                    สถานที่ทำงาน
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerWorkplace"
+                    name="Workplace"
+                    value={caretakerData.Workplace}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+                <div className="">
+                  <label htmlFor="CaretakerType" className="block text-gray-700 mb-2">
+                    เกี่ยวข้องเป็น
+                  </label>
+                  <input
+                    type="text"
+                    id="CaretakerType"
+                    name="CaretakerType"
+                    // value={caretakerData.CaretakerType}
+                    onChange={(e) => {
+                      const onlyLetters = e.target.value.replace(/[^a-zA-Zก-๙\s]/g, ''); // Allow only Thai, English letters, and spaces
+                      setCaretakerData((prevState) => ({
+                        ...prevState,
+                        CaretakerType: onlyLetters, // Directly update CaretakerType
+                      }));
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded"
+               disabled
+                  />
+                </div>
+              </div>
+            </div>
                         {/* Sibling Information */}
                         <div className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-6">
                             <div className="">
@@ -1267,6 +1419,7 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
                                         value={sibling.Occupation}
 
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -1621,59 +1774,66 @@ export default function ViewApplicationInternalPage({ params }: PageProps) {
             <Header />
             <div className="flex-1 container mx-auto px-4 py-8">
                 <div className="bg-white shadow-md rounded-lg p-6">
-                    <div className="flex justify-center mb-6">
-                        <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>
+                <div className="flex justify-center mb-6">
+                        <div
+                            className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(1)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
+                            style={{ cursor: 'pointer' }} // เพิ่ม cursor pointer
+                        >
                             <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'
-                                    }`}
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
                             >
                                 1
                             </span>
                             <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
                         </div>
+
                         <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'
-                                }`}
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(2)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
+                            style={{ cursor: 'pointer' }}
                         >
                             <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'
-                                    }`}
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
                             >
                                 2
                             </span>
                             <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
                         </div>
+
                         <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'
-                                }`}
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(3)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'
-                                    }`}
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
                             >
                                 3
                             </span>
                             <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
                         </div>
+
                         <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'
-                                }`}
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(4)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'
-                                    }`}
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
                             >
                                 4
                             </span>
                             <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
                         </div>
+
                         <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'
-                                }`}
+                            className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}
+                            onClick={() => setStep(5)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'
-                                    }`}
+                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
                             >
                                 5
                             </span>
