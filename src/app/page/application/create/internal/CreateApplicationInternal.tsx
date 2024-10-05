@@ -1643,16 +1643,20 @@ export default function CreateApplicationInternalPage() {
 
       ('All data submitted successfully.');
 
-      // Clear sessionStorage after successful submission
-      // Clear sessionStorage after successful submission
-      sessionStorage.removeItem('step');
-      sessionStorage.removeItem('fatherData');
-      sessionStorage.removeItem('motherData');
-      sessionStorage.removeItem('caretakerData');
-      sessionStorage.removeItem('addressData');
-      sessionStorage.removeItem('currentAddressData');
-      sessionStorage.removeItem('siblingsData');
-      sessionStorage.clear();
+         // Clear sessionStorage after successful save
+         sessionStorage.removeItem('EditStep');
+         sessionStorage.removeItem('EditStudents');
+         sessionStorage.removeItem('EditApplicationData');
+         sessionStorage.removeItem('EditGuardianData');
+         sessionStorage.removeItem('EditAddressData');
+         sessionStorage.removeItem('EditCurrentAddressData');
+         sessionStorage.removeItem('EditFatherData');
+         sessionStorage.removeItem('EditMotherData');
+         sessionStorage.removeItem('EditCaretakerData');
+         sessionStorage.removeItem('EditSiblingData');
+         sessionStorage.removeItem('EditNumberOfSiblings');
+         sessionStorage.removeItem('EditSiblingsData');
+         sessionStorage.clear();
 
       // Show success notification
       Swal.fire({
