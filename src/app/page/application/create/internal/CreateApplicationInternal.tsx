@@ -1396,21 +1396,35 @@ export default function CreateApplicationInternalPage() {
 
   const validateApplication = () => {
     const errors: { [key: string]: string } = {};
-
-    if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
-      errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
-
-    if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
-      errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
-
-    if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
-      errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
-
-    if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
-
+  
+    const academicYear = Number(calculateAcademicYear(userData?.Year_Entry));
+  
+    if (academicYear >= 1) {
+      if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4) {
+        errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
+      }
+    }
+  
+    if (academicYear >= 2) {
+      if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4) {
+        errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
+      }
+    }
+  
+    if (academicYear >= 3) {
+      if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4) {
+        errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
+      }
+    }
+  
+    if (!applicationData.AdvisorName) {
+      errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
+    }
+  
     setApplicationErrors(errors);
     return Object.keys(errors).length === 0;
   };
+  
 
 
   const validateSiblingsData = () => {
