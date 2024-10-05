@@ -3501,72 +3501,49 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
           </h1>
         </div>
                 <div className="bg-white shadow-md rounded-lg p-6">
-                    <div className="flex justify-center mb-6">
-                        <div
-                            className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setStep(1)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
-                            style={{ cursor: 'pointer' }} // เพิ่ม cursor pointer
-                        >
-                            <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
-                            >
-                                1
-                            </span>
-                            <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
-                        </div>
+                <div className="flex justify-center mb-6">
+            <div className={`flex items-center ${step === 1 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 1 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                1
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติส่วนตัว</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                2
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                3
+              </span>
 
-                        <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 2 ? 'text-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setStep(2)} // เพิ่ม onClick ที่ div เพื่อให้สามารถคลิกได้ทั้งเลขและตัวอักษร
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 2 ? 'border-blue-600' : 'border-gray-500'}`}
-                            >
-                                2
-                            </span>
-                            <span className="ml-2 hidden sm:inline">ประวัติครอบครัว</span>
-                        </div>
-
-                        <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 3 ? 'text-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setStep(3)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 3 ? 'border-blue-600' : 'border-gray-500'}`}
-                            >
-                                3
-                            </span>
-                            <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
-                        </div>
-
-                        <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setStep(4)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
-                            >
-                                4
-                            </span>
-                            <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
-                        </div>
-
-                        <div
-                            className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}
-                            onClick={() => setStep(5)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <span
-                                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
-                            >
-                                5
-                            </span>
-                            <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
-                        </div>
-                    </div>
+              <span className="ml-2 hidden sm:inline">ประวัติการศึกษา</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 4 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 4 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                4
+              </span>
+              <span className="ml-2 hidden sm:inline">ประวัติการรับทุนศึกษา</span>
+            </div>
+            <div className={`flex items-center ml-4 sm:ml-8 ${step === 5 ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span
+                className={`rounded-full w-10 h-10 flex items-center justify-center border ${step === 5 ? 'border-blue-600' : 'border-gray-500'}`}
+              >
+                5
+              </span>
+              <span className="ml-2 hidden sm:inline">อัพโหลดเอกสาร</span>
+            </div>
+          </div>
 
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     <form onSubmit={handleSave}>
