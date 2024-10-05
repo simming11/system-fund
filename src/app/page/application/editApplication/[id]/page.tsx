@@ -10,6 +10,7 @@ import axios from 'axios';
 import ApiApplicationCreateInternalServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationCreateInternal';
 import ApiApplicationFileServices from '@/app/services/ApiApplicationInternalServices/ApiApplicationFileServices';
 import Swal from 'sweetalert2';
+import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips';
 
 // Interfaces
 interface Students {
@@ -51,6 +52,7 @@ interface ApplicationInternalData {
     siblings: SiblingsData[];
     application_files: ApplicationFilesData[];
     guardians: GuardiansData[];
+    scholarship:scholarship[];
 }
 
 interface GuardiansData {
@@ -110,6 +112,11 @@ interface ApplicationFilesData {
     error?: string; // Optional error property to handle errors
 }
 
+interface scholarship {
+    ScholarshipID: string;
+    ScholarshipName: string;
+   
+}
 
 interface CurrentAddressData extends Address { }
 
@@ -126,7 +133,24 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const idStudent = localStorage.getItem('UserID');
     const token = localStorage.getItem('token');
     const [loading, setLoading] = useState(false); // Use one global loading state for all data fetching or individual ones if needed
+    const [addressErrors, setAddressErrors] = useState<{ [key: string]: string }>({});
+    const [currentAddressErrors, setCurrentAddressErrors] = useState<{ [key: string]: string }>({});
+    const [applicationErrors, setApplicationErrors] = useState<{ [key: string]: string }>({});
 
+    const [siblingsErrors, setSiblingsErrors] = useState<{
+      PrefixName?: string;
+      Fname?: string;
+      Lname?: string;
+      Occupation?: string;
+      EducationLevel?: string;
+      Income?: string;
+      Status?: string;
+    }[]>([]);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({
+      MonthlyIncome: '',
+      MonthlyExpenses: '',
+    });
+  
     // State declarations
     const [step, setStep] = useState<number>(() => {
         const savedStep = sessionStorage.getItem('EditStep');
@@ -153,9 +177,9 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
             Status: 'รออนุมัติ',
             MonthlyIncome: 1,
             MonthlyExpenses: 1,
-            NumberOfSisters: 0,
-            NumberOfBrothers: 0,
-            NumberOfSiblings: 0,  // Ensure this is initialized
+            NumberOfSisters: "",
+            NumberOfBrothers: "",
+            NumberOfSiblings: "",  // Ensure this is initialized
             GPAYear1: "",
             GPAYear2: "",
             GPAYear3: "",
@@ -207,57 +231,87 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
 
     const [fatherData, setFatherData] = useState<GuardiansData>(() => {
-        const savedFatherData = sessionStorage.getItem('EditFatherData');
+        const savedFatherData = sessionStorage.getItem('fatherData');
         return savedFatherData ? JSON.parse(savedFatherData) : {
-            ApplicationID: id || '',
-            FirstName: '',
-            LastName: '',
-            PrefixName: '',
-            Type: 'บิดา',
-            Occupation: '',
-            Income: 0,
-            Age: 0,
-            Status: '',
-            Workplace: '',
-            Phone: '',
+          ApplicationID: '',
+          FirstName: '',
+          LastName: '',
+          PrefixName: '',
+          Type: 'บิดา',
+          Occupation: '',
+          Income: 0,
+          Age: 0,
+          Status: '',
+          Workplace: '',
+          Phone: '',
         };
-    });
-
-
-    const [motherData, setMotherData] = useState<GuardiansData>(() => {
-        const savedMotherData = sessionStorage.getItem('EditMotherData');
+      });
+      const [fatherErrors, setFatherErrors] = useState({
+        FirstName: '',
+        LastName: '',
+        Age: '',
+        Occupation: '',
+        Income: '',
+        Workplace: '',
+        Phone: '',
+        PrefixName: '',
+        Status: ''
+      });
+      const [motherData, setMotherData] = useState<GuardiansData>(() => {
+        const savedMotherData = sessionStorage.getItem('motherData');
         return savedMotherData ? JSON.parse(savedMotherData) : {
-            ApplicationID: id || '',
-            FirstName: '',
-            LastName: '',
-            PrefixName: '',
-            Type: 'มารดา',
-            Occupation: '',
-            Income: 0,
-            Age: 0,
-            Status: '',
-            Workplace: '',
-            Phone: '',
+          ApplicationID: '',
+          FirstName: '',
+          LastName: '',
+          PrefixName: '',
+          Type: 'มารดา',
+          Occupation: '',
+          Income: 0,
+          Age: 0,
+          Status: '',
+          Workplace: '',
+          Phone: '',
         };
-    });
-
-    const [caretakerData, setCaretakerData] = useState<GuardiansData>(() => {
-        const savedCaretakerData = sessionStorage.getItem('EditCaretakerData');
+      });
+      const [motherErrors, setMotherErrors] = useState({
+        FirstName: '',
+        LastName: '',
+        Age: '',
+        Occupation: '',
+        Income: '',
+        Workplace: '',
+        Phone: '',
+        PrefixName: '',
+        Status: ''
+      });
+      const [caretakerData, setCaretakerData] = useState<GuardiansData>(() => {
+        const savedCaretakerData = sessionStorage.getItem('caretakerData');
         return savedCaretakerData ? JSON.parse(savedCaretakerData) : {
-            ApplicationID: id || '',
-            PrefixName: '',
-            FirstName: '',
-            LastName: '',
-            Age: '',
-            Status: '',
-            Phone: '',
-            Occupation: '',
-            Income: 0,
-            Type: '',
-            Workplace: '',
+          PrefixName: '',
+          FirstName: '',
+          LastName: '',
+          Age: '',
+          Status: '',
+          Phone: '',
+          Occupation: '',
+          Income: 0,
+          Type: 'ผู้อุปการะ',
+          Workplace: '',
         };
-    });
-
+      });
+      // สร้าง state สำหรับ caretaker errors
+      const [caretakerErrors, setCaretakerErrors] = useState({
+        PrefixName: '',
+        FirstName: '',
+        LastName: '',
+        Age: '',
+        Status: '',
+        Phone: '',
+        Occupation: '',
+        Income: '',
+        Workplace: '',
+        CaretakerType: '',
+      });
     const [siblingData, setSiblingData] = useState<SiblingsData>(() => {
         const savedSiblingData = sessionStorage.getItem('EditSiblingData');
         return savedSiblingData ? JSON.parse(savedSiblingData) : {
@@ -304,14 +358,14 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     const [subdistrictsForIDCard, setSubdistrictsForIDCard] = useState<{ id: number; name: string }[]>([]);
     const [districtsForCurrentAddress, setDistrictsForCurrentAddress] = useState<{ id: number; name: string }[]>([]);
     const [subdistrictsForCurrentAddress, setSubdistrictsForCurrentAddress] = useState<{ id: number; name: string }[]>([]);
-
+    const [scholarshipData, setScholarshipData] = useState<any>(null); // State to store the scholarship data
+    const [getscholarshipData, setgetScholarshipData] = useState<any>(null); // State to store the scholarship data
     const [isCaretakerEditing, setIsCaretakerEditing] = useState(false);
     const [isParentEditing, setIsParentEditing] = useState(true);
     const [numberOfSiblings, setNumberOfSiblings] = useState<number>(() => {
         const savedNumberOfSiblings = sessionStorage.getItem('EditNumberOfSiblings');
         return savedNumberOfSiblings ? Number(savedNumberOfSiblings) : applicationData.NumberOfSiblings || 0;
     });
-
 
     const [siblingsData, setSiblingsData] = useState<SiblingsData[]>(() => {
         const savedSiblingsData = sessionStorage.getItem('EditSiblingsData');
@@ -356,6 +410,11 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 setLoading(true);
                 const response = await ApiApplicationUpdateInternalServices.getApplicationById(id);
                 setApplicationData(response);
+                console.log(response);
+                setgetScholarshipData(response.scholarship)
+                
+
+                // setgetScholarshipData(response.scholarship.ScholarshipName)
                 sessionStorage.setItem('applicationData', JSON.stringify(response));
 
                 const addresses: Address[] = response.addresses || [];
@@ -873,6 +932,382 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         return isValid;
     };
 
+    const validateApplication = () => {
+        const errors: { [key: string]: string } = {};
+    
+        if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
+          errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
+    
+        if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
+          errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
+    
+        if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
+          errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
+    
+        if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
+    
+        setApplicationErrors(errors);
+        return Object.keys(errors).length === 0;
+      };
+    
+    
+      const validateSiblingsData = () => {
+        let isValid = true;
+        const errors = siblingsData.map((sibling) => {
+          const siblingErrors = {
+            PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
+            Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
+            Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
+            Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
+            EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
+            Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
+            Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
+          };
+    
+          Object.values(siblingErrors).forEach((error) => {
+            if (error) {
+              isValid = false;
+            }
+          });
+    
+          return siblingErrors;
+        });
+    
+        setSiblingsErrors(errors); // Set errors in state
+        return isValid;
+      };
+    
+      const validateApplicationData = () => {
+        let isValid = true;
+    
+        // Set validation errors based on conditions
+        const validationErrors = {
+          MonthlyIncome: applicationData.MonthlyIncome > 0 ? '' : 'กรุณากรอกรายได้ที่ถูกต้อง',
+          MonthlyExpenses: applicationData.MonthlyExpenses > 0 ? '' : 'กรุณากรอกรายจ่ายที่ถูกต้อง',
+        };
+    
+        // Check if any errors exist
+        Object.values(validationErrors).forEach((error) => {
+          if (error) {
+            isValid = false;
+          }
+        });
+    
+        setErrors(validationErrors); // Set errors in state to trigger UI updates
+        return isValid;
+      };
+
+      const validateAddress = () => {
+        const errors: { [key: string]: string } = {};
+    
+        if (!addressData.AddressLine) errors.AddressLine = 'กรุณากรอกเลขที่';
+        if (!addressData.province) errors.province = 'กรุณาเลือกจังหวัด';
+        if (!addressData.District) errors.District = 'กรุณาเลือกอำเภอ';
+        if (!addressData.Subdistrict) errors.Subdistrict = 'กรุณาเลือกตำบล';
+        if (!addressData.PostalCode) errors.PostalCode = 'กรุณากรอกรหัสไปรษณีย์';
+    
+        setAddressErrors(errors);
+        return Object.keys(errors).length === 0;
+      };
+    
+      const validateCurrentAddress = () => {
+        const errors: { [key: string]: string } = {};
+    
+        if (!currentAddressData.AddressLine) errors.AddressLine = 'กรุณากรอกเลขที่';
+        if (!currentAddressData.province) errors.province = 'กรุณาเลือกจังหวัด';
+        if (!currentAddressData.District) errors.District = 'กรุณาเลือกอำเภอ';
+        if (!currentAddressData.Subdistrict) errors.Subdistrict = 'กรุณาเลือกตำบล';
+        if (!currentAddressData.PostalCode) errors.PostalCode = 'กรุณากรอกรหัสไปรษณีย์';
+    
+        setCurrentAddressErrors(errors);
+        return Object.keys(errors).length === 0;
+      };
+    
+      const handlefatherValidation = () => {
+        const errors = {
+          PrefixName: '',
+          FirstName: '',
+          LastName: '',
+          Age: '',
+          Occupation: '',
+          Income: '',
+          Workplace: '',
+          Phone: '',
+          Status: ''
+        };
+        let isValid = true;
+    
+        // ตรวจสอบคำนำหน้า (PrefixName)
+        if (!fatherData.PrefixName) {
+          errors.PrefixName = 'กรุณากรอกคำนำหน้า';
+          isValid = false;
+        }
+    
+        // ถ้าเลือก "ไม่ระบุ" ไม่ต้อง validate ฟิลด์อื่น
+        if (fatherData.PrefixName === 'ไม่ระบุ') {
+          setFatherErrors(errors);
+          return true; // return true if PrefixName is "ไม่ระบุ"
+        }
+    
+        // ตรวจสอบชื่อบิดา
+        if (!fatherData.FirstName) {
+          errors.FirstName = 'กรุณากรอกชื่อบิดา';
+          isValid = false;
+        }
+    
+        // ตรวจสอบนามสกุลบิดา
+        if (!fatherData.LastName) {
+          errors.LastName = 'กรุณากรอกนามสกุล';
+          isValid = false;
+        }
+    
+        // ตรวจสอบอายุ
+        if (!fatherData.Age || fatherData.Age <= 0 || fatherData.Age > 150) {
+          errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+          isValid = false;
+        }
+    
+        // ตรวจสอบสถานภาพ (บิดา)
+        if (!fatherData.Status) {
+          errors.Status = 'กรุณาระบุสถานภาพของบิดา';
+          isValid = false;
+        }
+    
+        // ถ้าเสียชีวิตแล้ว ไม่ต้อง validate ฟิลด์อื่น
+        if (fatherData.Status === 'เสียชีวิตแล้ว') {
+          setFatherErrors(errors);
+          return isValid;
+        }
+    
+        // ตรวจสอบอาชีพเมื่อยังมีชีวิตอยู่
+        if (fatherData.Status === 'ยังมีชีวิตอยู่') {
+          if (!fatherData.Occupation) {
+            errors.Occupation = 'กรุณากรอกอาชีพ';
+            isValid = false;
+          }
+    
+          if (!fatherData.Income) {
+            errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+            isValid = false;
+          }
+    
+          if (!fatherData.Workplace) {
+            errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+            isValid = false;
+          }
+    
+          if (!fatherData.Phone || fatherData.Phone.length !== 10) {
+            errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
+            isValid = false;
+          }
+        }
+    
+        // อัปเดต state ของ errors
+        setFatherErrors(errors);
+    
+        // return true ถ้าไม่มีข้อผิดพลาด หรือ false ถ้ามี
+        return isValid;
+      };
+    
+    
+    
+      const handlemotherValidation = () => {
+        const errors = {
+          PrefixName: '',
+          FirstName: '',
+          LastName: '',
+          Age: '',
+          Occupation: '',
+          Income: '',
+          Workplace: '',
+          Phone: '',
+          Status: ''
+        };
+        let isValid = true;
+    
+        // If prefix is 'ไม่ระบุ', skip all validations and return
+        if (motherData.PrefixName === 'ไม่ระบุ') {
+          setMotherErrors(errors);
+          return true; // Valid because we're skipping validation
+        }
+    
+        // Validate PrefixName
+        if (!motherData.PrefixName) {
+          errors.PrefixName = 'กรุณากรอกคำนำหน้า';
+          isValid = false;
+        }
+    
+        // Validate FirstName
+        if (!motherData.FirstName) {
+          errors.FirstName = 'กรุณากรอกชื่อมารดา';
+          isValid = false;
+        }
+    
+        // Validate LastName
+        if (!motherData.LastName) {
+          errors.LastName = 'กรุณากรอกนามสกุล';
+          isValid = false;
+        }
+    
+        // Validate Age
+        if (!motherData.Age || motherData.Age <= 0 || motherData.Age > 150) {
+          errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+          isValid = false;
+        }
+    
+        // Validate Status
+        if (!motherData.Status) {
+          errors.Status = 'กรุณาระบุสถานภาพของมารดา';
+          isValid = false;
+        }
+    
+        // If deceased, skip further validation
+        if (motherData.Status === 'เสียชีวิตแล้ว') {
+          setMotherErrors(errors);
+          return isValid;
+        }
+    
+        // Validate Occupation, Income, Workplace, Phone if alive
+        if (motherData.Status === 'ยังมีชีวิตอยู่') {
+          if (!motherData.Occupation) {
+            errors.Occupation = 'กรุณากรอกอาชีพ';
+            isValid = false;
+          }
+    
+          if (!motherData.Income) {
+            errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+            isValid = false;
+          }
+    
+          if (!motherData.Workplace) {
+            errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+            isValid = false;
+          }
+    
+          if (!motherData.Phone || motherData.Phone.length !== 10) {
+            errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
+            isValid = false;
+          }
+        }
+    
+        // Update state for errors
+        setMotherErrors(errors);
+        return isValid;
+      };
+    
+      const handleResetCaretakerData = () => {
+        setCaretakerData({
+          PrefixName: '',
+          FirstName: '',
+          LastName: '',
+          Age: 0, // ค่าเริ่มต้นของ number
+          Status: '',
+          Phone: '',
+          Occupation: '',
+          Income: 0, // ค่าเริ่มต้นของ number
+          Workplace: '',
+        
+          ApplicationID: '', // เพิ่มฟิลด์ ApplicationID ตามโครงสร้างของ GuardiansData
+          Type: '' // เพิ่มฟิลด์ Type ตามโครงสร้างของ GuardiansData
+        });
+    
+        setCaretakerErrors({
+          PrefixName: '',
+          FirstName: '',
+          LastName: '',
+          Age: '',
+          Status: '',
+          Phone: '',
+          Occupation: '',
+          Income: '',
+          Workplace: '',
+          CaretakerType: ''
+        });
+      };
+    
+// ฟังก์ชันสำหรับตรวจสอบความถูกต้องของข้อมูลผู้อุปการะ
+const validateCaretakerData = () => {
+    const errors: any = {};
+    let isValid = true;
+
+    // จะทำการ validate เฉพาะเมื่อผู้ใช้กดปุ่มเปิดฟอร์มการกรอกข้อมูล
+    if (isCaretakerEditing) {
+      if (!caretakerData.PrefixName) {
+        errors.PrefixName = 'กรุณาเลือกคำนำหน้า';
+        isValid = false;
+      }
+
+      if (!caretakerData.FirstName) {
+        errors.FirstName = 'กรุณากรอกชื่อ';
+        isValid = false;
+      }
+
+      if (!caretakerData.LastName) {
+        errors.LastName = 'กรุณากรอกนามสกุล';
+        isValid = false;
+      }
+
+      if (!caretakerData.Age || caretakerData.Age <= 0 || caretakerData.Age > 150) {
+        errors.Age = 'กรุณากรอกอายุที่ถูกต้อง';
+        isValid = false;
+      }
+
+      if (!caretakerData.Status) {
+        errors.Status = 'กรุณาระบุสถานภาพ';
+        isValid = false;
+      }
+
+      if (!caretakerData.Phone || caretakerData.Phone.length !== 10) {
+        errors.Phone = 'กรุณากรอกเบอร์โทรที่ถูกต้อง';
+        isValid = false;
+      }
+
+      if (!caretakerData.Occupation) {
+        errors.Occupation = 'กรุณากรอกอาชีพ';
+        isValid = false;
+      }
+
+      if (!caretakerData.Income) {
+        errors.Income = 'กรุณากรอกรายได้ต่อเดือน';
+        isValid = false;
+      }
+
+      if (!caretakerData.Workplace) {
+        errors.Workplace = 'กรุณากรอกสถานที่ทำงาน';
+        isValid = false;
+      }
+
+      if (!caretakerData.Type) {
+        errors.CaretakerType = 'กรุณากรอกความสัมพันธ์';
+        isValid = false;
+      }
+
+      setCaretakerErrors(errors); // แสดงข้อความแจ้งเตือนข้อผิดพลาด
+    }
+
+    return isValid;
+  };
+
+
+    const handleNextStep = () => {
+        if (step === 1) {
+          if (!validateAddress()) return;
+          if (!validateCurrentAddress()) return;
+          if (!validateApplicationData()) return;
+        }
+        if (step === 2) {
+          if (!validateSiblingsData()) return;
+          if (!handlefatherValidation()) return;
+          if (!handlemotherValidation()) return;
+          if (!validateCaretakerData()) return;
+        }
+        if (step === 3) {
+          if (!validateApplication()) return;
+        }
+    
+        setStep(step < 5 ? step + 1 : step);
+      };
+    
     // Ensure applicationID is used correctly when saving
     const handleSave = async () => {
         if (!validateFiles()) {
@@ -1458,6 +1893,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.PrefixName || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
 
@@ -1472,6 +1908,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.FirstName || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -1485,6 +1922,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.LastName || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
                             </div>
@@ -1499,6 +1937,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.Course || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
                                 <div>
@@ -1525,6 +1964,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         onChange={handleChangeApplication}
                                         disabled
                                         className="w-full p-3 border border-gray-300 rounded"
+
                                     />
                                 </div>
                             </div>
@@ -1539,6 +1979,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.Phone || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
 
@@ -1552,6 +1993,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.Religion || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
 
@@ -1566,6 +2008,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                         value={userData?.DOB || ''}
                                         onChange={handleChangeApplication}
                                         className="w-full p-3 border border-gray-300 rounded"
+                                        disabled
                                     />
                                 </div>
                             </div>
@@ -2489,67 +2932,65 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 return (
                     <div>
                         <div className="space-y-4">
-                            <div className="mb-1 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                                <div className="text-center font-semibold">
-                                    ปริญาตรีปีที่ 1
-                                </div>
-                                <div className="text-center font-semibold">
-                                    ปริญาตรีปีที่ 2
-                                </div>
-                                <div className="text-center font-semibold">
-                                    ปริญาตรีปีที่ 3
-                                </div>
-                            </div>
 
-                            <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
-                                <div className="col-span-2">
-                                    <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ยปีที่ 1
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="GPAYear1"
-                                        name="GPAYear1"
-                                        value={applicationData.GPAYear1}
-                                        onChange={handleChangeApplication}
-                                        inputMode="numeric"
-                                        pattern="[1-9]*[0.0]"
-                                        className="w-3/4 p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ยปีที่ 2
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="GPAYear2"
-                                        name="GPAYear2"
-                                        value={applicationData.GPAYear2}
-                                        onChange={handleChangeApplication}
-                                        inputMode="numeric"
-                                        pattern="[1-9]*[0.0]"
-                                        className="w-3/4 p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                                        เกรดเฉลี่ยปีที่ 3
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="GPAYear3"
-                                        name="GPAYear3"
-                                        value={applicationData.GPAYear3}
-                                        onChange={handleChangeApplication}
-                                        inputMode="numeric"
-                                        pattern="[1-9]*[0.0]"
-                                        className="w-3/4 p-3 border border-gray-300 rounded"
-                                    />
-                                </div>
+                        <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center text-center text-gray-700 font-semibold">
+  {/* Convert Year_Entry to a number before comparison */}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 1 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 1
+      </label>
+      <input
+        type="number"
+        id="GPAYear1"
+        name="GPAYear1"
+        value={applicationData.GPAYear1}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+       {applicationErrors.GPAYear1 && <p className="text-red-500">{applicationErrors.GPAYear1}</p>}
+    </div>
+  )}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 2 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 2
+      </label>
+      <input
+        type="number"
+        id="GPAYear2"
+        name="GPAYear2"
+        value={applicationData.GPAYear2}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+       {applicationErrors.GPAYear2 && <p className="text-red-500">{applicationErrors.GPAYear2}</p>}
+    </div>
+  )}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 3 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 3
+      </label>
+      <input
+        type="number"
+        id="GPAYear3"
+        name="GPAYear3"
+        value={applicationData.GPAYear3}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+       {applicationErrors.GPAYear3 && <p className="text-red-500">{applicationErrors.GPAYear3}</p>}
+    </div>
+  )}
+</div>
 
-
-                            </div>
 
                             <div className="col-span-3">
                                 <label htmlFor="AdvisorName" className="block text-gray-700 mb-2">
@@ -2856,6 +3297,11 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         <div className="min-h-screen flex flex-col">
             <Header />
             <div className="flex-1 container mx-auto px-4 py-8">
+            <div className="p-6 border border-gray-300 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center text-gray-800">
+            {getscholarshipData?.ScholarshipName}
+          </h1>
+        </div>
                 <div className="bg-white shadow-md rounded-lg p-6">
                     <div className="flex justify-center mb-6">
                         <div
@@ -2936,18 +3382,51 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                             >
                                 ย้อนกลับ
                             </button>
-                            {step < 5 && (
-                                <button
-                                    type="button"
-                                    onClick={() => setStep(step < 5 ? step + 1 : step)}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                                >
-                                    ถัดไป
-                                </button>
-                            )}
+                            {step !== 5 && (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  ถัดไป
+                </button>
+              )}
 
                         </div>
 
+                        {step === 2 && (
+                            <div className="flex justify-center mt-6 text-center w-full">
+                                <button
+                                    type="button" // This is for temporary saving, so use type="button"
+                                    onClick={handleSave}
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                                >
+                                    บันทึก
+                                </button>
+                            </div>
+                        )}
+                             {step === 3 && (
+                            <div className="flex justify-center mt-6 text-center w-full">
+                                <button
+                                    type="button" // This is for temporary saving, so use type="button"
+                                    onClick={handleSave}
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                                >
+                                    บันทึก
+                                </button>
+                            </div>
+                        )}
+                             {step === 4 && (
+                            <div className="flex justify-center mt-6 text-center w-full">
+                                <button
+                                    type="button" // This is for temporary saving, so use type="button"
+                                    onClick={handleSave}
+                                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                                >
+                                    บันทึก
+                                </button>
+                            </div>
+                        )}
                         {step === 5 && (
                             <div className="flex justify-center mt-6 text-center w-full">
                                 <button
