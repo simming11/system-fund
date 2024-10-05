@@ -3212,73 +3212,68 @@ export default function CreateApplicationInternalPage() {
         return (
           <div>
             <div className='mb-2'>
-              <p className="text-red-500 font-bold">
-                *ให้กรอกเกรดเฉลี่ยล่าสุดที่คุณได้รับ หรือถ้ายังไม่ได้รับเกรดเฉลี่ยใดๆ ให้ใส่ 0 ลงไป.
-              </p>
+         
             </div>
             <div className="space-y-4">
-              <div className="mb-1 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                <div className="text-center font-semibold">
-                  ปริญาตรีปีที่ 1
-                </div>
-                <div className="text-center font-semibold">
-                  ปริญาตรีปีที่ 2
-                </div>
-                <div className="text-center font-semibold">
-                  ปริญาตรีปีที่ 3
-                </div>
-              </div>
+             
 
-              <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
-                <div className="col-span-2">
-                  <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ยปีที่ 1
-                  </label>
-                  <input
-                    type="number"
-                    id="GPAYear1"
-                    name="GPAYear1"
-                    value={applicationData.GPAYear1}
-                    onChange={handleChangeApplication}
-                    inputMode="numeric"
-                    pattern="[1-9]*[0.0]"
-                    className="w-3/4 p-3 border border-gray-300 rounded"
-                  />
-                  {applicationErrors.GPAYear1 && <p className="text-red-500">{applicationErrors.GPAYear1}</p>}
-                </div>
-                <div className="col-span-2">
-                  <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ยปีที่ 2
-                  </label>
-                  <input
-                    type="number"
-                    id="GPAYear2"
-                    name="GPAYear2"
-                    value={applicationData.GPAYear2}
-                    onChange={handleChangeApplication}
-                    inputMode="numeric"
-                    pattern="[1-9]*[0.0]"
-                    className="w-3/4 p-3 border border-gray-300 rounded"
-                  />
-                  {applicationErrors.GPAYear2 && <p className="text-red-500">{applicationErrors.GPAYear2}</p>}
-                </div>
-                <div className="col-span-2">
-                  <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
-                    เกรดเฉลี่ยปีที่ 3
-                  </label>
-                  <input
-                    type="number"
-                    id="GPAYear3"
-                    name="GPAYear3"
-                    value={applicationData.GPAYear3}
-                    onChange={handleChangeApplication}
-                    inputMode="numeric"
-                    pattern="[1-9]*[0.0]"
-                    className="w-3/4 p-3 border border-gray-300 rounded"
-                  />
-                  {applicationErrors.GPAYear3 && <p className="text-red-500">{applicationErrors.GPAYear3}</p>}
-                </div>
-              </div>
+            <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center text-center text-gray-700 font-semibold">
+  {/* Convert Year_Entry to a number before comparison */}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 1 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear1" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 1
+      </label>
+      <input
+        type="number"
+        id="GPAYear1"
+        name="GPAYear1"
+        value={applicationData.GPAYear1}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+        {applicationErrors.GPAYear1 && <p className="text-red-500">{applicationErrors.GPAYear1}</p>}
+    </div>
+  )}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 2 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear2" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 2
+      </label>
+      <input
+        type="number"
+        id="GPAYear2"
+        name="GPAYear2"
+        value={applicationData.GPAYear2}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+       {applicationErrors.GPAYear2 && <p className="text-red-500">{applicationErrors.GPAYear2}</p>}
+    </div>
+  )}
+  {Number(calculateAcademicYear(userData?.Year_Entry)) >= 3 && (
+    <div className="col-span-2">
+      <label htmlFor="GPAYear3" className="block text-gray-700 mb-2">
+        เกรดเฉลี่ยปีที่ 3
+      </label>
+      <input
+        type="number"
+        id="GPAYear3"
+        name="GPAYear3"
+        value={applicationData.GPAYear3}
+        onChange={handleChangeApplication}
+        inputMode="numeric"
+        pattern="[1-9]*[0.0]"
+        className="w-3/4 p-3 border border-gray-300 rounded"
+      />
+       {applicationErrors.GPAYear3 && <p className="text-red-500">{applicationErrors.GPAYear3}</p>}
+    </div>
+  )}
+</div>
 
               <div className="mb-1 grid grid-cols-1 sm:grid-cols-6 gap-4 items-center">
 
@@ -3718,6 +3713,30 @@ export default function CreateApplicationInternalPage() {
 
             </div>
             {step === 3 && (
+              <div className="flex justify-center mt-6 text-center w-full">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                >
+                  บันทึก
+                </button>
+
+              </div>
+            )}
+            {step === 2 && (
+              <div className="flex justify-center mt-6 text-center w-full">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-4"
+                >
+                  บันทึก
+                </button>
+
+              </div>
+            )}
+            {step === 4 && (
               <div className="flex justify-center mt-6 text-center w-full">
                 <button
                   type="button"
