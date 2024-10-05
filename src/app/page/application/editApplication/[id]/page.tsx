@@ -934,48 +934,62 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     const validateApplication = () => {
         const errors: { [key: string]: string } = {};
-    
-        if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4)
-          errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
-    
-        if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4)
-          errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
-    
-        if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4)
-          errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
-    
-        if (!applicationData.AdvisorName) errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
-    
+      
+        const academicYear = Number(calculateAcademicYear(userData?.Year_Entry));
+      
+        if (academicYear >= 1) {
+          if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4) {
+            errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
+          }
+        }
+      
+        if (academicYear >= 2) {
+          if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4) {
+            errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
+          }
+        }
+      
+        if (academicYear >= 3) {
+          if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4) {
+            errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
+          }
+        }
+      
+        if (!applicationData.AdvisorName) {
+          errors.AdvisorName = 'กรุณากรอกชื่ออาจารย์ที่ปรึกษา';
+        }
+      
         setApplicationErrors(errors);
         return Object.keys(errors).length === 0;
       };
+      
     
     
-      const validateSiblingsData = () => {
-        let isValid = true;
-        const errors = siblingsData.map((sibling) => {
-          const siblingErrors = {
-            PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
-            Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
-            Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
-            Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
-            EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
-            Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
-            Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
-          };
+    //   const validateSiblingsData = () => {
+    //     let isValid = true;
+    //     const errors = siblingsData.map((sibling) => {
+    //       const siblingErrors = {
+    //         PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
+    //         Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
+    //         Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
+    //         Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
+    //         EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
+    //         Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
+    //         Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
+    //       };
     
-          Object.values(siblingErrors).forEach((error) => {
-            if (error) {
-              isValid = false;
-            }
-          });
+    //       Object.values(siblingErrors).forEach((error) => {
+    //         if (error) {
+    //           isValid = false;
+    //         }
+    //       });
     
-          return siblingErrors;
-        });
+    //       return siblingErrors;
+    //     });
     
-        setSiblingsErrors(errors); // Set errors in state
-        return isValid;
-      };
+    //     setSiblingsErrors(errors); // Set errors in state
+    //     return isValid;
+    //   };
     
       const validateApplicationData = () => {
         let isValid = true;
@@ -1296,7 +1310,7 @@ const validateCaretakerData = () => {
           if (!validateApplicationData()) return;
         }
         if (step === 2) {
-          if (!validateSiblingsData()) return;
+        //   if (!validateSiblingsData()) return;
           if (!handlefatherValidation()) return;
           if (!handlemotherValidation()) return;
           if (!validateCaretakerData()) return;
