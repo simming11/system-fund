@@ -10,6 +10,8 @@ import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips"
 import ApiApplicationInternalServices from "@/app/services/ApiApplicationInternalServices/ApiApplicationInternalServices"; // Import the service
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { HomeIcon } from "@heroicons/react/16/solid";
+import ButtonHome from "@/app/components/buttonHome/buttonHome";
 
 interface ScholarshipData {
     ScholarshipID: string;
@@ -48,10 +50,10 @@ export default function InternalApplicationDataPage() {
         const fetchScholarships = async () => {
             try {
                 const response = await ApiServiceScholarships.getAllScholarships();
-                
+
                 // Filter only scholarships with TypeID === 1
                 const scholarshipsWithTypeID1 = response.data.filter((scholarship: any) => scholarship.TypeID === 1);
-                
+
                 // Fetch the student count for each scholarship
                 const updatedScholarships = await Promise.all(
                     scholarshipsWithTypeID1.map(async (scholarship: ScholarshipData) => {
@@ -66,7 +68,7 @@ export default function InternalApplicationDataPage() {
                         return scholarship;
                     })
                 );
-    
+
                 setScholarships(updatedScholarships);
                 setFilteredScholarships(updatedScholarships); // Initially set to all scholarships with TypeID 1
             } catch (error) {
@@ -75,10 +77,10 @@ export default function InternalApplicationDataPage() {
                 setLoading(false);
             }
         };
-    
+
         fetchScholarships();
     }, []);
-    
+
 
     // Get the list of unique years from the scholarships data
     const getUniqueYears = () => {
@@ -97,11 +99,11 @@ export default function InternalApplicationDataPage() {
             const yearFilter = selectedYear === "all" || scholarship.Year === selectedYear;
 
             // Apply status filter based on "open" or "closed"
-            const statusFilter = filterMode === "open" 
-                ? endDate >= currentDate 
-                : filterMode === "closed" 
-                ? endDate < currentDate 
-                : true;
+            const statusFilter = filterMode === "open"
+                ? endDate >= currentDate
+                : filterMode === "closed"
+                    ? endDate < currentDate
+                    : true;
 
             // Apply onlyWaiting filter to include scholarships with students waiting for results
             const waitingFilter = onlyWaiting ? scholarship.StudentCount && scholarship.StudentCount > 0 : true;
@@ -163,7 +165,8 @@ export default function InternalApplicationDataPage() {
                 <p className="ml-4 text-gray-600">Loading...</p>
             </div>
         );
-    }
+    } 
+
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-100">
@@ -174,7 +177,9 @@ export default function InternalApplicationDataPage() {
                     <Sidebar />
                 </div>
                 <div className="bg-white flex-1 w-7/8">
+            
                     <div className="bg-white rounded-lg p-6">
+                    <ButtonHome/>
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายในมหาวิทยาลัย</h2>
 
                         <div className="flex justify-between items-center mb-4 space-x-4">

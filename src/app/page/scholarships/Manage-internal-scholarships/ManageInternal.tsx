@@ -10,6 +10,8 @@ import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips"
 import Swal from "sweetalert2";
 import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
 import axios from "axios";
+import { HomeIcon } from "@heroicons/react/16/solid";
+import ButtonHome from "@/app/components/buttonHome/buttonHome";
 
 interface Scholarship {
   StartDate: Date;
@@ -242,6 +244,7 @@ useEffect(() => {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
+          <ButtonHome/>
             <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในคณะ</h2>
             <div className="mb-4 flex items-center justify-between space-x-4">
               {/* Add Button */}

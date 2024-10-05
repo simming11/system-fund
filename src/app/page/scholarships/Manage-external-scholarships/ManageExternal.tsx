@@ -10,6 +10,8 @@ import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips"
 import Swal from "sweetalert2";
 import ApiUpdateServiceScholarships from "@/app/services/scholarships/updateScholarships";
 import axios from "axios";
+import { HomeIcon } from "@heroicons/react/16/solid";
+import ButtonHome from "@/app/components/buttonHome/buttonHome";
 
 interface Scholarship {
   StartDate: Date;
@@ -68,24 +70,24 @@ export default function ManageExternalScholarshipsPage() {
     }
   }, [router]);
 
-// Fetch all scholarships function with sorting
-const fetchScholarships = async () => {
-  try {
-    const response = await ApiServiceScholarships.getAllScholarships();
-    const typeOneScholarships = response.data
-      .filter((scholarship: Scholarship) => scholarship.TypeID === 2)
-      .sort((a: Scholarship, b: Scholarship) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); // Sort by created_at descending
-    setScholarships(typeOneScholarships);
-    setFilteredScholarships(typeOneScholarships); // Initialize filtered scholarships
-  } catch (error) {
-    console.error("Failed to fetch scholarships", error);
-  }
-};
+  // Fetch all scholarships function with sorting
+  const fetchScholarships = async () => {
+    try {
+      const response = await ApiServiceScholarships.getAllScholarships();
+      const typeOneScholarships = response.data
+        .filter((scholarship: Scholarship) => scholarship.TypeID === 2)
+        .sort((a: Scholarship, b: Scholarship) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); // Sort by created_at descending
+      setScholarships(typeOneScholarships);
+      setFilteredScholarships(typeOneScholarships); // Initialize filtered scholarships
+    } catch (error) {
+      console.error("Failed to fetch scholarships", error);
+    }
+  };
 
-// Use fetchScholarships in useEffect to load initially
-useEffect(() => {
-  fetchScholarships();
-}, []);
+  // Use fetchScholarships in useEffect to load initially
+  useEffect(() => {
+    fetchScholarships();
+  }, []);
 
 
   const handleEdit = (id: number) => {
@@ -103,12 +105,12 @@ useEffect(() => {
       confirmButtonText: 'ใช่, คัดลอกเลย!',
       cancelButtonText: 'ยกเลิก',
     });
-  
+
     // If the user confirms, proceed with the clone operation
     if (result.isConfirmed) {
       try {
         const response = await ApiServiceScholarships.cloneScholarship(id);
-  
+
         // Success SweetAlert
         Swal.fire({
           icon: 'success',
@@ -116,7 +118,7 @@ useEffect(() => {
           text: 'คัดลอกทุนการศึกษาเรียบร้อยแล้ว!',
           confirmButtonText: 'OK',
         });
-  
+
         // After cloning, refetch the scholarships to update the table
         await fetchScholarships(); // Call the function to update the table
       } catch (error: any) {
@@ -143,7 +145,7 @@ useEffect(() => {
       console.log("Cloning canceled by user");
     }
   };
-  
+
 
 
   const handleHide = async (id: string) => {
@@ -230,6 +232,8 @@ useEffect(() => {
 
   const totalPages = Math.ceil(filteredScholarships.length / scholarshipsPerPage);
 
+
+
   // Handle scholarship actions (edit, hide, unhide) same as before...
 
   return (
@@ -240,9 +244,12 @@ useEffect(() => {
         <div className="bg-white w-1/8 p-4">
           <Sidebar />
         </div>
+
         <div className="bg-white shadow-md flex-1 w-1/8">
+
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายในคณะ</h2>
+          <ButtonHome/>
+            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายนอกคณะ</h2>
             <div className="mb-4 flex items-center justify-between space-x-4">
               {/* Add Button */}
               <button

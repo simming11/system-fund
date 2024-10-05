@@ -24,6 +24,7 @@ interface ApplicationInternalData {
     GPAYear2: number;
     GPAYear3: number;
     AdvisorName: string;
+    scholarship:scholarship[]
 }
 
 interface AddressesData {
@@ -70,7 +71,11 @@ interface ActivitiesData {
     ApplicationID: string;
 }
 
-
+interface scholarship {
+    ScholarshipID: string;
+    ScholarshipName: string;
+   
+}
 
 interface ScholarshipHistoryData {
     ApplicationID: string;     
@@ -93,6 +98,7 @@ interface ApplicationFileData {
     DocumentType: string;
     FilePath: File; // Update to use File object
 }
+
 
 class ApiApplicationUpdateInternalServices {
 

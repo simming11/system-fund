@@ -11,6 +11,7 @@ import ApiServiceScholarships from '@/app/services/scholarships/ApiScholarShips'
 import Sidebar from '@/app/components/Sidebar/Sidebar';
 import HeaderHome from '@/app/components/headerHome/headerHome';
 import AdminHeader from '@/app/components/headerAdmin/headerAdmin';
+import ButtonHome from '@/app/components/buttonHome/buttonHome';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -199,7 +200,9 @@ const ScholarshipStats = () => {
                     <Sidebar />
                 </div>
                 <div className="flex-1 bg-white flex flex-col justify-center mb-60">
+                <ButtonHome/>
                     <div className="bg-white p-4 md:p-5 lg:p-6 rounded-lg w-full max-w-5xl mb-4 md:mb-50 lg:mb-6 ">
+
                         <h2 className="text-lg md:text-xl lg:text-2xl font-semibold mb-4 text-center">สถิติทุนการศึกษา</h2>
 
                         <div className="flex flex-col md:flex-row md:justify-center md:items-center">

@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import ApiServiceScholarships from "@/app/services/scholarships/ApiScholarShips";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { HomeIcon } from "@heroicons/react/16/solid";
+import ButtonHome from "@/app/components/buttonHome/buttonHome";
 
 interface ScholarshipData {
   ScholarshipID: string;
@@ -112,6 +114,7 @@ export default function ApplicationDataPage() {
         </div>
         <div className="bg-white flex-1 w-7/8 p-6">
           <div className="bg-white rounded-lg p-6">
+          <ButtonHome/>
             <h2 className="text-2xl font-semibold mb-6">ประกาศทุนการศึกษา</h2>
 
             <div className="mb-4 flex items-center space-x-4">

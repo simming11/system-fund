@@ -11,6 +11,8 @@ import ApiApplicationInternalServices from "@/app/services/ApiApplicationInterna
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import ApiApplicationExternalServices from "@/app/services/ApiApplicationExternalServices/ApiApplicationExternalServices";
+import { HomeIcon } from "@heroicons/react/16/solid";
+import ButtonHome from "@/app/components/buttonHome/buttonHome";
 
 interface ScholarshipData {
     ScholarshipID: string;
@@ -176,6 +178,7 @@ export default function InternalApplicationDataPage() {
                 </div>
                 <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
+                    <ButtonHome/>
                         <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายนอกมหาวิทยาลัย</h2>
 
                         <div className="flex justify-between items-center mb-4 space-x-4">
