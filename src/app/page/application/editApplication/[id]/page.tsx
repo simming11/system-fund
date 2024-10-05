@@ -618,17 +618,24 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
 
     const handleChangeApplication = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-    ) => {
+      ) => {
         const { name, value } = e.target;
+    
+        // Update applicationData
         setApplicationData({
-            ...applicationData,
-            [name]: name === 'MonthlyIncome' || name === 'MonthlyExpenses' ||
-                name === 'NumberOfSiblings' || name === 'NumberOfSisters' ||
-                name === 'NumberOfBrothers' || name.startsWith('GPA')
-                ? Number(value)
-                : value,
+          ...applicationData,
+          [name]:
+            ['MonthlyIncome', 'MonthlyExpenses', 'NumberOfSiblings', 'NumberOfSisters', 'NumberOfBrothers'].includes(name)
+              ? Number(value) // Convert these fields to numbers
+              : value, // For other fields, use the value as-is
         });
-    };
+    
+        // Remove error messages when valid input is provided
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: value !== "" && Number(value) > 0 ? "" : prevErrors[name], // Clear error if valid
+        }));
+      };
 
 
     const handleChangeMother = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -967,20 +974,20 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         const academicYear = Number(calculateAcademicYear(userData?.Year_Entry));
       
         if (academicYear >= 1) {
-          if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4) {
-            errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
+          if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 1 || applicationData.GPAYear1 > 4) {
+            errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (1 - 4.00)';
           }
         }
       
         if (academicYear >= 2) {
-          if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4) {
-            errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
+          if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 1 || applicationData.GPAYear2 > 4) {
+            errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (1 - 4.00)';
           }
         }
       
         if (academicYear >= 3) {
-          if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4) {
-            errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
+          if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 1 || applicationData.GPAYear3 > 4) {
+            errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (1 - 4.00)';
           }
         }
       
@@ -994,31 +1001,31 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
       
     
     
-    //   const validateSiblingsData = () => {
-    //     let isValid = true;
-    //     const errors = siblingsData.map((sibling) => {
-    //       const siblingErrors = {
-    //         PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
-    //         Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
-    //         Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
-    //         Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
-    //         EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
-    //         Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
-    //         Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
-    //       };
+      const validateSiblingsData = () => {
+        let isValid = true;
+        const errors = siblingsData.map((sibling) => {
+          const siblingErrors = {
+            PrefixName: sibling.PrefixName ? '' : 'กรุณาเลือกคำนำหน้า',
+            Fname: sibling.Fname ? '' : 'กรุณากรอกชื่อ',
+            Lname: sibling.Lname ? '' : 'กรุณากรอกนามสกุล',
+            Occupation: sibling.Occupation ? '' : 'กรุณากรอกอาชีพ',
+            EducationLevel: sibling.EducationLevel ? '' : 'กรุณาเลือกระดับการศึกษา',
+            Income: sibling.Income ? '' : 'กรุณากรอกรายได้',
+            Status: sibling.Status ? '' : 'กรุณาเลือกสถานะ',
+          };
     
-    //       Object.values(siblingErrors).forEach((error) => {
-    //         if (error) {
-    //           isValid = false;
-    //         }
-    //       });
+          Object.values(siblingErrors).forEach((error) => {
+            if (error) {
+              isValid = false;
+            }
+          });
     
-    //       return siblingErrors;
-    //     });
+          return siblingErrors;
+        });
     
-    //     setSiblingsErrors(errors); // Set errors in state
-    //     return isValid;
-    //   };
+        setSiblingsErrors(errors); // Set errors in state
+        return isValid;
+      };
     
       const validateApplicationData = () => {
         let isValid = true;
@@ -1153,7 +1160,20 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
         return isValid;
       };
     
-    
+      // ฟังก์ชันสำหรับสลับสถานะการกรอกข้อมูล
+  const handleToggleCaretakerForm = () => {
+    if (isCaretakerEditing) {
+      // ปิดการกรอกข้อมูลผู้อุปการะและรีเซ็ตข้อมูลเมื่อคลิกปิด
+      handleResetCaretakerData();
+      setIsCaretakerEditing(false);
+      setIsParentEditing(true);
+    } else {
+      // เมื่อผู้ใช้กดเปิดฟอร์ม ตรวจสอบข้อมูลและเปิดฟอร์ม
+      setIsCaretakerEditing(true);
+      setIsParentEditing(false);
+    }
+  };
+
     
       const handlemotherValidation = () => {
         const errors = {
@@ -1357,10 +1377,49 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
     
     // Ensure applicationID is used correctly when saving
     const handleSave = async () => {
-        if (!validateFiles()) {
-            setError('กรุณากรอกข้อมูลให้ครบถ้วน');
-            return; // Prevent submission if validation fails
+        let isValid = true;
+        // Va lidate based on current step
+      if (step === 1) {
+        if (!validateAddress()) {
+          return;
+          isValid = false;
         }
+        if (!validateCurrentAddress()) {
+          return;
+          isValid = false;
+        }
+        if (!validateApplicationData()) {
+          return;
+          isValid = false;
+        }
+      } else if (step === 2) {
+        if (!validateSiblingsData()) {
+          return;
+          isValid = false;
+        }
+        if (!handlefatherValidation()) {
+          return;
+          isValid = false;
+        }
+        if (!handlemotherValidation()) {
+          return;
+          isValid = false;
+        }
+        if (!validateCaretakerData()) {
+          return;
+          isValid = false;
+        }
+      } else if (step === 3) {
+        if (!validateApplication()) {
+          return;
+          isValid = false;
+        }
+      } else if (step === 5) {
+        if (!validateFiles()) {
+          return;
+          isValid = false;
+        }
+      }
         try {
             setLoading(true); // Start loading
             if (!id) {
@@ -1383,7 +1442,6 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                 'NumberOfSiblings',
                 'NumberOfSisters',
                 'NumberOfBrothers',
-                'AdvisorName'
             ];
 
             for (const field of requiredFields) {
@@ -2750,7 +2808,13 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                     ? 'กำลังกรอกข้อมูลผู้อุปการะ (ถ้าเป็นบิดามารดาไม่ต้องกรอกข้อมูล)'
                     : '*ผู้อุปการะ/ผู้เลี้ยงดู (ถ้าเป็นบิดาและมารดาไม่ต้องกรอกข้อมูล)'}
                 </h2>
-           
+                <button
+                  type="button"
+                  onClick={handleToggleCaretakerForm}
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  {isCaretakerEditing ? 'คลิกเพื่อปิดการกรอกข้อมูล' : 'คลิกเพื่อกรอกข้อมูล'}
+                </button>
               </div>
               <div className="mb-3 grid sm:grid-cols-1 md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 <div>
@@ -3206,6 +3270,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     }}
                                     className="w-3/4 p-3 border border-gray-300 rounded"
                                 />
+                                   {applicationErrors.AdvisorName && ( <p className="text-red-500">{applicationErrors.AdvisorName}</p>)}
                             </div>
                         </div>
 
@@ -3429,7 +3494,7 @@ export default function EditApplicationInternalPage({ params }: PageProps) {
                                     >
                                         <option value="">เลือกประเภทไฟล์</option>
                                         <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
-                                        <option value="ใบสมัคร">ใบสมัคร</option>
+                                
                                         <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
                                         <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
                                         <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
