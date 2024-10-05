@@ -1400,20 +1400,20 @@ export default function CreateApplicationInternalPage() {
     const academicYear = Number(calculateAcademicYear(userData?.Year_Entry));
   
     if (academicYear >= 1) {
-      if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 0 || applicationData.GPAYear1 > 4) {
-        errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (0 - 4.00)';
+      if (!applicationData.GPAYear1 || applicationData.GPAYear1 < 1 || applicationData.GPAYear1 > 4) {
+        errors.GPAYear1 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 1 (1 - 4.00)';
       }
     }
   
     if (academicYear >= 2) {
-      if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 0 || applicationData.GPAYear2 > 4) {
-        errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (0 - 4.00)';
+      if (!applicationData.GPAYear2 || applicationData.GPAYear2 < 1 || applicationData.GPAYear2 > 4) {
+        errors.GPAYear2 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 2 (1 - 4.00)';
       }
     }
   
     if (academicYear >= 3) {
-      if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 0 || applicationData.GPAYear3 > 4) {
-        errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (0 - 4.00)';
+      if (!applicationData.GPAYear3 || applicationData.GPAYear3 < 1 || applicationData.GPAYear3 > 4) {
+        errors.GPAYear3 = 'กรุณากรอกเกรดเฉลี่ยปีที่ 3 (1 - 4.00)';
       }
     }
   
@@ -1424,6 +1424,7 @@ export default function CreateApplicationInternalPage() {
     setApplicationErrors(errors);
     return Object.keys(errors).length === 0;
   };
+  ;
   
 
 
@@ -1526,11 +1527,50 @@ export default function CreateApplicationInternalPage() {
   };
 
   const handleSave = async () => {
-    // Add loading state
-    // Validate files before submitting
-    if (!validateFiles()) {
-      return; // Prevent submission if validation fails
+    let isValid = true;
+    // Va lidate based on current step
+  if (step === 1) {
+    if (!validateAddress()) {
+      return;
+      isValid = false;
     }
+    if (!validateCurrentAddress()) {
+      return;
+      isValid = false;
+    }
+    if (!validateApplicationData()) {
+      return;
+      isValid = false;
+    }
+  } else if (step === 2) {
+    if (!validateSiblingsData()) {
+      return;
+      isValid = false;
+    }
+    if (!handlefatherValidation()) {
+      return;
+      isValid = false;
+    }
+    if (!handlemotherValidation()) {
+      return;
+      isValid = false;
+    }
+    if (!validateCaretakerData()) {
+      return;
+      isValid = false;
+    }
+  } else if (step === 3) {
+    if (!validateApplication()) {
+      return;
+      isValid = false;
+    }
+  } else if (step === 4) {
+    if (!validateFiles()) {
+      return;
+      isValid = false;
+    }
+  }
+
     try {
       setLoading(true); // Start loading
       const ScholarshipID = id ?? ''; // Default to an empty string if id is null
@@ -1552,9 +1592,9 @@ export default function CreateApplicationInternalPage() {
         const updatedGuardianData = {
           ...guardianData,
           ApplicationID: applicationID,
+          PrefixName: guardianData.PrefixName || '',
           FirstName: guardianData.FirstName || '',
           LastName: guardianData.LastName || '',
-          PrefixName: guardianData.PrefixName || '',
           Occupation: guardianData.Occupation || '',
           Phone: guardianData.Phone || '',
           Workplace: guardianData.Workplace || '',
@@ -1565,9 +1605,9 @@ export default function CreateApplicationInternalPage() {
       };
 
       // Submit caretaker, father, and mother data
-      tasks.push(createGuardian(caretakerData));
       tasks.push(createGuardian(fatherData));
       tasks.push(createGuardian(motherData));
+      tasks.push(createGuardian(caretakerData));
 
 
       // รวม siblingsData และ siblingData เข้าไปด้วยกัน
@@ -3311,9 +3351,7 @@ export default function CreateApplicationInternalPage() {
                     }}
                     className="w-3/4 p-3 border border-gray-300 rounded"
                   />
-                  {applicationErrors.AdvisorName && (
-                    <p className="text-red-500">{applicationErrors.AdvisorName}</p>
-                  )}
+                  {applicationErrors.AdvisorName && ( <p className="text-red-500">{applicationErrors.AdvisorName}</p>)}
                 </div>
 
 
@@ -3584,7 +3622,7 @@ export default function CreateApplicationInternalPage() {
                   >
                     <option value="">เลือกประเภทไฟล์</option>
                     <option value="รูปถ่ายหน้าตรง">รูปถ่ายหน้าตรง</option>
-                    <option value="ใบสมัคร">ใบสมัคร</option>
+            
                     <option value="หนังสือรับรองสภาพการเป็นนิสิต">หนังสือรับรองสภาพการเป็นนิสิต</option>
                     <option value="ใบสะสมผลการเรียน">ใบสะสมผลการเรียน</option>
                     <option value="สำเนาบัตรประชาชนผู้สมัคร">สำเนาบัตรประชาชนผู้สมัคร</option>
