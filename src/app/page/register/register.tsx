@@ -262,7 +262,6 @@ export default function RegisterPage() {
 
         // แสดงข้อความแจ้งเตือนว่าการลงทะเบียนล้มเหลว
         Swal.fire({
-          position: "top-end",
           icon: "error",
           title: "การลงทะเบียนล้มเหลว",
           text: fullErrorMessage,
