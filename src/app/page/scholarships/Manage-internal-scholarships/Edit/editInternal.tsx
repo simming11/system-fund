@@ -392,139 +392,6 @@ export default function EditInternalScholarshipPage() {
     }
   };
 
-  // const handleCopyAndPostNew = async () => {
-  //   try {
-  //     // Log the original formData
-  //     console.log("Original formData:", formData);
-
-  //     // Check if formData.information and formData.Description are defined and set to empty array if not
-  //     const information = Array.isArray(formData.information) ? formData.information : [];
-  //     const description = Array.isArray(formData.Description) ? formData.Description : [];
-
-  //     // Modify the ScholarshipName to avoid duplication
-  //     const newScholarshipName = formData.ScholarshipName + " (คัดลอก)";
-
-  //     // Prepare the form data for submission
-  //     const submitFormData = {
-  //       ...formData,
-  //       ScholarshipName: newScholarshipName, // Use the new name to avoid duplication
-  //       information: information.filter((item: string) => item !== "อื่น ๆ"),
-  //       Description: description.filter((item: string) => item !== "อื่น ๆ"),
-  //     };
-
-  //     // Log submitFormData to see what it contains
-  //     console.log("submitFormData:", submitFormData);
-
-  //     const payload = new FormData();
-  //     for (const [key, value] of Object.entries(submitFormData)) {
-  //       if (Array.isArray(value)) {
-  //         value.forEach((item: string) => {
-  //           payload.append(`${key}[]`, item);
-  //         });
-  //       } else if (value instanceof Blob) {
-  //         payload.append(key, value);
-  //       } else {
-  //         payload.append(key, value as string);
-  //       }
-  //     }
-
-  //     // Log payload to check what will be sent
-  //     payload.forEach((value, key) => {
-  //       console.log(key, value);
-  //     });
-
-  //     // Check if an announcement file exists before adding it to the payload
-  //     if (formData.AnnouncementFile) {
-  //       payload.append('AnnouncementFile', formData.AnnouncementFile);
-  //       console.log('AnnouncementFile:', formData.AnnouncementFile);
-  //     }
-
-  //     // Create a new scholarship
-  //     const scholarshipID = await ApiAllcreateServiceScholarships.createScholarship(payload);
-  //     console.log("Scholarship created with ID:", scholarshipID);
-
-  //     // Send notification if lineToken exists
-  //     if (lineToken) {
-  //       const message = `ทุนการศึกษาใหม่ ${newScholarshipName} \nคลิกเพื่อดูรายละเอียด: ${URL}/page/scholarships/detail?id=${scholarshipID}`;
-  //       await ApiLineNotifyServices.sendLineNotify(message, lineToken);
-  //       console.log("Line notify sent with message:", message);
-  //     } else {
-  //       console.error("LINE Notify token is null");
-  //     }
-
-  //     // Update Courses
-  //     if (formData.Major.length > 0) {
-  //       await ApiAllcreateServiceScholarships.createCourses({
-  //         ScholarshipID: scholarshipID,
-  //         CourseName: formData.Major,
-  //       });
-  //       console.log("Courses updated with Major:", formData.Major);
-  //     }
-
-  //     // Update Documents
-  //     if (submitFormData.information.length > 0 || formData.otherDocument) {
-  //       await ApiAllcreateServiceScholarships.createDocuments({
-  //         ScholarshipID: scholarshipID,
-  //         documents: submitFormData.information,
-  //         otherDocument: formData.otherDocument,
-  //       });
-  //       console.log("Documents updated with information:", submitFormData.information);
-  //     }
-
-  //     // Update Qualifications
-  //     if (submitFormData.Description.length > 0) {
-  //       await ApiAllcreateServiceScholarships.createQualifications({
-  //         ScholarshipID: scholarshipID,
-  //         qualifications: submitFormData.Description,
-  //         otherQualificationText: formData.otherQualificationText,
-  //       });
-  //       console.log("Qualifications updated with Description:", submitFormData.Description);
-  //     }
-
-  //     // Upload the image if it exists
-  //     if (formData.Image) {
-  //       await ApiAllcreateServiceScholarships.createImage({
-  //         ScholarshipID: scholarshipID,
-  //         ImagePath: formData.Image,
-  //       });
-  //       console.log("Image uploaded:", formData.Image);
-  //     }
-
-  //     // Upload other files if they exist
-  //     for (const file of formData.Files) {
-  //       if (file && file.file) {
-  //         await ApiAllcreateServiceScholarships.createFile({
-  //           ScholarshipID: scholarshipID,
-  //           FileType: "ไฟล์",
-  //           FilePath: file.file,
-  //         });
-  //         console.log("File uploaded:", file.file);
-  //       }
-  //     }
-
-  //     // Display success message
-  //     Swal.fire({
-  //       title: "",
-  //       text: "คัดลอกและสร้างทุนการศึกษาใหม่เรียบร้อยแล้ว!",
-  //       icon: "success"
-  //     });
-
-  //     // Clear session storage and redirect
-  //     sessionStorage.clear();
-  //     router.push("/page/scholarships/Manage-internal-scholarships");
-  //   } catch (error) {
-  //     console.error("Error copying scholarship:", error);
-  //     Swal.fire({
-  //       title: "Error",
-  //       text: "ไม่สามารถคัดลอกทุนการศึกษาได้ กรุณาลองอีกครั้ง",
-  //       icon: "error",
-  //     });
-  //   }
-  // };
-
-
-
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -717,7 +584,7 @@ export default function EditInternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
+            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในคณะ</h2>
             {loading && (
               <div className="flex items-center justify-center mb-4">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>
