@@ -179,7 +179,7 @@ export default function InternalApplicationDataPage() {
                 <div className="bg-white flex-1 w-7/8">
                     <div className="bg-white rounded-lg p-6">
                     <ButtonHome/>
-                        <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนภายนอกมหาวิทยาลัย</h2>
+                        <h2 className="text-2xl font-semibold mb-6">ข้อมูลการสมัครทุนที่มาจากภายนอก</h2>
 
                         <div className="flex justify-between items-center mb-4 space-x-4">
                             {/* Filter by year */}
