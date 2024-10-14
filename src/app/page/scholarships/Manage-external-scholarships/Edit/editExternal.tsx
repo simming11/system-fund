@@ -587,7 +587,7 @@ export default function EditExternalScholarshipPage() {
         </div>
         <div className="bg-white shadow-md flex-1 w-1/8">
           <div className="bg-white rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาภายในมหาวิทยาลัย</h2>
+            <h2 className="text-2xl font-semibold mb-6">แก้ไขข้อมูลทุนการศึกษาที่มาจากภายนอก</h2>
             {loading && (
               <div className="flex items-center justify-center mb-4">
                 <div className="loader border-t-4 border-blue-500 rounded-full w-16 h-16 animate-spin"></div>

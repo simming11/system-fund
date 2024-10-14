@@ -37,6 +37,7 @@ interface Scholarship {
   YearLevel: string; // Add this line for YearLevel
   Year: string
   status:string
+  TypeID:string
 }
 
 export default function ApplyScholarShipsPage() {
@@ -397,6 +398,9 @@ export default function ApplyScholarShipsPage() {
     ปีการศึกษา {scholarship.Year}
   </p>
   <p className="text-gray-600">{scholarship.Description}</p>
+  <p className="text-gray-600">
+  {Number(scholarship.TypeID) === 1 ? 'ทุนภายในคณะ' : Number(scholarship.TypeID) === 2 ? 'ทุนที่มาจากภายนอก' : ''}
+</p>
   <p className="text-gray-500 text-sm">
     โพสเมื่อ{" "}
     {scholarship.StartDate

@@ -249,7 +249,7 @@ export default function ManageExternalScholarshipsPage() {
 
           <div className="bg-white rounded-lg p-6">
           <ButtonHome/>
-            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาภายนอกคณะ</h2>
+            <h2 className="text-2xl font-semibold mb-6">จัดการทุนการศึกษาที่มาจากภายนอก</h2>
             <div className="mb-4 flex items-center justify-between space-x-4">
               {/* Add Button */}
               <button
